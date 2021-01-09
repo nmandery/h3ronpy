@@ -1,0 +1,8 @@
+notebook 
+rasterio 
+ipympl
+numpy
+geopandas
+h3
+descartes
+scipy
