@@ -30,7 +30,9 @@ def _get_transform(t):
     if HAS_AFFINE_LIB:
         if isinstance(t, affine.Affine):
             return Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
-    # TODO: native gdal
+    if type(t) in (list, tuple) and len(t) == 6:
+        # proptably native gdal
+        return Transform.from_gdal(t)
     raise ValueError("unsupported object for transform")
 
 
@@ -127,4 +129,4 @@ def array_to_geodataframe(*a, **kw):
     uses the same parameters as array_to_dataframe
     """
     kw["geo"] = True
-    df = array_to_dataframe(*a, **kw)
+    return array_to_dataframe(*a, **kw)
