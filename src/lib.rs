@@ -39,7 +39,7 @@ pub fn nearest_h3_resolution(shape_any: &PyAny, transform: &Transform, axis_orde
         .map_err(convert_array_error)
 }
 
-fn array_to_h3<'a, T>(arr: &'a ArrayView2<'a, T>, transform: &'a Transform, nodata_value: &'a T, h3_resolution: u8, axis_order_str: &str) -> PyResult<HashMap<T, H3CompactedVec>>
+fn array_to_h3<'a, T>(arr: &'a ArrayView2<'a, T>, transform: &'a Transform, nodata_value: &'a Option<T>, h3_resolution: u8, axis_order_str: &str) -> PyResult<HashMap<T, H3CompactedVec>>
     where T: PartialEq + Sized + Sync + Eq + Hash + Element {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
     validate_h3_resolution(h3_resolution)?;
@@ -57,7 +57,7 @@ fn array_to_h3<'a, T>(arr: &'a ArrayView2<'a, T>, transform: &'a Transform, noda
 macro_rules! make_array_to_h3_variant {
     ($name:ident, $dtype:ty) => {
         #[pyfunction]
-        fn $name<'py>(_py: Python<'py>, np_array: PyReadonlyArray2<$dtype>, transform: &Transform, nodata_value: $dtype, h3_resolution: u8, axis_order_str: &str) -> PyResult<HashMap<$dtype, H3CompactedVec>> {
+        fn $name<'py>(_py: Python<'py>, np_array: PyReadonlyArray2<$dtype>, transform: &Transform, nodata_value: Option<$dtype>, h3_resolution: u8, axis_order_str: &str) -> PyResult<HashMap<$dtype, H3CompactedVec>> {
             let arr = np_array.as_array();
             array_to_h3(&arr, transform, &nodata_value, h3_resolution, axis_order_str)
         }

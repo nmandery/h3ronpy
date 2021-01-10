@@ -48,14 +48,14 @@ def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_di
     return lib.nearest_h3_resolution(shape, _get_transform(transform), axis_order, search_mode)
 
 
-def array_to_h3(in_array, transform, nodata_value, h3_resolution, axis_order="yx"):
+def array_to_h3(in_array, transform, h3_resolution, nodata_value=None, axis_order="yx"):
     """
     convert a raster/array to a pandas dataframe containing H3 indexes
 
     :param in_array: input 2-d array
     :param transform:  the affine transformation
-    :param nodata_value: the nodata value. For these cells of the array there will be no h3 indexes generated
     :param h3_resolution: target h3 resolution
+    :param nodata_value: the nodata value. For these cells of the array there will be no h3 indexes generated
     :param axis_order: axis order of the 2d array. Either "xy" or "yx"
     :return: dict with the former array values as keys, mapping to compactedvec instances containing the h3 indexes.
     """
@@ -84,21 +84,21 @@ def array_to_h3(in_array, transform, nodata_value, h3_resolution, axis_order="yx
     return func(in_array, _get_transform(transform), nodata_value, h3_resolution, axis_order)
 
 
-def array_to_dataframe(in_array, transform, nodata_value, h3_resolution, axis_order="yx", compacted=True, geo=False):
+def array_to_dataframe(in_array, transform, h3_resolution, nodata_value=None, axis_order="yx", compacted=True, geo=False):
     """
     convert a raster/array to a pandas dataframe containing H3 indexes
 
     :param in_array: input 2-d array
     :param transform:  the affine transformation
     :param nodata_value: the nodata value. For these cells of the array there will be no h3 indexes generated
-    :param h3_resolution: target h3 resolution
     :param axis_order: axis order of the 2d array. Either "xy" or "yx"
+    :param h3_resolution: target h3 resolution
     :param compacted: return compacted h3 indexes (see H3 docs)
     :param geo: return a geopandas geodataframe with geometries. increases the memory usage.
     :return: pandas dataframe or geodataframe
     """
     frames = []
-    for value, compacted_vec in array_to_h3(in_array, transform, nodata_value, h3_resolution, axis_order=axis_order).items():
+    for value, compacted_vec in array_to_h3(in_array, transform, h3_resolution, nodata_value=nodata_value, axis_order=axis_order).items():
         indexes =  None
         if compacted:
             indexes = compacted_vec.compacted_indexes()
