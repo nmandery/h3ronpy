@@ -31,7 +31,7 @@ impl FromStr for ResolutionSearchMode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "min_diff" | "min-diff" => Ok(Self { inner: h3n::ResolutionSearchMode::MinDiff }),
-            "smaller_than_pixel" | "smaller-than-diff" => Ok(Self { inner: h3n::ResolutionSearchMode::SmallerThanPixel }),
+            "smaller_than_pixel" | "smaller-than-pixel" => Ok(Self { inner: h3n::ResolutionSearchMode::SmallerThanPixel }),
             _ => Err(PyValueError::new_err("unknown resolution search mode"))
         }
     }
