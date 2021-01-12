@@ -34,7 +34,7 @@ To build this extension, you will need:
 On Ubuntu most system-level dependencies should be available after running rustup and 
 
 ```shell
-sudo apt-get install cmake python3-dev clang build-essential
+sudo apt-get install cmake python3-dev build-essential
 ```
 
 ### Build using [maturin](https://github.com/PyO3/maturin)
@@ -45,4 +45,4 @@ There are three main commands:
 * `maturin build` builds the wheels and stores them in a folder (`../target/wheels` by default), but doesn't upload them. It's possible to upload those with [twine](https://github.com/pypa/twine).
 * `maturin develop` builds the crate and installs it as a python module directly in the current virtualenv.
 
-To build the extension just use the `maturin build` command.
+To build the extension just use the `maturin build --release` command for an optimized build.

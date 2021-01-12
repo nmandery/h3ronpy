@@ -20,14 +20,14 @@ from shapely.geometry import Polygon
 try:
     # affine library is used by rasterio
     import affine
-    HAS_AFFINE_LIB = True
+    __HAS_AFFINE_LIB = True
 except:
-    HAS_AFFINE_LIB = False
+    __HAS_AFFINE_LIB = False
 
 def _get_transform(t):
     if isinstance(t, Transform):
         return t
-    if HAS_AFFINE_LIB:
+    if __HAS_AFFINE_LIB:
         if isinstance(t, affine.Affine):
             return Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
     if type(t) in (list, tuple) and len(t) == 6:
