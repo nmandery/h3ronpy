@@ -2,6 +2,7 @@ mod array;
 mod transform;
 mod collections;
 mod util;
+mod polygon;
 
 use pyo3::{prelude::*, PyNativeType, Python, wrap_pyfunction};
 use h3ron_ndarray as h3n;
@@ -12,7 +13,8 @@ use crate::{
         AxisOrder,
         convert_array_error
     },
-    collections::H3CompactedVec
+    collections::H3CompactedVec,
+    polygon::Polygon,
 };
 use numpy::{PyReadonlyArray2, Element};
 
@@ -84,6 +86,7 @@ fn h3ronpy(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 
     m.add("Transform", m.py().get_type::<Transform>())?;
     m.add("H3CompactedVec", m.py().get_type::<H3CompactedVec>())?;
+    m.add("Polygon", m.py().get_type::<Polygon>())?;
 
     m.add_function(wrap_pyfunction!(version, m)?)?;
     m.add_function(wrap_pyfunction!(nearest_h3_resolution, m)?)?;

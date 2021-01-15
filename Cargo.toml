@@ -21,6 +21,7 @@ default = ["pyo3/extension-module"]
 pyo3 = "0.13" # matches numpy crates requirements
 numpy = "^0.13"
 env_logger = "^0.8"
+geo-types = "^0.6"
 
 [dependencies.h3ron-ndarray]
 path = "../h3ron-ndarray"
