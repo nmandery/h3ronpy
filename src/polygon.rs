@@ -7,7 +7,6 @@ use pyo3::{
 use h3ron::{
     Index,
     ToLinkedPolygons,
-    algorithm::smoothen_h3_linked_polygon,
 };
 use pyo3::types::PyTuple;
 use std::collections::HashMap;
@@ -27,16 +26,9 @@ impl Polygon {
             .map(|hi| Index::from(*hi))
             .collect();
 
-        let polys = h3indexes.to_linked_polygons()
+        let polys = h3indexes.to_linked_polygons(smoothen)
             .drain(..)
-            .map(|poly| {
-                let p = if smoothen {
-                    smoothen_h3_linked_polygon(&poly)
-                } else {
-                    poly
-                };
-                Polygon { inner: p }
-            })
+            .map(|poly| { Polygon { inner: poly } })
             .collect();
 
         Ok(polys)
