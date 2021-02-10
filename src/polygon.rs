@@ -7,6 +7,7 @@ use pyo3::{
 use h3ron::{
     Index,
     ToLinkedPolygons,
+    ToAlignedLinkedPolygons,
 };
 use pyo3::types::PyTuple;
 use std::collections::HashMap;
@@ -27,6 +28,21 @@ impl Polygon {
             .collect();
 
         let polys = h3indexes.to_linked_polygons(smoothen)
+            .drain(..)
+            .map(|poly| { Polygon { inner: poly } })
+            .collect();
+
+        Ok(polys)
+    }
+
+    #[staticmethod]
+    #[args(num = "-1", smoothen = "false")]
+    fn from_h3indexes_aligned(h3index_arr: PyReadonlyArray1<u64>, align_to_h3_resolution: u8, smoothen: bool) -> PyResult<Vec<Polygon>> {
+        let h3indexes: Vec<_> = h3index_arr.as_array().iter()
+            .map(|hi| Index::from(*hi))
+            .collect();
+
+        let polys = h3indexes.to_aligned_linked_polygons(align_to_h3_resolution, smoothen)
             .drain(..)
             .map(|poly| { Polygon { inner: poly } })
             .collect();
