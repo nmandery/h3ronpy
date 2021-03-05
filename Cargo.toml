@@ -14,14 +14,18 @@ repository = "https://github.com/nmandery/h3ron"
 name = "h3ronpy"
 crate-type = ["cdylib"]
 
-[features]
-default = ["pyo3/extension-module"]
-
 [dependencies]
-pyo3 = "0.13" # matches numpy crates requirements
 numpy = "^0.13"
 env_logger = "^0.8"
 geo-types = "^0.6"
+
+[dependencies.pyo3]
+version = "0.13" # matches numpy crates requirements
+features = [
+    "extension-module",
+    "abi3",
+    "abi3-py37",
+]
 
 [dependencies.h3ron-ndarray]
 path = "../h3ron-ndarray"
