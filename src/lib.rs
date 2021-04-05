@@ -1,29 +1,30 @@
-mod array;
-mod transform;
-mod collections;
-mod util;
-mod polygon;
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::str::FromStr;
 
+use ndarray::ArrayView2;
+use numpy::{Element, PyReadonlyArray2};
 use pyo3::{prelude::*, PyNativeType, Python, wrap_pyfunction};
+
+use h3ron::error::check_valid_h3_resolution;
 use h3ron_ndarray as h3n;
+
 use crate::{
-    transform::Transform,
     array::{
-        ResolutionSearchMode,
         AxisOrder,
-        convert_array_error
+        ResolutionSearchMode,
     },
     collections::H3CompactedVec,
     polygon::Polygon,
+    transform::Transform,
 };
-use numpy::{PyReadonlyArray2, Element};
+use crate::error::IntoPyResult;
 
-use std::str::FromStr;
-use std::hash::Hash;
-use ndarray::{ArrayView2};
-use std::collections::HashMap;
-use crate::util::validate_h3_resolution;
-
+mod array;
+mod transform;
+mod collections;
+mod polygon;
+mod error;
 
 /// version of the module
 #[pyfunction]
@@ -38,19 +39,19 @@ pub fn nearest_h3_resolution(shape_any: &PyAny, transform: &Transform, axis_orde
     let shape: [usize; 2] = shape_any.extract()?;
 
     h3n::resolution::nearest_h3_resolution(&shape, &transform.inner, &axis_order.inner, search_mode.inner)
-        .map_err(convert_array_error)
+        .into_pyresult()
 }
 
 fn array_to_h3<'a, T>(arr: &'a ArrayView2<'a, T>, transform: &'a Transform, nodata_value: &'a Option<T>, h3_resolution: u8, axis_order_str: &str) -> PyResult<HashMap<T, H3CompactedVec>>
     where T: PartialEq + Sized + Sync + Eq + Hash + Element {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
-    validate_h3_resolution(h3_resolution)?;
+    check_valid_h3_resolution(h3_resolution).into_pyresult()?;
 
     let conv = h3n::H3Converter::new(&arr, &nodata_value, &transform.inner, axis_order.inner);
     let result = conv.to_h3(h3_resolution, true)
-        .map_err(convert_array_error)?
+        .into_pyresult()?
         .drain()
-        .map(|(value, compacted_vec)| (value.clone(), H3CompactedVec {inner:compacted_vec}))
+        .map(|(value, compacted_vec)| (value.clone(), H3CompactedVec { inner: compacted_vec }))
         .collect();
 
     Ok(result)
@@ -81,7 +82,6 @@ make_array_to_h3_variant!(array_to_h3_i64, i64);
 /// h3ron python bindings
 #[pymodule]
 fn h3ronpy(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-
     env_logger::init(); // run with the environment variable RUST_LOG set to "debug" for log output
 
     m.add("Transform", m.py().get_type::<Transform>())?;

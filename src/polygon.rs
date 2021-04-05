@@ -24,7 +24,7 @@ impl Polygon {
     #[args(num = "-1", smoothen = "false")]
     fn from_h3indexes(h3index_arr: PyReadonlyArray1<u64>, smoothen: bool) -> PyResult<Vec<Polygon>> {
         let h3indexes: Vec<_> = h3index_arr.as_array().iter()
-            .map(|hi| Index::from(*hi))
+            .map(|hi| Index::new(*hi))
             .collect();
 
         let polys = h3indexes.to_linked_polygons(smoothen)
@@ -39,7 +39,7 @@ impl Polygon {
     #[args(num = "-1", smoothen = "false")]
     fn from_h3indexes_aligned(h3index_arr: PyReadonlyArray1<u64>, align_to_h3_resolution: u8, smoothen: bool) -> PyResult<Vec<Polygon>> {
         let h3indexes: Vec<_> = h3index_arr.as_array().iter()
-            .map(|hi| Index::from(*hi))
+            .map(|hi| Index::new(*hi))
             .collect();
 
         let polys = h3indexes.to_aligned_linked_polygons(align_to_h3_resolution, smoothen)

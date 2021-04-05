@@ -36,7 +36,3 @@ impl FromStr for ResolutionSearchMode {
         }
     }
 }
-
-pub fn convert_array_error(err: h3n::Error) -> PyErr {
-    PyValueError::new_err(err.to_string())
-}
