@@ -1,19 +1,18 @@
 use pyo3::prelude::*;
 
-use h3ron::collections as h3c;
-use h3ron_h3_sys::H3Index;
-use numpy::{PyArray1, IntoPyArray};
-use h3ron::error::check_valid_h3_resolution;
 use crate::error::IntoPyResult;
+use h3ron::collections as h3c;
+use h3ron::error::check_valid_h3_resolution;
+use h3ron_h3_sys::H3Index;
+use numpy::{IntoPyArray, PyArray1};
 
 #[pyclass]
 pub struct H3CompactedVec {
-    pub(crate) inner: h3c::H3CompactedVec
+    pub(crate) inner: h3c::H3CompactedVec,
 }
 
 #[pymethods]
 impl H3CompactedVec {
-
     fn len(&self) -> PyResult<usize> {
         Ok(self.inner.len())
     }
@@ -41,7 +40,10 @@ impl H3CompactedVec {
 
     fn compacted_indexes_at_resolution(&self, h3_resolution: u8) -> PyResult<Py<PyArray1<u64>>> {
         check_valid_h3_resolution(h3_resolution).into_pyresult()?;
-        let indexes = self.inner.get_compacted_indexes_at_resolution(h3_resolution).to_vec();
+        let indexes = self
+            .inner
+            .get_compacted_indexes_at_resolution(h3_resolution)
+            .to_vec();
         return_h3indexes_array(indexes)
     }
 

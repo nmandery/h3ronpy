@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
 
 use h3ron_ndarray as h3n;
-use pyo3::PyObjectProtocol;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyNotImplementedError;
+use pyo3::PyObjectProtocol;
 
 /// affine geotransform
 #[pyclass]
@@ -14,11 +14,10 @@ pub struct Transform {
 
 #[pymethods]
 impl Transform {
-
     #[new]
     pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
         Self {
-            inner: h3n::Transform::new( a, b, c, d, e, f )
+            inner: h3n::Transform::new(a, b, c, d, e, f),
         }
     }
 
@@ -27,7 +26,7 @@ impl Transform {
     pub fn from_gdal(gdal_transform: &PyAny) -> PyResult<Self> {
         let gt: [f64; 6] = gdal_transform.extract()?;
         Ok(Transform {
-            inner: h3n::Transform::from_gdal(&gt)
+            inner: h3n::Transform::from_gdal(&gt),
         })
     }
 
@@ -36,12 +35,10 @@ impl Transform {
     pub fn from_rasterio(rio_transform: &PyAny) -> PyResult<Self> {
         let rt: [f64; 6] = rio_transform.extract()?;
         Ok(Transform {
-            inner: h3n::Transform::from_rasterio(&rt)
+            inner: h3n::Transform::from_rasterio(&rt),
         })
     }
-
 }
-
 
 #[pyproto]
 impl<'p> PyObjectProtocol<'p> for Transform {
