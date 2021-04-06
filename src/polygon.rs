@@ -16,7 +16,7 @@ pub struct Polygon {
 #[pymethods]
 impl Polygon {
     #[staticmethod]
-    #[args(num = "-1", smoothen = "false")]
+    #[args(smoothen = "false")]
     fn from_h3indexes(
         h3index_arr: PyReadonlyArray1<u64>,
         smoothen: bool,
@@ -37,7 +37,7 @@ impl Polygon {
     }
 
     #[staticmethod]
-    #[args(num = "-1", smoothen = "false")]
+    #[args(smoothen = "false")]
     fn from_h3indexes_aligned(
         h3index_arr: PyReadonlyArray1<u64>,
         align_to_h3_resolution: u8,
