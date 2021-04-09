@@ -6,3 +6,5 @@ h3ron python bindings
 from .h3ronpy import version, Polygon
 
 __version__ = version()
+
+H3_CRS = "EPSG:4326"

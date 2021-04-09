@@ -18,6 +18,8 @@ crate-type = ["cdylib"]
 numpy = "^0.13"
 env_logger = "^0.8"
 geo-types = "^0.6"
+wkb = "^0.7"
+rayon = "^1.5"
 
 [dependencies.pyo3]
 version = "0.13" # matches numpy crates requirements

@@ -8,31 +8,33 @@ Resolution search modes
 * "smaller_than_pixel":  chose the h3 resolution where the area of the h3index is smaller than the area of a pixel.
 """
 
-from . import h3ronpy as lib
-from .h3ronpy import Transform
-
-import numpy as np
-import h3.api.numpy_int as h3
-import pandas as pd
 import geopandas as gp
+import h3.api.numpy_int as h3
+import numpy as np
 from shapely.geometry import Polygon
+
+import pandas as pd
+from .h3ronpy import raster
+from . import H3_CRS
 
 try:
     # affine library is used by rasterio
     import affine
+
     __HAS_AFFINE_LIB = True
 except:
     __HAS_AFFINE_LIB = False
 
+
 def _get_transform(t):
-    if isinstance(t, Transform):
+    if isinstance(t, raster.Transform):
         return t
     if __HAS_AFFINE_LIB:
         if isinstance(t, affine.Affine):
-            return Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
+            return raster.Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
     if type(t) in (list, tuple) and len(t) == 6:
-        # proptably native gdal
-        return Transform.from_gdal(t)
+        # probably native gdal
+        return raster.Transform.from_gdal(t)
     raise ValueError("unsupported object for transform")
 
 
@@ -47,12 +49,17 @@ def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_di
     :param search_mode: resolution search mode (see documentation of this module)
     :return:
     """
-    return lib.nearest_h3_resolution(shape, _get_transform(transform), axis_order, search_mode)
+    return raster.nearest_h3_resolution(shape, _get_transform(transform), axis_order, search_mode)
 
 
-def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, nodata_value=None, axis_order:str= "yx", compacted:bool=True, geo:bool=False):
+def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, nodata_value=None, axis_order: str = "yx",
+                        compacted: bool = True, geo: bool = False):
     """
     convert a raster/array to a pandas dataframe containing H3 indexes
+
+    This function is parallelized and uses the available CPUs by distributing tiles to a thread pool.
+
+    The input geometry must be in WGS84.
 
     :param in_raster: input 2-d array
     :param transform:  the affine transformation
@@ -67,43 +74,44 @@ def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, noda
     dtype = in_raster.dtype
     func = None
     if dtype == np.uint8:
-        func = lib.raster_to_h3_u8
+        func = raster.raster_to_h3_u8
     elif dtype == np.int8:
-        func = lib.raster_to_h3_i8
+        func = raster.raster_to_h3_i8
     elif dtype == np.uint16:
-        func = lib.raster_to_h3_u16
+        func = raster.raster_to_h3_u16
     elif dtype == np.int16:
-        func = lib.raster_to_h3_i16
+        func = raster.raster_to_h3_i16
     elif dtype == np.uint32:
-        func = lib.raster_to_h3_u32
+        func = raster.raster_to_h3_u32
     elif dtype == np.int32:
-        func = lib.raster_to_h3_i32
+        func = raster.raster_to_h3_i32
     elif dtype == np.uint64:
-        func = lib.raster_to_h3_u64
+        func = raster.raster_to_h3_u64
     elif dtype == np.int64:
-        func = lib.raster_to_h3_i64
+        func = raster.raster_to_h3_i64
     else:
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
-    #print(func.__name__)
+    # print(func.__name__)
     values, indexes = func(in_raster, _get_transform(transform), nodata_value, h3_resolution, axis_order, compacted)
     if geo:
         return gp.GeoDataFrame({
             "h3index": indexes,
             "value": values,
             "geometry": [Polygon(h3.h3_to_geo_boundary(h, geo_json=True)) for h in np.nditer(indexes)],
-        })
+        }, crs=H3_CRS)
     else:
         return pd.DataFrame({
             "h3index": indexes,
             "value": values
         })
 
-def array_to_geodataframe(*a, **kw):
-    """
-    convert to as geodataframe
 
-    uses the same parameters as array_to_dataframe
+def raster_to_geodataframe(*a, **kw):
+    """
+    convert to a geodataframe
+
+    Uses the same parameters as array_to_dataframe
     """
     kw["geo"] = True
     return raster_to_dataframe(*a, **kw)
