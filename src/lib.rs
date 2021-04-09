@@ -13,8 +13,8 @@ mod vector;
 
 /// version of the module
 #[pyfunction]
-fn version() -> PyResult<String> {
-    Ok(env!("CARGO_PKG_VERSION").to_string())
+fn version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
 }
 
 /// h3ron python bindings

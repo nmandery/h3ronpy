@@ -52,8 +52,7 @@ fn wkbbytes_with_ids_to_h3(
         .zip(wkb_list.iter())
         .par_bridge()
         .map(|(id, wkbdata)| {
-            wkbbytes_to_h3(wkbdata, h3_resolution, do_compact)
-                .and_then(|h3indexes| Ok((*id, h3indexes)))
+            wkbbytes_to_h3(wkbdata, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
         })
         .try_fold(
             || (vec![], vec![]),
