@@ -1,8 +1,11 @@
-# the `h3ronpy` python extension
+# `h3ronpy`
 
-... exposes some functionalities of the `h3ron*` rust crates to the python language and integrates with the [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/),
-[geopandas](https://geopandas.org/), [rasterio](https://rasterio.readthedocs.io/en/latest/) and [gdal](https://gdal.org/) libraries. One goal is to not duplicate any
-functions already implemented by the [official H3 python bindings](https://github.com/uber/h3-py).
+[![PyPI version](https://img.shields.io/pypi/v/h3ronpy)](https://pypi.python.org/pypi/h3ronpy/)
+
+Python extension for the [H3](https://h3geo.org) geospatial indexing system exposing some functionalities of the `h3ron*` rust crates to the python language and integrating with the [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/),
+[geopandas](https://geopandas.org/), [rasterio](https://rasterio.readthedocs.io/en/latest/) and [gdal](https://gdal.org/) libraries. 
+
+One goal is to not duplicate any functions already implemented by the [official H3 python bindings](https://github.com/uber/h3-py).
 
 This library is in parts parallelized using [rayon](https://github.com/rayon-rs/rayon). The number of threads can be controlled as 
 described in [the rayon FAQ](https://github.com/rayon-rs/rayon/blob/master/FAQ.md#how-many-threads-will-rayon-spawn)
