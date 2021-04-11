@@ -1,6 +1,6 @@
 [package]
 name = "h3ronpy"
-version = "0.8.1"
+version = "0.9.0"
 authors = ["Nico Mandery <nico@nmandery.net>"]
 description = "python bindings for h3ron"
 edition = "2018"
@@ -31,7 +31,7 @@ features = [
 
 [dependencies.h3ron-ndarray]
 path = "../h3ron-ndarray"
-version = "0.8.1"
+version = "0.9.0"
 
 [dependencies.ndarray]
 version = "0.14" # matches numpy crates requirements
@@ -39,11 +39,11 @@ features = ["rayon"]
 
 [dependencies.h3ron]
 path = "../h3ron"
-version = "0.8.1"
+version = "0.9.0"
 
 [dependencies.h3ron-h3-sys]
 path = "../h3ron-h3-sys"
-version = "0.8.1"
+version = "0.9.0"
 
 [package.metadata.maturin]
 # python dependencies of the generated package
