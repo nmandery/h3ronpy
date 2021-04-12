@@ -3,3 +3,10 @@ requires = [
     "maturin==0.10.2"
 ]
 build-backend = "maturin"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--doctest-modules"
+testpaths = [
+    "h3ronpy",
+]
