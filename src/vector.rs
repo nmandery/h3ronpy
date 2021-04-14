@@ -5,7 +5,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
 use rayon::prelude::*;
 
-use h3ron::{compact, HasH3Index, ToH3Indexes};
+use h3ron::{compact, Index, ToH3Indexes};
 
 use crate::error::IntoPyResult;
 

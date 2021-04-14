@@ -6,7 +6,7 @@ use numpy::PyReadonlyArray1;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
-use h3ron::{Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
+use h3ron::{HexagonIndex, Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
 
 #[pyclass]
 pub struct Polygon {
@@ -21,7 +21,7 @@ impl Polygon {
         let h3indexes: Vec<_> = h3index_arr
             .as_array()
             .iter()
-            .map(|hi| Index::new(*hi))
+            .map(|hi| HexagonIndex::new(*hi))
             .collect();
 
         h3indexes
@@ -41,7 +41,7 @@ impl Polygon {
         let h3indexes: Vec<_> = h3index_arr
             .as_array()
             .iter()
-            .map(|hi| Index::new(*hi))
+            .map(|hi| HexagonIndex::new(*hi))
             .collect();
 
         h3indexes
