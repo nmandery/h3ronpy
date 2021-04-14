@@ -13,7 +13,8 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
                 h3ron::Error::InvalidInput
                 | h3ron::Error::MixedResolutions
                 | h3ron::Error::InvalidH3Resolution
-                | h3ron::Error::InvalidH3Index => Err(PyValueError::new_err(err.to_string())),
+                | h3ron::Error::InvalidH3Hexagon(_)
+                | h3ron::Error::InvalidH3Edge(_) => Err(PyValueError::new_err(err.to_string())),
 
                 h3ron::Error::PentagonalDistortion
                 | h3ron::Error::NoLocalIJCoordinates
