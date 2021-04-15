@@ -1,12 +1,16 @@
 [build-system]
 requires = [
-    "maturin==0.10.2"
+    "maturin==0.10.2",
+
+    # rasterio is only needed for the unittests
+    "rasterio>=1.1"
 ]
 build-backend = "maturin"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--doctest-modules"
+addopts = "--doctest-modules -v -s"
 testpaths = [
     "h3ronpy",
+    "tests"
 ]

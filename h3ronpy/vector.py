@@ -27,7 +27,7 @@ def geometries_to_h3_generator(geometries: np.array, ids: np.array, h3_resolutio
     num_chunks = math.ceil(len(geometries) / chunk_size)
     for (chunk_geometries, chunk_ids) in zip(np.array_split(geometries, num_chunks),
                                              np.array_split(ids, num_chunks)):
-        chunk_wkb_list = [item.to_wkb() for item in chunk_geometries]
+        chunk_wkb_list = [item.wkb for item in chunk_geometries]
 
         (ids, h3indexes) = vector.wkbbytes_with_ids_to_h3(chunk_ids, chunk_wkb_list, h3_resolution, do_compact)
         yield (ids, h3indexes)
