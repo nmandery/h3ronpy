@@ -11,8 +11,8 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
             Ok(v) => Ok(v),
             Err(err) => match err {
                 h3ron::Error::InvalidInput
-                | h3ron::Error::MixedResolutions
-                | h3ron::Error::InvalidH3Resolution
+                | h3ron::Error::MixedResolutions(..)
+                | h3ron::Error::InvalidH3Resolution(_)
                 | h3ron::Error::InvalidH3Hexagon(_)
                 | h3ron::Error::InvalidH3Edge(_) => Err(PyValueError::new_err(err.to_string())),
 
