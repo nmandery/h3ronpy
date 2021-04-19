@@ -14,7 +14,7 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
                 | h3ron::Error::MixedResolutions(..)
                 | h3ron::Error::InvalidH3Resolution(_)
                 | h3ron::Error::InvalidH3Direction(_)
-                | h3ron::Error::InvalidH3Hexagon(_)
+                | h3ron::Error::InvalidH3Cell(_)
                 | h3ron::Error::InvalidH3Edge(_) => Err(PyValueError::new_err(err.to_string())),
 
                 h3ron::Error::PentagonalDistortion
