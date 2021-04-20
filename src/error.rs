@@ -18,7 +18,7 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
                 | h3ron::Error::InvalidH3Edge(_) => Err(PyValueError::new_err(err.to_string())),
 
                 h3ron::Error::PentagonalDistortion
-                | h3ron::Error::NoLocalIJCoordinates
+                | h3ron::Error::NoLocalIjCoordinates
                 | h3ron::Error::LineNotComputable
                 | h3ron::Error::UnsupportedOperation => {
                     Err(PyRuntimeError::new_err(err.to_string()))

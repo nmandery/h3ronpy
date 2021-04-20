@@ -30,6 +30,7 @@ fn wkbbytes_to_h3(wkbdata: &&[u8], h3_resolution: u8, do_compact: bool) -> PyRes
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[pyfunction]
 fn wkbbytes_with_ids_to_h3(
     py: Python,

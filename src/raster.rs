@@ -74,6 +74,7 @@ pub fn nearest_h3_resolution(
     .into_pyresult()
 }
 
+#[allow(clippy::type_complexity)]
 fn raster_to_h3<'a, T>(
     py: Python,
     arr: &'a ArrayView2<'a, T>,
