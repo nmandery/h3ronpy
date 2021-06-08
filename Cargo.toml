@@ -20,6 +20,7 @@ env_logger = "^0.8"
 geo-types = "^0.6"
 wkb = "=0.7.0" # 0.7.1 updates geo-types from 0.6 to 0.7
 rayon = "^1.5"
+ordered-float = "^2"
 
 [dependencies.pyo3]
 version = "0.13" # matches numpy crates requirements

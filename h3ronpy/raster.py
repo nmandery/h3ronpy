@@ -89,10 +89,13 @@ def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, noda
         func = raster.raster_to_h3_u64
     elif dtype == np.int64:
         func = raster.raster_to_h3_i64
+    elif dtype == np.float32:
+        func = raster.raster_to_h3_f32
+    elif dtype == np.float64:
+        func = raster.raster_to_h3_f64
     else:
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
-    # print(func.__name__)
     values, indexes = func(in_raster, _get_transform(transform), nodata_value, h3_resolution, axis_order, compacted)
     if geo:
         return gp.GeoDataFrame({
