@@ -15,6 +15,7 @@ from shapely.geometry import Polygon
 
 import pandas as pd
 from .h3ronpy import raster
+from .util import _array_nditer
 from . import H3_CRS
 
 try:
@@ -101,7 +102,7 @@ def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, noda
         return gp.GeoDataFrame({
             "h3index": indexes,
             "value": values,
-            "geometry": [Polygon(h3.h3_to_geo_boundary(h, geo_json=True)) for h in np.nditer(indexes)],
+            "geometry": [Polygon(h3.h3_to_geo_boundary(h, geo_json=True)) for h in _array_nditer(indexes)],
         }, crs=H3_CRS)
     else:
         return pd.DataFrame({
