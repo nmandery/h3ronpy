@@ -3,6 +3,7 @@ import h3.api.numpy_int as h3
 import numpy as np
 import pandas as pd
 import typing
+import warnings
 from shapely.geometry import Polygon
 
 from . import H3_CRS
@@ -22,6 +23,18 @@ def h3indexes_to_geodataframe(
 
 
 def h3index_column_to_geodataframe(df: pd.DataFrame, column_name: str = "h3index") -> gpd.GeoDataFrame:
+    """
+    convert a dataframe with a column containing h3indexes to a geodataframe
+
+    :param df: input dataframe
+    :param column_name: name of the column containing the h3 indexes
+    :return: GeoDataFrame
+    """
+    warnings.warn("h3index_column_to_geodataframe has been deprecated in favor of dataframe_to_geodataframe", DeprecationWarning)
+    return dataframe_to_geodataframe(df, column_name=column_name)
+
+
+def dataframe_to_geodataframe(df: pd.DataFrame, column_name: str = "h3index") -> gpd.GeoDataFrame:
     """
     convert a dataframe with a column containing h3indexes to a geodataframe
 
