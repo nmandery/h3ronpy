@@ -1,7 +1,7 @@
-import math
-import typing
+from typing import Tuple, Generator
 
 import geopandas as gpd
+import math
 import numpy as np
 import pandas as pd
 
@@ -9,8 +9,7 @@ from .h3ronpy import vector
 
 
 def geometries_to_h3_generator(geometries: np.array, ids: np.array, h3_resolution: int, do_compact: bool = False,
-                               chunk_size: int = 1000) -> typing.Generator[
-    typing.Tuple[np.array, np.array], None, None]:
+                               chunk_size: int = 1000) -> Generator[Tuple[np.array, np.array], None, None]:
     """
     Generator to convert shapely geometries and ids to two numpy arrays with h3indexes and the correlated Ids.
     Yields (ids, h3indexes)-tuples.
@@ -30,7 +29,7 @@ def geometries_to_h3_generator(geometries: np.array, ids: np.array, h3_resolutio
         chunk_wkb_list = [item.wkb for item in chunk_geometries]
 
         (ids, h3indexes) = vector.wkbbytes_with_ids_to_h3(chunk_ids, chunk_wkb_list, h3_resolution, do_compact)
-        yield (ids, h3indexes)
+        yield ids, h3indexes
 
 
 def geodataframe_to_h3(df: gpd.GeoDataFrame, h3_resolution: int, do_compact: bool = False, geometry_column="geometry",

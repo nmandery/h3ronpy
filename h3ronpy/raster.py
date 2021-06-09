@@ -23,7 +23,7 @@ try:
     import affine
 
     __HAS_AFFINE_LIB = True
-except:
+except ImportError:
     __HAS_AFFINE_LIB = False
 
 
