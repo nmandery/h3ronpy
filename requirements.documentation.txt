@@ -6,3 +6,4 @@ geopandas
 h3
 descartes
 scipy
+nbconvert==6.0.7
