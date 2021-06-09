@@ -157,15 +157,15 @@ macro_rules! make_raster_to_h3_float_variant {
             axis_order_str: &str,
             compacted: bool,
         ) -> PyResult<(Py<PyArray<$dtype, Ix1>>, Py<PyArray<u64, Ix1>>)> {
-            let arr = np_array.as_array();
             {
+                let arr = np_array.as_array();
                 // create a copy with the values wrapped in ordered floats to
                 // support the internal hashing
                 let of_arr = arr.map(|v| OrderedFloat::from(*v));
                 raster_to_h3(
                     &of_arr.view(),
                     transform,
-                    &nodata_value.map(|v| OrderedFloat::from(v)),
+                    &nodata_value.map(OrderedFloat::from),
                     h3_resolution,
                     axis_order_str,
                     compacted,
@@ -193,7 +193,6 @@ make_raster_to_h3_variant!(raster_to_h3_u64, u64);
 make_raster_to_h3_variant!(raster_to_h3_i64, i64);
 make_raster_to_h3_float_variant!(raster_to_h3_f32, f32);
 make_raster_to_h3_float_variant!(raster_to_h3_f64, f64);
-
 
 pub fn init_raster_submodule(m: &PyModule) -> PyResult<()> {
     m.add("Transform", m.py().get_type::<Transform>())?;
