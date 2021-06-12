@@ -15,10 +15,10 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "^0.13"
+numpy = "=0.13.2"
 env_logger = "^0.8"
-geo-types = "^0.6"
-wkb = "=0.7.0" # 0.7.1 updates geo-types from 0.6 to 0.7
+geo-types = "^0.7"
+wkb = "0.7.1"
 rayon = "^1.5"
 ordered-float = "^2"
 
@@ -35,7 +35,7 @@ path = "../h3ron-ndarray"
 version = "0.10.0"
 
 [dependencies.ndarray]
-version = "0.14" # matches numpy crates requirements
+version = "0.15"
 features = ["rayon"]
 
 [dependencies.h3ron]
