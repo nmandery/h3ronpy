@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "maturin==0.10.2",
+    "maturin==0.11.2",
 
     # rasterio is only needed for the unittests
     "rasterio>=1.1"

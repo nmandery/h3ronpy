@@ -15,15 +15,15 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "=0.13.2"
-env_logger = "^0.8"
+numpy = "0.14"
+env_logger = "^0.9"
 geo-types = "^0.7"
 wkb = "0.7.1"
 rayon = "^1.5"
 ordered-float = "^2"
 
 [dependencies.pyo3]
-version = "0.13" # matches numpy crates requirements
+version = "0.14" # matches numpy crates requirements
 features = [
     "extension-module",
     "abi3",
