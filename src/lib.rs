@@ -29,11 +29,11 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
 
     let vector_submod = PyModule::new(py, "vector")?;
     init_vector_submodule(vector_submod)?;
-    m.add_submodule(&vector_submod)?;
+    m.add_submodule(vector_submod)?;
 
     let raster_submod = PyModule::new(py, "raster")?;
     init_raster_submodule(raster_submod)?;
-    m.add_submodule(&raster_submod)?;
+    m.add_submodule(raster_submod)?;
 
     Ok(())
 }

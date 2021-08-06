@@ -90,7 +90,7 @@ where
     let axis_order = AxisOrder::from_str(axis_order_str)?;
     check_valid_h3_resolution(h3_resolution).into_pyresult()?;
 
-    let conv = h3n::H3Converter::new(&arr, &nodata_value, &transform.inner, axis_order.inner);
+    let conv = h3n::H3Converter::new(arr, nodata_value, &transform.inner, axis_order.inner);
 
     let mut values = vec![];
     let mut h3indexes = vec![];
