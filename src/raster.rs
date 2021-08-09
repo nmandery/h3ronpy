@@ -10,6 +10,7 @@ use pyo3::{prelude::*, wrap_pyfunction, PyNativeType};
 use h3ron::error::check_valid_h3_resolution;
 use h3ron_ndarray as h3n;
 
+use crate::cells_to_h3indexes;
 use crate::error::IntoPyResult;
 use crate::transform::Transform;
 
@@ -93,25 +94,25 @@ where
     let conv = h3n::H3Converter::new(arr, nodata_value, &transform.inner, axis_order.inner);
 
     let mut values = vec![];
-    let mut h3indexes = vec![];
+    let mut cells = vec![];
     for (value, compacted_vec) in conv
         .to_h3(h3_resolution, compacted)
         .into_pyresult()?
         .drain()
     {
-        let mut this_indexes: Vec<_> = if compacted {
-            compacted_vec.iter_compacted_indexes().collect()
+        let mut this_cells: Vec<_> = if compacted {
+            compacted_vec.iter_compacted_cells().collect()
         } else {
             compacted_vec
-                .iter_uncompacted_indexes(h3_resolution)
+                .iter_uncompacted_cells(h3_resolution)
                 .collect()
         };
-        let mut this_values = vec![*value; this_indexes.len()];
+        let mut this_values = vec![*value; this_cells.len()];
         values.append(&mut this_values);
-        h3indexes.append(&mut this_indexes);
+        cells.append(&mut this_cells);
     }
 
-    Ok((values, h3indexes))
+    Ok((values, cells_to_h3indexes(cells)))
 }
 
 macro_rules! make_raster_to_h3_variant {

@@ -3,6 +3,7 @@ use pyo3::{prelude::*, wrap_pyfunction, PyNativeType, Python};
 use crate::raster::init_raster_submodule;
 use crate::vector::init_vector_submodule;
 use crate::{collections::H3CompactedVec, polygon::Polygon};
+use h3ron::{H3Cell, Index};
 
 mod collections;
 mod error;
@@ -36,4 +37,8 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_submodule(raster_submod)?;
 
     Ok(())
+}
+
+pub fn cells_to_h3indexes(mut cells: Vec<H3Cell>) -> Vec<u64> {
+    cells.drain(..).map(|cell| cell.h3index() as u64).collect()
 }
