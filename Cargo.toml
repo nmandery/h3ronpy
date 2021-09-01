@@ -7,8 +7,8 @@ edition = "2018"
 license = "MIT"
 keywords = ["geo", "spatial", "h3", "ndarray", "numpy", "python"]
 readme = "README.md"
-homepage = "https://github.com/nmandery/h3ron"
-repository = "https://github.com/nmandery/h3ron"
+homepage = "https://github.com/nmandery/h3ronpy"
+repository = "https://github.com/nmandery/h3ronpy"
 
 [lib]
 name = "h3ronpy"
@@ -31,7 +31,6 @@ features = [
 ]
 
 [dependencies.h3ron-ndarray]
-path = "../h3ron-ndarray"
 version = "0.12.0"
 
 [dependencies.ndarray]
@@ -39,11 +38,9 @@ version = "0.15"
 features = ["rayon"]
 
 [dependencies.h3ron]
-path = "../h3ron"
 version = "0.12.0"
 
 [dependencies.h3ron-h3-sys]
-path = "../h3ron-h3-sys"
 version = "0.12.0"
 
 [package.metadata.maturin]

@@ -1,0 +1,13 @@
+Cargo.lock
+target
+.idea
+*.gpkg
+*.gpkg-wal
+*.gpkg-shm
+perf.data
+perf.data.old
+flamegraph*.svg
+/h3ronpy/h3ronpy*.so
+.ipynb_checkpoints
+/venv
+__pycache__

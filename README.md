@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/h3ronpy)](https://pypi.python.org/pypi/h3ronpy/)
 
-Python extension for the [H3](https://h3geo.org) geospatial indexing system exposing some functionalities of the `h3ron*` rust crates to the python language and integrating with the [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/),
+Python extension for the [H3](https://h3geo.org) geospatial indexing system exposing some functionalities of the [h3ron](https://github.com/nmandery/h3ron) rust crates to the python language and integrating with the [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/),
 [geopandas](https://geopandas.org/), [rasterio](https://rasterio.readthedocs.io/en/latest/) and [gdal](https://gdal.org/) libraries. 
 
 One goal is to not duplicate any functions already implemented by the [official H3 python bindings](https://github.com/uber/h3-py).
@@ -86,7 +86,7 @@ pyplot.rcParams['figure.dpi'] = 200
 
 
 ```python
-src = rasterio.open("../data/europe-and-north-africa.tif")
+src = rasterio.open("data/europe-and-north-africa.tif")
 print(src.colorinterp)
 
 green = src.read(2)
@@ -141,7 +141,7 @@ pyplot.imshow(vegetation, **vegetation_plot_args)
 
 
 
-    <matplotlib.image.AxesImage at 0x7f6627843ac0>
+    <matplotlib.image.AxesImage at 0x7f7dd3bd9790>
 
 
 
