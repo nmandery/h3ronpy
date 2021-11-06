@@ -9,7 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - The python extension has been removed from this repository and moved to its own repository at
   [github.com/nmandery/h3ronpy](https://github.com/nmandery/h3ronpy).
-- Upgrade h3ron dependency to 0.13, h3ron-ndarray to 0.13
+- Upgrade h3ron dependency to 0.13, h3ron-ndarray to 0.13.
+- Upgrade `pyo3` and `rust-numpy` dependencies to 0.15.
 
 ## h3ronpy [0.12.0] - 2021-08-10
 ### Changed
