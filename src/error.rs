@@ -1,4 +1,4 @@
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
+use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
 use pyo3::PyResult;
 
 pub trait IntoPyResult<T> {
@@ -23,6 +23,8 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
                 | h3ron::Error::UnsupportedOperation => {
                     Err(PyRuntimeError::new_err(err.to_string()))
                 }
+
+                h3ron::Error::IOError(_) => Err(PyIOError::new_err(err.to_string())),
             },
         }
     }

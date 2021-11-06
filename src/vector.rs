@@ -5,7 +5,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
 use rayon::prelude::*;
 
-use h3ron::{compact, Index, ToH3Cells};
+use h3ron::{compact, H3Cell, Index, ToH3Cells};
 
 use crate::error::IntoPyResult;
 
@@ -13,14 +13,18 @@ fn wkbbytes_to_h3(wkbdata: &&[u8], h3_resolution: u8, do_compact: bool) -> PyRes
     let mut cursor = Cursor::new(wkbdata);
     match wkb::wkb_to_geom(&mut cursor) {
         Ok(g) => {
-            let mut cells = g.to_h3_cells(h3_resolution).into_pyresult()?;
+            let mut cells: Vec<H3Cell> = g
+                .to_h3_cells(h3_resolution)
+                .into_pyresult()?
+                .iter()
+                .collect();
 
             // deduplicate, in the case of overlaps or lines
             cells.sort_unstable();
             cells.dedup();
 
             if do_compact {
-                cells = compact(&cells);
+                cells = compact(&cells).iter().collect();
             }
             Ok(cells.drain(..).map(|i| i.h3index()).collect())
         }
