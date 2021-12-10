@@ -141,7 +141,7 @@ pyplot.imshow(vegetation, **vegetation_plot_args)
 
 
 
-    <matplotlib.image.AxesImage at 0x7f7dd3bd9790>
+    <matplotlib.image.AxesImage at 0x7f2ecf3b40d0>
 
 
 
@@ -349,3 +349,12 @@ gpd.GeoDataFrame({}, geometry=box_aligned_geoms).plot(edgecolor="black", linewid
 ![png](README_files/README_21_1.png)
     
 
+
+### Vectorized operations on h3indexes
+
+The `h3ronpy.op` module contains vectorized functions for working with h3indexes. Currently mostly for working with k-rings - more will propably be added in the future.
+
+
+```python
+
+```
