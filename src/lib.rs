@@ -1,3 +1,13 @@
+#![warn(
+    clippy::all,
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    nonstandard_style
+)]
+
 use pyo3::{prelude::*, wrap_pyfunction, PyNativeType, Python};
 
 use crate::op::init_op_submodule;
