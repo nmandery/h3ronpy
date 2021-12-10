@@ -2,11 +2,10 @@ use std::collections::HashMap;
 use std::iter::once;
 
 use geo_types as gt;
+use h3ron::{H3Cell, Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
 use numpy::PyReadonlyArray1;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-
-use h3ron::{H3Cell, Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
 
 #[pyclass]
 pub struct Polygon {

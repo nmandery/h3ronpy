@@ -6,6 +6,9 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
+### Added
+- `h3ronpy.op.kring_distances` and `h3ronpy.op.kring_distances_agg`
+
 ### Changed
 - The python extension has been removed from this repository and moved to its own repository at
   [github.com/nmandery/h3ronpy](https://github.com/nmandery/h3ronpy).

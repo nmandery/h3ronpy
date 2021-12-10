@@ -1,5 +1,6 @@
 use pyo3::{prelude::*, wrap_pyfunction, PyNativeType, Python};
 
+use crate::op::init_op_submodule;
 use crate::raster::init_raster_submodule;
 use crate::vector::init_vector_submodule;
 use crate::{collections::H3CompactedVec, polygon::Polygon};
@@ -7,6 +8,7 @@ use h3ron::{H3Cell, Index};
 
 mod collections;
 mod error;
+mod op;
 mod polygon;
 mod raster;
 mod transform;
@@ -35,6 +37,10 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     let raster_submod = PyModule::new(py, "raster")?;
     init_raster_submodule(raster_submod)?;
     m.add_submodule(raster_submod)?;
+
+    let op_submod = PyModule::new(py, "op")?;
+    init_op_submodule(op_submod)?;
+    m.add_submodule(op_submod)?;
 
     Ok(())
 }
