@@ -6,6 +6,8 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
+
+## h3ronpy [0.13.0] - 2021-12-10
 ### Added
 - `h3ronpy.op.kring_distances` and `h3ronpy.op.kring_distances_agg`.
 
