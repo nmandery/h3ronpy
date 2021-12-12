@@ -5,15 +5,19 @@ import subprocess
 from pathlib import Path
 
 import sys
+import os
 
-
-def pip_install(packages):
+def install(packages, upgrade=False):
+    pkg_manager = os.environ.get("PKG_MANAGER") or 'pip'
+    cmd = [pkg_manager, "install"]
+    if upgrade and pkg_manager == 'pip':
+        cmd.append("--upgrade")
     if packages:
-        subprocess.run(["pip", "install", "--upgrade"] + packages, stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.run(cmd + packages, stdout=sys.stdout, stderr=sys.stderr)
 
 
 if __name__ == '__main__':
-    pip_install(["pip", "toml"])  # always upgrade pip
+    install(["pip", "toml"], upgrade=True)  # always upgrade pip
 
     import toml  # import only after it has been installed
 
@@ -36,4 +40,4 @@ if __name__ == '__main__':
     for pkg in toml.load(directory / "Cargo.toml").get("package", {}).get("metadata", {}).get("maturin", {}).get(
             "requires-dist", []):
         packages.append(pkg)
-    pip_install(packages)
+    install(packages)
