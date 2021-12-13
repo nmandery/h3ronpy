@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+## h3ronpy [0.13.1] - 2021-12-13
+
+### Added 
+- Building wheels for Windows and Mac using github actions.
+
 ## h3ronpy [0.13.0] - 2021-12-10
 ### Added
 - `h3ronpy.op.kring_distances` and `h3ronpy.op.kring_distances_agg`.

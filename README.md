@@ -15,9 +15,7 @@ described in [the rayon FAQ](https://github.com/rayon-rs/rayon/blob/master/FAQ.m
 
 ### via PyPI
 
-Currently only `manylinux_2_24` wheels and the source distribution is pushed to PyPi. Support for other platforms is [planned](https://github.com/nmandery/h3ron/issues/18) - PRs are welcome.
-
-To install the `manylinux_2_24` wheels, a fairly recent version of `pip` is required. So in case `pip` only finds the source distribution, upgrade `pip` using
+Regarding linux: to install the `manylinux_2_24` wheels, a fairly recent version of `pip` is required. So in case `pip` only finds the source distribution, upgrade `pip` using
 
 ```
 pip install --upgrade pip
