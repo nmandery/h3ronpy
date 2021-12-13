@@ -110,7 +110,7 @@ jobs:
         run: |
           source $HOME/.cargo/env
           export PATH="/opt/python/cp38-cp38/bin/:$PATH"
-          maturin publish --username __token__
+          maturin publish --username __token__ --skip-existing
 
 
   publish-macos:
@@ -139,7 +139,7 @@ jobs:
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI }}
         run: |
-          maturin publish --username __token__
+          maturin publish --username __token__ --skip-existing
 
   publish-windows:
     needs: lint
@@ -171,4 +171,4 @@ jobs:
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI }}
         run: |
-          maturin publish --username __token__
+          maturin publish --username __token__ --skip-existing
