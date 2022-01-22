@@ -31,7 +31,7 @@ version = "0.15" # matches numpy crates requirements
 features = [
     "extension-module",
     "abi3",
-    "abi3-py36",
+    "abi3-py37",
 ]
 
 [dependencies.h3ron-ndarray]
