@@ -1,5 +1,7 @@
+use geo_types::Geometry;
 use std::io::Cursor;
 
+use geozero::wkb::{FromWkb, WkbDialect};
 use numpy::{IntoPyArray, Ix1, PyArray, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
@@ -9,9 +11,9 @@ use h3ron::{compact, H3Cell, Index, ToH3Cells};
 
 use crate::error::IntoPyResult;
 
-fn wkbbytes_to_h3(wkbdata: &&[u8], h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
+fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
     let mut cursor = Cursor::new(wkbdata);
-    match wkb::wkb_to_geom(&mut cursor) {
+    match Geometry::from_wkb(&mut cursor, WkbDialect::Wkb) {
         Ok(g) => {
             let mut cells: Vec<H3Cell> = g
                 .to_h3_cells(h3_resolution)
@@ -55,7 +57,7 @@ fn wkbbytes_with_ids_to_h3(
         .zip(wkb_list.iter())
         .par_bridge()
         .map(|(id, wkbdata)| {
-            wkbbytes_to_h3(wkbdata, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
+            wkbbytes_to_h3(*wkbdata, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
         })
         .try_fold(
             || (vec![], vec![]),

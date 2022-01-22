@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+- Replace usage of `wkb` crate with `geozero` because of licensing.
+
 ## h3ronpy [0.13.1] - 2021-12-13
 
 ### Added 

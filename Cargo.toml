@@ -18,9 +18,13 @@ crate-type = ["cdylib"]
 numpy = "0.15"
 env_logger = "^0.9"
 geo-types = "^0.7"
-wkb = "0.7.1"
 rayon = "^1.5"
 ordered-float = ">=2.0.1"
+
+[dependencies.geozero]
+version = "0.8"
+default-features = false
+features = ["with-geo", "with-wkb"]
 
 [dependencies.pyo3]
 version = "0.15" # matches numpy crates requirements
