@@ -35,17 +35,17 @@ features = [
 ]
 
 [dependencies.h3ron-ndarray]
-version = "^0.13"
+version = "^0.14"
 
 [dependencies.ndarray]
 version = "0.15"
 features = ["rayon"]
 
 [dependencies.h3ron]
-version = "^0.13"
+version = "^0.14"
 
 [dependencies.h3ron-h3-sys]
-version = "0.12.0"
+version = "0.13"
 
 [package.metadata.maturin]
 # python dependencies of the generated package

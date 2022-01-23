@@ -12,6 +12,7 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
             Err(err) => match err {
                 h3ron::Error::InvalidInput
                 | h3ron::Error::MixedResolutions(..)
+                | h3ron::Error::InvalidGeometry
                 | h3ron::Error::InvalidH3Resolution(_)
                 | h3ron::Error::InvalidH3Direction(_)
                 | h3ron::Error::InvalidH3Cell(_)
@@ -20,6 +21,7 @@ impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
                 h3ron::Error::PentagonalDistortion
                 | h3ron::Error::NoLocalIjCoordinates
                 | h3ron::Error::LineNotComputable
+                | h3ron::Error::DecompressionError(_)
                 | h3ron::Error::UnsupportedOperation => {
                     Err(PyRuntimeError::new_err(err.to_string()))
                 }
