@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+### Added
+- Add `h3ronpy.op.change_resolution` and `h3ronpy.op.change_resolution_paired`
+
 ### Changed
 - Replace usage of `wkb` crate with `geozero` because of licensing.
 - Stop supporting Python 3.6 (was EOL on 23 Dec 2021). Minimum supported python version now is Python 3.7.

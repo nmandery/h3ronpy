@@ -1,6 +1,8 @@
+use std::iter::once;
 use std::str::FromStr;
 
 use h3ron::collections::HashMap;
+use h3ron::error::check_valid_h3_resolution;
 use h3ron::iter::KRingBuilder;
 use h3ron::{H3Cell, Index};
 use ndarray::ArrayView1;
@@ -145,9 +147,61 @@ fn kring_distances_agg(
     kring_distances_agg_internal(py, h3indexes, k_min, k_max, agg_closure)
 }
 
+#[pyfunction]
+fn change_resolution(
+    py: Python,
+    h3index_arr: PyReadonlyArray1<u64>,
+    h3_resolution: u8,
+) -> PyResult<Py<PyArray1<u64>>> {
+    check_valid_h3_resolution(h3_resolution).into_pyresult()?;
+
+    let mut out_vec = Vec::with_capacity(h3index_arr.len());
+    for h3index in h3index_arr.as_array().iter() {
+        // TODO: this will fail once the index-mode is checked
+        //       and the function gets applied to edges or other types.
+        let cell = H3Cell::try_from(*h3index).into_pyresult()?;
+        out_vec.extend(
+            h3ron::iter::change_resolution(once(cell), h3_resolution)
+                .map(|out_cell| out_cell.h3index() as u64),
+        );
+    }
+    Ok(out_vec.to_pyarray(py).to_owned())
+}
+
+#[allow(clippy::type_complexity)]
+#[pyfunction]
+fn change_resolution_paired(
+    py: Python,
+    h3index_arr: PyReadonlyArray1<u64>,
+    h3_resolution: u8,
+) -> PyResult<(Py<PyArray1<u64>>, Py<PyArray1<u64>>)> {
+    check_valid_h3_resolution(h3_resolution).into_pyresult()?;
+
+    let mut out_vec_after = Vec::with_capacity(h3index_arr.len());
+    let mut out_vec_before = Vec::with_capacity(h3index_arr.len());
+    for h3index in h3index_arr.as_array().iter() {
+        // TODO: this will fail once the index-mode is checked
+        //       and the function gets applied to edges or other types.
+        let cell = H3Cell::try_from(*h3index).into_pyresult()?;
+        let iter = h3ron::iter::change_resolution_tuple(once(cell), h3_resolution);
+        out_vec_after.reserve(iter.size_hint().0);
+        out_vec_before.reserve(iter.size_hint().0);
+        for (before_cell, after_cell) in iter {
+            out_vec_before.push(before_cell.h3index() as u64);
+            out_vec_after.push(after_cell.h3index() as u64);
+        }
+    }
+    Ok((
+        out_vec_before.to_pyarray(py).to_owned(),
+        out_vec_after.to_pyarray(py).to_owned(),
+    ))
+}
+
 pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(kring_distances, m)?)?;
     m.add_function(wrap_pyfunction!(kring_distances_agg, m)?)?;
+    m.add_function(wrap_pyfunction!(change_resolution, m)?)?;
+    m.add_function(wrap_pyfunction!(change_resolution_paired, m)?)?;
 
     Ok(())
 }
