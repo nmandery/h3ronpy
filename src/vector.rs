@@ -12,6 +12,11 @@ use h3ron::{compact, H3Cell, Index, ToH3Cells};
 use crate::error::IntoPyResult;
 
 fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
+    // geozero parses empty geometries as Point(0.0, 0.0), so for now we sort out empty geometries
+    // based on the number of bytes
+    if wkbdata.len() <= 9 {
+        return Ok(vec![]);
+    }
     let mut cursor = Cursor::new(wkbdata);
     match Geometry::from_wkb(&mut cursor, WkbDialect::Wkb) {
         Ok(g) => {
