@@ -11,12 +11,12 @@ Resolution search modes
 import geopandas as gp
 import h3.api.numpy_int as h3
 import numpy as np
+import pandas as pd
 from shapely.geometry import Polygon
 
-import pandas as pd
+from . import H3_CRS
 from .h3ronpy import raster
 from .util import _array_nditer
-from . import H3_CRS
 
 try:
     # affine library is used by rasterio
@@ -26,16 +26,18 @@ try:
 except ImportError:
     __HAS_AFFINE_LIB = False
 
+Transform = raster.Transform
+
 
 def _get_transform(t):
-    if isinstance(t, raster.Transform):
+    if isinstance(t, Transform):
         return t
     if __HAS_AFFINE_LIB:
         if isinstance(t, affine.Affine):
-            return raster.Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
+            return Transform.from_rasterio([t.a, t.b, t.c, t.d, t.e, t.f])
     if type(t) in (list, tuple) and len(t) == 6:
         # probably native gdal
-        return raster.Transform.from_gdal(t)
+        return Transform.from_gdal(t)
     raise ValueError("unsupported object for transform")
 
 

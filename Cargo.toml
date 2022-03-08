@@ -15,7 +15,7 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "0.15"
+numpy = "0.16"
 env_logger = "^0.9"
 geo-types = "^0.7"
 rayon = "^1.5"
@@ -27,7 +27,7 @@ default-features = false
 features = ["with-geo", "with-wkb"]
 
 [dependencies.pyo3]
-version = "0.15" # matches numpy crates requirements
+version = "0.16" # matches numpy crates requirements
 features = [
     "extension-module",
     "abi3",

@@ -3,7 +3,6 @@ use pyo3::prelude::*;
 use h3ron_ndarray as h3n;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyNotImplementedError;
-use pyo3::PyObjectProtocol;
 
 /// affine geotransform
 #[pyclass]
@@ -39,10 +38,7 @@ impl Transform {
             inner: h3n::Transform::from_rasterio(&rt),
         })
     }
-}
 
-#[pyproto]
-impl<'p> PyObjectProtocol<'p> for Transform {
     fn __richcmp__(&self, other: Transform, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Eq => Ok(self.inner == other.inner),
