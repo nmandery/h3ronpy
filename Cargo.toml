@@ -22,7 +22,7 @@ rayon = "^1.5"
 ordered-float = ">=2.0.1"
 
 [dependencies.geozero]
-version = "0.8"
+version = "0.9"
 default-features = false
 features = ["with-geo", "with-wkb"]
 
