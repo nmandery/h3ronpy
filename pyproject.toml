@@ -1,6 +1,17 @@
 [build-system]
 requires = [
-    "maturin==0.11.2",
+    "maturin==0.13.2",
+]
+requires-dist = [
+    "numpy",
+    "geopandas>=0.10",
+    "h3>=3.7",
+    "Shapely>=1.7",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+    "License :: OSI Approved :: MIT License",
 ]
 build-backend = "maturin"
 

@@ -1,6 +1,6 @@
 [package]
 name = "h3ronpy"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Nico Mandery <nico@nmandery.net>"]
 description = "python bindings for h3ron"
 edition = "2021"
@@ -15,7 +15,7 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "0.16"
+numpy = "0.17.0"
 env_logger = "^0.9"
 geo-types = "^0.7"
 rayon = "^1.5"
@@ -27,7 +27,7 @@ default-features = false
 features = ["with-geo", "with-wkb"]
 
 [dependencies.pyo3]
-version = "0.16" # matches numpy crates requirements
+version = "0.17.0" # matches numpy crates requirements
 features = [
     "extension-module",
     "abi3",
@@ -35,28 +35,14 @@ features = [
 ]
 
 [dependencies.h3ron-ndarray]
-version = "^0.14"
+version = "0.15.0"
 
 [dependencies.ndarray]
 version = "0.15"
 features = ["rayon"]
 
 [dependencies.h3ron]
-version = "^0.14"
+version = "0.15.1"
 
 [dependencies.h3ron-h3-sys]
-version = "0.13"
-
-[package.metadata.maturin]
-# python dependencies of the generated package
-requires-dist = [
-    "numpy",
-    "geopandas>=0.10",
-    "h3>=3.7",
-    "Shapely>=1.7",
-]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: GIS",
-    "License :: OSI Approved :: MIT License",
-]
+version = "0.15.0"
