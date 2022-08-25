@@ -49,14 +49,16 @@ impl H3CompactedVec {
 
     fn uncompacted_indexes_at_resolution(&self, h3_resolution: u8) -> PyResult<Py<PyArray1<u64>>> {
         check_valid_h3_resolution(h3_resolution).into_pyresult()?;
-        let cells = self.inner.iter_uncompacted_cells(h3_resolution).collect();
+        let cells = self
+            .inner
+            .iter_uncompacted_cells(h3_resolution)
+            .collect::<Result<Vec<_>, _>>()
+            .into_pyresult()?;
         Ok(return_h3index_array(cells))
     }
 }
 
 #[inline]
 fn return_h3index_array(cells: Vec<H3Cell>) -> Py<PyArray1<u64>> {
-    let gil = Python::acquire_gil();
-    let py = gil.python();
-    cells_to_h3indexes(cells).into_pyarray(py).to_owned()
+    Python::with_gil(|py| cells_to_h3indexes(cells).into_pyarray(py).to_owned())
 }

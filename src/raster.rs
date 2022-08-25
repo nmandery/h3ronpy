@@ -105,7 +105,8 @@ where
         } else {
             compacted_vec
                 .iter_uncompacted_cells(h3_resolution)
-                .collect()
+                .collect::<Result<Vec<_>, _>>()
+                .into_pyresult()?
         };
         let mut this_values = vec![*value; this_cells.len()];
         values.append(&mut this_values);

@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+- Dependency upgrades incl. upgrade to H3 v4.0.0
+  - The migration to H3 v4.0.0 comes with renaming a few functions to follow H3 conventions:
+    - In `h3ronpy.op` module:
+      - `kring_distances` -> `grid_disk_distances`
+      - `kring_distances_agg` -> `grid_disk_distances_agg`
+      - `kring_distances_agg_np` -> `grid_disk_distances_agg_np`
+     
 ## h3ronpy [0.14.0] - 2022-01-29
 
 ### Added

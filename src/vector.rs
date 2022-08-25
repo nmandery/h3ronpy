@@ -7,7 +7,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
 use rayon::prelude::*;
 
-use h3ron::{compact, H3Cell, Index, ToH3Cells};
+use h3ron::{compact_cells, H3Cell, Index, ToH3Cells};
 
 use crate::error::IntoPyResult;
 
@@ -31,7 +31,7 @@ fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResu
             cells.dedup();
 
             if do_compact {
-                cells = compact(&cells).iter().collect();
+                cells = compact_cells(&cells).into_pyresult()?.iter().collect();
             }
             Ok(cells.drain(..).map(|i| i.h3index()).collect())
         }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::iter::once;
 
+use crate::error::IntoPyResult;
 use geo_types as gt;
 use h3ron::{H3Cell, Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
 use numpy::PyReadonlyArray1;
@@ -16,18 +17,22 @@ pub struct Polygon {
 impl Polygon {
     #[staticmethod]
     #[args(smoothen = "false")]
-    fn from_h3indexes(h3index_arr: PyReadonlyArray1<u64>, smoothen: bool) -> Vec<Polygon> {
+    fn from_h3indexes(
+        h3index_arr: PyReadonlyArray1<u64>,
+        smoothen: bool,
+    ) -> PyResult<Vec<Polygon>> {
         let h3indexes: Vec<_> = h3index_arr
             .as_array()
             .iter()
             .map(|hi| H3Cell::new(*hi))
             .collect();
 
-        h3indexes
+        Ok(h3indexes
             .to_linked_polygons(smoothen)
+            .into_pyresult()?
             .drain(..)
             .map(|poly| Polygon { inner: poly })
-            .collect()
+            .collect())
     }
 
     #[staticmethod]
@@ -36,18 +41,19 @@ impl Polygon {
         h3index_arr: PyReadonlyArray1<u64>,
         align_to_h3_resolution: u8,
         smoothen: bool,
-    ) -> Vec<Polygon> {
+    ) -> PyResult<Vec<Polygon>> {
         let h3indexes: Vec<_> = h3index_arr
             .as_array()
             .iter()
             .map(|hi| H3Cell::new(*hi))
             .collect();
 
-        h3indexes
+        Ok(h3indexes
             .to_aligned_linked_polygons(align_to_h3_resolution, smoothen)
+            .into_pyresult()?
             .drain(..)
             .map(|poly| Polygon { inner: poly })
-            .collect()
+            .collect())
     }
 
     // python __geo_interface__ spec: https://gist.github.com/sgillies/2217756

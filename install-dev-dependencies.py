@@ -25,8 +25,10 @@ if __name__ == '__main__':
     packages = []
 
     pyproject_toml = toml.load(directory / "pyproject.toml")
-    for pkg in pyproject_toml.get("build-system", {}).get("requires"):
-        packages.append(pkg)
+    pyproject_bs = pyproject_toml.get("build-system", {})
+    for k in ("requires", "requires-dist"):
+        for pkg in pyproject_bs.get(k, []):
+            packages.append(pkg)
 
     pytest = pyproject_toml.get("tool", {}).get("pytest")
     if pytest is not None:
@@ -37,7 +39,4 @@ if __name__ == '__main__':
         else:
             packages.append(f"{pytest_package}")
 
-    for pkg in toml.load(directory / "Cargo.toml").get("package", {}).get("metadata", {}).get("maturin", {}).get(
-            "requires-dist", []):
-        packages.append(pkg)
     install(packages)

@@ -11,3 +11,4 @@ flamegraph*.svg
 .ipynb_checkpoints
 /venv
 __pycache__
+.pytest_cache

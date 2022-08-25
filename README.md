@@ -27,14 +27,13 @@ To build this extension from source, you will need:
 
 * Rust. Install the latest version using [rustup](https://rustup.rs/)
 * A C compiler for the libh3 sources, for example `clang`
-* `cmake`, and eventually `make`
 * Python 3.x and the corresponding C headers
 * The dependencies from the [requirements.dev.txt](./requirements.dev.txt) file.
 
 On Ubuntu most system-level dependencies should be available after running rustup and 
 
 ```shell
-sudo apt-get install cmake python3-dev build-essential clang
+sudo apt-get install python3-dev build-essential clang
 ```
 
 The build is done using [maturin](https://github.com/PyO3/maturin)
@@ -139,7 +138,7 @@ pyplot.imshow(vegetation, **vegetation_plot_args)
 
 
 
-    <matplotlib.image.AxesImage at 0x7f2ecf3b40d0>
+    <matplotlib.image.AxesImage at 0x7f95d1575570>
 
 
 
@@ -351,8 +350,3 @@ gpd.GeoDataFrame({}, geometry=box_aligned_geoms).plot(edgecolor="black", linewid
 ### Vectorized operations on h3indexes
 
 The `h3ronpy.op` module contains vectorized functions for working with h3indexes. Currently mostly for working with k-rings - more will propably be added in the future.
-
-
-```python
-
-```

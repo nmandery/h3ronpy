@@ -2,13 +2,13 @@ import h3.api.numpy_int as h3
 import numpy as np
 import math
 
-from h3ronpy.op import kring_distances_agg, kring_distances, change_resolution, change_resolution_paired
+from h3ronpy.op import grid_disk_distances_agg, grid_disk_distances, change_resolution, change_resolution_paired
 
 
 def test_kring_distances_agg():
     h3indexes = np.array([h3.geo_to_h3(10.2, 45.5, 8), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64)
     k_max = 4
-    df = kring_distances_agg(h3indexes, k_max, aggregation_method='min')
+    df = grid_disk_distances_agg(h3indexes, k_max, aggregation_method='min')
     assert len(df) > 100
     assert df['k'].min() == 0
     assert df['k'].max() == k_max
@@ -19,7 +19,7 @@ def test_kring_distances():
     h3indexes = np.array([h3.geo_to_h3(10.2, 45.5, 8), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64)
     k_max = 4
     k_min = 2
-    df = kring_distances(h3indexes, 4, k_min=k_min)
+    df = grid_disk_distances(h3indexes, 4, k_min=k_min)
     assert len(df) > 100
     assert df['ring_k'].min() == k_min
     assert df['ring_k'].max() == k_max
