@@ -35,14 +35,14 @@ features = [
 ]
 
 [dependencies.h3ron-ndarray]
-version = "0.15.0"
+version = "0.16.0"
 
 [dependencies.ndarray]
 version = "0.15"
 features = ["rayon"]
 
 [dependencies.h3ron]
-version = "0.15.1"
+version = "0.16.0"
 
 [dependencies.h3ron-h3-sys]
 version = "0.15.0"

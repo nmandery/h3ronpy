@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+* Upgrade to h3ron v0.16.0.
+
 ## h3ronpy [0.15.0] - 2022-09-11
 
 - Dependency upgrades incl. upgrade to H3 v4.0.0 / h3ron v0.15.0.
