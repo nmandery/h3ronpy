@@ -119,8 +119,7 @@ where
 macro_rules! make_raster_to_h3_variant {
     ($name:ident, $dtype:ty) => {
         #[pyfunction]
-        fn $name<'py>(
-            py: Python<'py>,
+        fn $name(
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             nodata_value: Option<$dtype>,
@@ -138,10 +137,12 @@ macro_rules! make_raster_to_h3_variant {
                 compacted,
             )
             .map(|(values, h3indexes)| {
-                (
-                    values.into_pyarray(py).to_owned(),
-                    h3indexes.into_pyarray(py).to_owned(),
-                )
+                Python::with_gil(|py| {
+                    (
+                        values.into_pyarray(py).to_owned(),
+                        h3indexes.into_pyarray(py).to_owned(),
+                    )
+                })
             })
         }
     };
@@ -150,8 +151,7 @@ macro_rules! make_raster_to_h3_variant {
 macro_rules! make_raster_to_h3_float_variant {
     ($name:ident, $dtype:ty) => {
         #[pyfunction]
-        fn $name<'py>(
-            py: Python<'py>,
+        fn $name(
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             nodata_value: Option<$dtype>,
@@ -175,10 +175,12 @@ macro_rules! make_raster_to_h3_float_variant {
             }
             .map(|(values, h3indexes)| {
                 let float_vec: Vec<_> = values.into_iter().map(|v| *v).collect();
-                (
-                    float_vec.into_pyarray(py).to_owned(),
-                    h3indexes.into_pyarray(py).to_owned(),
-                )
+                Python::with_gil(|py| {
+                    (
+                        float_vec.into_pyarray(py).to_owned(),
+                        h3indexes.into_pyarray(py).to_owned(),
+                    )
+                })
             })
         }
     };

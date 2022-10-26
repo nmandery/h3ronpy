@@ -42,7 +42,6 @@ fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResu
 #[allow(clippy::type_complexity)]
 #[pyfunction]
 fn wkbbytes_with_ids_to_h3(
-    py: Python,
     id_array: PyReadonlyArray1<u64>,
     wkb_list: Vec<&[u8]>,
     h3_resolution: u8,
@@ -86,10 +85,12 @@ fn wkbbytes_with_ids_to_h3(
             },
         )?;
 
-    Ok((
-        out.0.into_pyarray(py).to_owned(),
-        out.1.into_pyarray(py).to_owned(),
-    ))
+    Ok(Python::with_gil(|py| {
+        (
+            out.0.into_pyarray(py).to_owned(),
+            out.1.into_pyarray(py).to_owned(),
+        )
+    }))
 }
 
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {

@@ -33,7 +33,6 @@ fn k_min_max_capacity(num_h3indexes: usize, k_min: u32, k_max: u32) -> PyResult<
 #[allow(clippy::type_complexity)]
 #[pyfunction]
 fn grid_disk_distances(
-    py: Python,
     h3index_arr: PyReadonlyArray1<u64>,
     k_min: u32,
     k_max: u32,
@@ -58,11 +57,13 @@ fn grid_disk_distances(
         }
     }
 
-    Ok((
-        center_h3indexes.to_pyarray(py).to_owned(),
-        ring_h3indexes.to_pyarray(py).to_owned(),
-        ks.to_pyarray(py).to_owned(),
-    ))
+    Ok(Python::with_gil(|py| {
+        (
+            center_h3indexes.to_pyarray(py).to_owned(),
+            ring_h3indexes.to_pyarray(py).to_owned(),
+            ks.to_pyarray(py).to_owned(),
+        )
+    }))
 }
 
 enum KAggregationMode {
@@ -84,7 +85,6 @@ impl FromStr for KAggregationMode {
 
 #[allow(clippy::type_complexity)]
 fn kring_distances_agg_internal<A: Fn(&mut u32, u32)>(
-    py: Python,
     h3indexes: ArrayView1<u64>,
     k_min: u32,
     k_max: u32,
@@ -118,10 +118,12 @@ fn kring_distances_agg_internal<A: Fn(&mut u32, u32)>(
             vecs
         },
     );
-    Ok((
-        h3indexes_out.to_pyarray(py).to_owned(),
-        k_out.to_pyarray(py).to_owned(),
-    ))
+    Ok(Python::with_gil(|py| {
+        (
+            h3indexes_out.to_pyarray(py).to_owned(),
+            k_out.to_pyarray(py).to_owned(),
+        )
+    }))
 }
 
 /// Vectorized grid-disk building, with the k-values of the rings being aggregated to their `min` or
@@ -129,7 +131,6 @@ fn kring_distances_agg_internal<A: Fn(&mut u32, u32)>(
 #[allow(clippy::type_complexity)]
 #[pyfunction]
 fn grid_disk_distances_agg(
-    py: Python,
     h3index_arr: PyReadonlyArray1<u64>,
     k_min: u32,
     k_max: u32,
@@ -148,12 +149,11 @@ fn grid_disk_distances_agg(
             }
         },
     };
-    kring_distances_agg_internal(py, h3indexes, k_min, k_max, agg_closure)
+    kring_distances_agg_internal(h3indexes, k_min, k_max, agg_closure)
 }
 
 #[pyfunction]
 fn change_resolution(
-    py: Python,
     h3index_arr: PyReadonlyArray1<u64>,
     h3_resolution: u8,
 ) -> PyResult<Py<PyArray1<u64>>> {
@@ -170,13 +170,12 @@ fn change_resolution(
             out_vec.push(maybe_cell.into_pyresult()?.h3index())
         }
     }
-    Ok(out_vec.to_pyarray(py).to_owned())
+    Ok(Python::with_gil(|py| out_vec.to_pyarray(py).to_owned()))
 }
 
 #[allow(clippy::type_complexity)]
 #[pyfunction]
 fn change_resolution_paired(
-    py: Python,
     h3index_arr: PyReadonlyArray1<u64>,
     h3_resolution: u8,
 ) -> PyResult<(Py<PyArray1<u64>>, Py<PyArray1<u64>>)> {
@@ -197,10 +196,12 @@ fn change_resolution_paired(
             out_vec_after.push(after_cell.h3index() as u64);
         }
     }
-    Ok((
-        out_vec_before.to_pyarray(py).to_owned(),
-        out_vec_after.to_pyarray(py).to_owned(),
-    ))
+    Ok(Python::with_gil(|py| {
+        (
+            out_vec_before.to_pyarray(py).to_owned(),
+            out_vec_after.to_pyarray(py).to_owned(),
+        )
+    }))
 }
 
 pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
