@@ -55,6 +55,9 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
-pub fn cells_to_h3indexes(mut cells: Vec<H3Cell>) -> Vec<u64> {
-    cells.drain(..).map(|cell| cell.h3index() as u64).collect()
+pub fn cells_to_h3indexes(cells: Vec<H3Cell>) -> Vec<u64> {
+    cells
+        .into_iter()
+        .map(|cell| cell.h3index() as u64)
+        .collect()
 }

@@ -110,7 +110,7 @@ fn kring_distances_agg_internal<A: Fn(&mut u32, u32)>(
     }
 
     let capacity = cellmap.len();
-    let (h3indexes_out, k_out) = cellmap.drain().fold(
+    let (h3indexes_out, k_out) = cellmap.into_iter().fold(
         (Vec::with_capacity(capacity), Vec::with_capacity(capacity)),
         |mut vecs, (h3index, k)| {
             vecs.0.push(h3index);

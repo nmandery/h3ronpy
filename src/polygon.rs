@@ -30,7 +30,7 @@ impl Polygon {
         Ok(h3indexes
             .to_linked_polygons(smoothen)
             .into_pyresult()?
-            .drain(..)
+            .into_iter()
             .map(|poly| Polygon { inner: poly })
             .collect())
     }
@@ -51,7 +51,7 @@ impl Polygon {
         Ok(h3indexes
             .to_aligned_linked_polygons(align_to_h3_resolution, smoothen)
             .into_pyresult()?
-            .drain(..)
+            .into_iter()
             .map(|poly| Polygon { inner: poly })
             .collect())
     }

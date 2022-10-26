@@ -1,4 +1,5 @@
 use std::hash::Hash;
+use std::iter::repeat;
 use std::str::FromStr;
 
 use ndarray::ArrayView2;
@@ -95,22 +96,21 @@ where
 
     let mut values = vec![];
     let mut cells = vec![];
-    for (value, compacted_vec) in conv
-        .to_h3(h3_resolution, compacted)
-        .into_pyresult()?
-        .drain()
-    {
-        let mut this_cells: Vec<_> = if compacted {
-            compacted_vec.iter_compacted_cells().collect()
+    for (value, compacted_vec) in conv.to_h3(h3_resolution, compacted).into_pyresult()? {
+        let num_cells = if compacted {
+            let len_before = cells.len();
+            cells.extend(compacted_vec.iter_compacted_cells());
+            cells.len() - len_before
         } else {
-            compacted_vec
+            let mut value_cells = compacted_vec
                 .iter_uncompacted_cells(h3_resolution)
                 .collect::<Result<Vec<_>, _>>()
-                .into_pyresult()?
+                .into_pyresult()?;
+            let num_cells = value_cells.len();
+            cells.append(&mut value_cells);
+            num_cells
         };
-        let mut this_values = vec![*value; this_cells.len()];
-        values.append(&mut this_values);
-        cells.append(&mut this_cells);
+        values.extend(repeat(*value).take(num_cells));
     }
 
     Ok((values, cells_to_h3indexes(cells)))
@@ -173,8 +173,8 @@ macro_rules! make_raster_to_h3_float_variant {
                     compacted,
                 )
             }
-            .map(|(mut values, h3indexes)| {
-                let float_vec: Vec<_> = values.drain(..).map(|v| *v).collect();
+            .map(|(values, h3indexes)| {
+                let float_vec: Vec<_> = values.into_iter().map(|v| *v).collect();
                 (
                     float_vec.into_pyarray(py).to_owned(),
                     h3indexes.into_pyarray(py).to_owned(),
