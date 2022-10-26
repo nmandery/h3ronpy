@@ -30,10 +30,16 @@ fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResu
             cells.sort_unstable();
             cells.dedup();
 
-            if do_compact {
-                cells = compact_cells(&cells).into_pyresult()?.iter().collect();
-            }
-            Ok(cells.into_iter().map(|i| i.h3index()).collect())
+            let cells = if do_compact {
+                compact_cells(&cells)
+                    .into_pyresult()?
+                    .iter()
+                    .map(|i| i.h3index())
+                    .collect()
+            } else {
+                cells.into_iter().map(|i| i.h3index()).collect()
+            };
+            Ok(cells)
         }
         Err(err) => Err(PyValueError::new_err(format!("invalid WKB: {:?}", err))),
     }
