@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+## h3ronpy [0.15.1] - 2022-10-28
+
 * Upgrade to h3ron v0.16.0.
 * Reduced the durations the GIL is held.
 
