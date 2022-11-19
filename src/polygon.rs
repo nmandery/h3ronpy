@@ -68,7 +68,7 @@ impl Polygon {
                     let r: Vec<_> = ring
                         .0
                         .iter()
-                        .map(|c| PyTuple::new(py, &[c.x, c.y]).to_object(py))
+                        .map(|c| PyTuple::new(py, [c.x, c.y]).to_object(py))
                         .collect();
                     PyTuple::new(py, &r).to_object(py)
                 })
