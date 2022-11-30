@@ -16,7 +16,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 numpy = "0.17.0"
-env_logger = "^0.9"
+env_logger = "^0.10"
 geo-types = "^0.7"
 rayon = "^1.5"
 ordered-float = ">=2.0.1"
