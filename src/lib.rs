@@ -56,8 +56,5 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
 }
 
 pub fn cells_to_h3indexes(cells: Vec<H3Cell>) -> Vec<u64> {
-    cells
-        .into_iter()
-        .map(|cell| cell.h3index() as u64)
-        .collect()
+    cells.into_iter().map(|cell| cell.h3index()).collect()
 }

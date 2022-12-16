@@ -52,7 +52,7 @@ fn grid_disk_distances(
         builder.build_grid_disk(&cell).into_pyresult()?;
         for (ring_cell, ring_cell_k) in &mut builder {
             center_h3indexes.push(*h3index);
-            ring_h3indexes.push(ring_cell.h3index() as u64);
+            ring_h3indexes.push(ring_cell.h3index());
             ks.push(ring_cell_k);
         }
     }
@@ -103,7 +103,7 @@ fn kring_distances_agg_internal<A: Fn(&mut u32, u32)>(
         builder.build_grid_disk(&cell).into_pyresult()?;
         for (ring_cell, ring_cell_k) in &mut builder {
             cellmap
-                .entry(ring_cell.h3index() as u64)
+                .entry(ring_cell.h3index())
                 .and_modify(|existing_ring_cell_k| agg_closure(existing_ring_cell_k, ring_cell_k))
                 .or_insert(ring_cell_k);
         }
@@ -192,8 +192,8 @@ fn change_resolution_paired(
         out_vec_before.reserve(iter.size_hint().0);
         for pair in iter {
             let (before_cell, after_cell) = pair.into_pyresult()?;
-            out_vec_before.push(before_cell.h3index() as u64);
-            out_vec_after.push(after_cell.h3index() as u64);
+            out_vec_before.push(before_cell.h3index());
+            out_vec_after.push(after_cell.h3index());
         }
     }
     Ok(Python::with_gil(|py| {
