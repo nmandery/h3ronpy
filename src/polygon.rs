@@ -1,12 +1,9 @@
-use std::collections::HashMap;
-use std::iter::once;
-
 use crate::error::IntoPyResult;
 use geo_types as gt;
 use h3ron::{H3Cell, Index, ToAlignedLinkedPolygons, ToLinkedPolygons};
 use numpy::PyReadonlyArray1;
+use py_geo_interface::to_py::AsGeoInterface;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
 
 #[pyclass]
 pub struct Polygon {
@@ -58,24 +55,7 @@ impl Polygon {
 
     // python __geo_interface__ spec: https://gist.github.com/sgillies/2217756
     #[getter]
-    fn __geo_interface__(&self, py: Python) -> PyObject {
-        let mut main = HashMap::new();
-        main.insert("type".to_string(), "Polygon".to_string().into_py(py));
-        main.insert("coordinates".to_string(), {
-            let rings: Vec<_> = once(self.inner.exterior())
-                .chain(self.inner.interiors().iter())
-                .map(|ring| {
-                    let r: Vec<_> = ring
-                        .0
-                        .iter()
-                        .map(|c| PyTuple::new(py, [c.x, c.y]).to_object(py))
-                        .collect();
-                    PyTuple::new(py, &r).to_object(py)
-                })
-                .collect();
-            PyTuple::new(py, &rings).to_object(py)
-        });
-
-        main.to_object(py)
+    fn __geo_interface__(&self, py: Python) -> PyResult<PyObject> {
+        self.inner.as_geointerface_pyobject(py)
     }
 }
