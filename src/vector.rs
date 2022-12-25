@@ -8,66 +8,58 @@ use pyo3::{prelude::*, wrap_pyfunction};
 use rayon::prelude::*;
 
 use h3ron::{compact_cells, H3Cell, Index, ToH3Cells};
+use ndarray::{Array1, Zip};
+use pyo3::types::PyBytes;
 
 use crate::error::IntoPyResult;
 
-fn wkbbytes_to_h3(wkbdata: &[u8], h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
-    // geozero parses empty geometries as Point(0.0, 0.0), so for now we sort out empty geometries
-    // based on the number of bytes
-    if wkbdata.len() <= 9 {
-        return Ok(vec![]);
-    }
-    let mut cursor = Cursor::new(wkbdata);
-    match Geometry::from_wkb(&mut cursor, WkbDialect::Wkb) {
-        Ok(g) => {
-            let mut cells: Vec<H3Cell> = g
-                .to_h3_cells(h3_resolution)
-                .into_pyresult()?
-                .iter()
-                .collect();
+fn geom_to_h3(geom: &Geometry, h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
+    let mut cells: Vec<H3Cell> = geom
+        .to_h3_cells(h3_resolution)
+        .into_pyresult()?
+        .iter()
+        .collect();
 
-            // deduplicate, in the case of overlaps or lines
-            cells.sort_unstable();
-            cells.dedup();
+    // deduplicate, in the case of overlaps or lines
+    cells.sort_unstable();
+    cells.dedup();
 
-            let cells = if do_compact {
-                compact_cells(&cells)
-                    .into_pyresult()?
-                    .iter()
-                    .map(|i| i.h3index())
-                    .collect()
-            } else {
-                cells.into_iter().map(|i| i.h3index()).collect()
-            };
-            Ok(cells)
-        }
-        Err(err) => Err(PyValueError::new_err(format!("invalid WKB: {:?}", err))),
-    }
+    let cells = if do_compact {
+        compact_cells(&cells)
+            .into_pyresult()?
+            .iter()
+            .map(|i| i.h3index())
+            .collect()
+    } else {
+        cells.into_iter().map(|i| i.h3index()).collect()
+    };
+    Ok(cells)
 }
 
 #[allow(clippy::type_complexity)]
 #[pyfunction]
 fn wkbbytes_with_ids_to_h3(
     id_array: PyReadonlyArray1<u64>,
-    wkb_list: Vec<&[u8]>,
+    wkb_array: PyReadonlyArray1<PyObject>,
     h3_resolution: u8,
     do_compact: bool,
 ) -> PyResult<(Py<PyArray<u64, Ix1>>, Py<PyArray<u64, Ix1>>)> {
     // the solution with the argument typed as list of byte-instances is not great. This
     // maybe can be improved with https://github.com/PyO3/rust-numpy/issues/175
 
-    if id_array.len() != wkb_list.len() {
+    if id_array.len() != wkb_array.len() {
         return Err(PyValueError::new_err(
             "input Ids and WKBs must be of the same length",
         ));
     }
-    let out = id_array
-        .as_array()
-        .iter()
-        .zip(wkb_list.iter())
-        .par_bridge()
-        .map(|(id, wkbdata)| {
-            wkbbytes_to_h3(wkbdata, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
+
+    let geom_array: Array1<_> = extract_geometries(wkb_array)?.into();
+
+    let out = Zip::from(id_array.as_array())
+        .and(geom_array.view())
+        .into_par_iter()
+        .map(|(id, geom)| {
+            geom_to_h3(geom, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
         })
         .try_fold(
             || (vec![], vec![]),
@@ -102,4 +94,24 @@ fn wkbbytes_with_ids_to_h3(
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(wkbbytes_with_ids_to_h3, m)?)?;
     Ok(())
+}
+
+fn extract_geometries(array: PyReadonlyArray1<PyObject>) -> PyResult<Vec<Geometry>> {
+    let array = array.as_array();
+    Python::with_gil(|py| {
+        array
+            .iter()
+            .map(|obj| match obj.extract::<&PyBytes>(py) {
+                // is WKB
+                Ok(pb) => {
+                    let mut cur = Cursor::new(pb.as_bytes());
+                    Geometry::from_wkb(&mut cur, WkbDialect::Wkb)
+                        .map_err(|e| PyValueError::new_err(format!("unable to parse WKB: {:?}", e)))
+                }
+
+                // is some kind ob object, trying to extract a geometry from it
+                Err(_) => obj.extract::<py_geo_interface::Geometry>(py).map(|gi| gi.0),
+            })
+            .collect::<PyResult<Vec<_>>>()
+    })
 }

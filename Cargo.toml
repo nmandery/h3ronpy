@@ -15,11 +15,12 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-numpy = "0.17.0"
 env_logger = "^0.10"
 geo-types = "^0.7"
-rayon = "^1.5"
+numpy = "0.17.0"
 ordered-float = ">=2.0.1"
+py_geo_interface = { version = "0.4", features = ["f64", "wkb"] }
+rayon = "^1.5"
 
 [dependencies.geozero]
 version = "0.9"
