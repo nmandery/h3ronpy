@@ -49,7 +49,7 @@ jobs:
         run: |
           python -m venv venv
           . venv/bin/activate
-          pip install wheel
+          pip install wheel patchelf
           pip install --upgrade pip
           # run raster unittests on platforms where binary rasterio wheel is available
           pip install rasterio
@@ -83,7 +83,7 @@ jobs:
           apt update
           apt install -y libgdal-dev clang-7
           export PATH="/opt/python/cp38-cp38/bin/:$PATH"
-          pip install wheel
+          pip install wheel patchelf
           pip install rasterio
           python install-dev-dependencies.py
 
