@@ -17,33 +17,12 @@ crate-type = ["cdylib"]
 [dependencies]
 env_logger = "^0.10"
 geo-types = "^0.7"
+geozero = { version = "0.9", default-features = false, features = ["with-geo", "with-wkb"] }
+h3ron = "0.16.0"
+h3ron-ndarray = "0.16.0"
+ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.17.0"
 ordered-float = ">=2.0.1"
 py_geo_interface = { version = "0.4", features = ["f64", "wkb"] }
+pyo3 = { version = "0.17.0", features = ["extension-module", "abi3", "abi3-py38"] }
 rayon = "^1.5"
-
-[dependencies.geozero]
-version = "0.9"
-default-features = false
-features = ["with-geo", "with-wkb"]
-
-[dependencies.pyo3]
-version = "0.17.0" # matches numpy crates requirements
-features = [
-    "extension-module",
-    "abi3",
-    "abi3-py38",
-]
-
-[dependencies.h3ron-ndarray]
-version = "0.16.0"
-
-[dependencies.ndarray]
-version = "0.15"
-features = ["rayon"]
-
-[dependencies.h3ron]
-version = "0.16.0"
-
-[dependencies.h3ron-h3-sys]
-version = "0.15.0"
