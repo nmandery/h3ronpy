@@ -8,6 +8,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## h3ronpy [Unreleased]
 
 * Directly support GeoSeries in vector to H3 conversion by automatically exchanging geometries using WKB. [#7](https://github.com/nmandery/h3ronpy/pull/7)
+* Raise minimum supported python version to 3.8.
 
 ## h3ronpy [0.15.1] - 2022-10-28
 
