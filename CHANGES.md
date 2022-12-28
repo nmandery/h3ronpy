@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 
+## h3ronpy [0.16.0] - 2022-12-28
+
 * Directly support GeoSeries in vector to H3 conversion by automatically exchanging geometries using WKB. [#7](https://github.com/nmandery/h3ronpy/pull/7)
 * Raise minimum supported python version to 3.8.
 * `intersecting` argument for `geodataframe_to_h3` to also include cells which are only intersecting with the geometry, but whose centroid is not contained in the geometry.
