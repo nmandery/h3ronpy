@@ -18,8 +18,8 @@ crate-type = ["cdylib"]
 env_logger = "^0.10"
 geo-types = "^0.7"
 geozero = { version = "0.9", default-features = false, features = ["with-geo", "with-wkb"] }
-h3ron = "0.16.0"
-h3ron-ndarray = "0.16.0"
+h3ron = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
+h3ron-ndarray = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
 ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.17.0"
 ordered-float = ">=2.0.1"
