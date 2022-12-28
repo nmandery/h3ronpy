@@ -74,7 +74,7 @@ from scipy import ndimage
 import geopandas as gpd
 
 # increase the plot size
-pyplot.rcParams['figure.dpi'] = 200
+pyplot.rcParams['figure.dpi'] = 100
 ```
 
 ### Converting raster data to H3
@@ -106,7 +106,7 @@ show(src)
 
 
 
-    <AxesSubplot:>
+    <AxesSubplot: >
 
 
 
@@ -138,7 +138,7 @@ pyplot.imshow(vegetation, **vegetation_plot_args)
 
 
 
-    <matplotlib.image.AxesImage at 0x7f95d1575570>
+    <matplotlib.image.AxesImage at 0x7f46942b8fd0>
 
 
 
@@ -237,7 +237,7 @@ gdf.plot(column="name")
 
 
 
-    <AxesSubplot:>
+    <AxesSubplot: >
 
 
 
@@ -250,6 +250,53 @@ gdf.plot(column="name")
 
     
 ![png](README_files/README_15_2.png)
+    
+
+
+Polygon to H3 conversion is based on the H3 `polyfill` function, which fills based on the containment of the H3 cells centroid in the polygon geometry. Depending on the shape of the geometry the resulting cells may look like below:
+
+
+```python
+def fill_namibia(**kw):
+    namibia = world[world["name"] == "Namibia"]
+
+    cell_ax = util.h3index_column_to_geodataframe(vector.geodataframe_to_h3(namibia, 3, **kw)).plot()
+
+    return namibia.plot(ax=cell_ax, facecolor=(0,0,0,0), edgecolor='black')
+
+fill_namibia()
+```
+
+
+
+
+    <AxesSubplot: >
+
+
+
+
+    
+![png](README_files/README_17_1.png)
+    
+
+
+The `intersecting` argument extends the polyfill a bit to include all cells which intersect with the polygon geometry:
+
+
+```python
+fill_namibia(intersecting=True)
+```
+
+
+
+
+    <AxesSubplot: >
+
+
+
+
+    
+![png](README_files/README_19_1.png)
     
 
 
@@ -282,13 +329,13 @@ gpd.GeoDataFrame({}, geometry=sqr_geoms).plot(edgecolor="black", linewidth=0.5)
 
 
 
-    <AxesSubplot:>
+    <AxesSubplot: >
 
 
 
 
     
-![png](README_files/README_17_1.png)
+![png](README_files/README_21_1.png)
     
 
 
@@ -303,13 +350,13 @@ gpd.GeoDataFrame({}, geometry=sqr_smoothed).plot(edgecolor="black", linewidth=0.
 
 
 
-    <AxesSubplot:>
+    <AxesSubplot: >
 
 
 
 
     
-![png](README_files/README_19_1.png)
+![png](README_files/README_23_1.png)
     
 
 
@@ -337,13 +384,13 @@ gpd.GeoDataFrame({}, geometry=box_aligned_geoms).plot(edgecolor="black", linewid
 
 
 
-    <AxesSubplot:>
+    <AxesSubplot: >
 
 
 
 
     
-![png](README_files/README_21_1.png)
+![png](README_files/README_25_1.png)
     
 
 
