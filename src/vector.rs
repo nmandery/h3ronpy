@@ -7,18 +7,31 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
 use rayon::prelude::*;
 
-use h3ron::{compact_cells, H3Cell, Index, ToH3Cells};
+use h3ron::{compact_cells, H3Cell, Index, ToH3Cells, ToIntersectingH3Cells};
 use ndarray::{Array1, Zip};
 use pyo3::types::PyBytes;
 
 use crate::error::IntoPyResult;
 
-fn geom_to_h3(geom: &Geometry, h3_resolution: u8, do_compact: bool) -> PyResult<Vec<u64>> {
-    let mut cells: Vec<H3Cell> = geom
-        .to_h3_cells(h3_resolution)
-        .into_pyresult()?
-        .iter()
-        .collect();
+fn geom_to_h3(
+    geom: &Geometry,
+    h3_resolution: u8,
+    do_compact: bool,
+    partial_intersecting: bool,
+) -> PyResult<Vec<u64>> {
+    let mut cells: Vec<H3Cell> = match (geom, partial_intersecting) {
+        (Geometry::Polygon(poly), true) => poly
+            .to_intersecting_h3_cells(h3_resolution)
+            .into_pyresult()?,
+        (Geometry::MultiPolygon(mpoly), true) => mpoly
+            .to_intersecting_h3_cells(h3_resolution)
+            .into_pyresult()?,
+        _ => geom
+            .to_h3_cells(h3_resolution)
+            .into_pyresult()?
+            .iter()
+            .collect(),
+    };
 
     // deduplicate, in the case of overlaps or lines
     cells.sort_unstable();
@@ -43,6 +56,7 @@ fn wkbbytes_with_ids_to_h3(
     wkb_array: PyReadonlyArray1<PyObject>,
     h3_resolution: u8,
     do_compact: bool,
+    partial_intersecting: bool,
 ) -> PyResult<(Py<PyArray<u64, Ix1>>, Py<PyArray<u64, Ix1>>)> {
     // the solution with the argument typed as list of byte-instances is not great. This
     // maybe can be improved with https://github.com/PyO3/rust-numpy/issues/175
@@ -59,7 +73,8 @@ fn wkbbytes_with_ids_to_h3(
         .and(geom_array.view())
         .into_par_iter()
         .map(|(id, geom)| {
-            geom_to_h3(geom, h3_resolution, do_compact).map(|h3indexes| (*id, h3indexes))
+            geom_to_h3(geom, h3_resolution, do_compact, partial_intersecting)
+                .map(|h3indexes| (*id, h3indexes))
         })
         .try_fold(
             || (vec![], vec![]),
