@@ -65,6 +65,13 @@ jobs:
           . venv/bin/activate
           pytest -v
 
+      - name: run the README notebook
+        run: |
+          . venv/bin/activate
+          pip install -r requirements.documentation.txt
+          jupyter nbconvert --to Markdown --execute README.ipynb
+        
+
 
   publish-manylinux-2-24:
     if: (github.event_name == 'release' && github.event.action == 'created') || github.event_name == 'schedule'
