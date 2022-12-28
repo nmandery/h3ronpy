@@ -9,7 +9,8 @@ from .h3ronpy import vector
 
 
 def geometries_to_h3_generator(geometries: np.array, ids: np.array, h3_resolution: int, do_compact: bool = False,
-                               chunk_size: int = 1000) -> Generator[Tuple[np.array, np.array], None, None]:
+                               chunk_size: int = 1000, intersecting: bool = False) -> Generator[
+    Tuple[np.array, np.array], None, None]:
     """
     Generator to convert shapely geometries and ids to two numpy arrays with h3indexes and the correlated Ids.
     Yields (ids, h3indexes)-tuples.
@@ -21,17 +22,19 @@ def geometries_to_h3_generator(geometries: np.array, ids: np.array, h3_resolutio
     :param h3_resolution: H3 resolution to use.
     :param do_compact: Compacts the h3index when this is set to `True`. Default is `False`
     :param chunk_size: Number of geometries to include in the yielded chunks
+    :param intersecting: Also include cells which are only intersecting with the geometry, but whose centroid is not contained in the geometry.
     :return: None
     """
     num_chunks = math.ceil(len(geometries) / chunk_size)
     for (chunk_geometries, chunk_ids) in zip(np.array_split(geometries, num_chunks),
                                              np.array_split(ids, num_chunks)):
-        (ids, h3indexes) = vector.wkbbytes_with_ids_to_h3(chunk_ids, chunk_geometries, h3_resolution, do_compact)
+        (ids, h3indexes) = vector.wkbbytes_with_ids_to_h3(chunk_ids, chunk_geometries, h3_resolution, do_compact,
+                                                          intersecting)
         yield ids, h3indexes
 
 
 def geodataframe_to_h3(df: gpd.GeoDataFrame, h3_resolution: int, do_compact: bool = False, geometry_column="geometry",
-                       index_column_name="to_h3_idx", chunk_size=1000):
+                       index_column_name="to_h3_idx", chunk_size=1000, intersecting: bool = False):
     """
     convert the geometries of a geodataframe to h3 indexes.
 
@@ -45,6 +48,7 @@ def geodataframe_to_h3(df: gpd.GeoDataFrame, h3_resolution: int, do_compact: boo
     :param geometry_column: The name of the column containing the geometry. Defaults to `geometry`.
     :param index_column_name: The name for a temporary column used to join the H3 data to the input dataframe
     :param chunk_size:
+    :param intersecting: Also include cells which are only intersecting with the geometry, but whose centroid is not contained in the geometry.
     :return:
     """
     # add a column with a sequence to merge later with
@@ -52,7 +56,8 @@ def geodataframe_to_h3(df: gpd.GeoDataFrame, h3_resolution: int, do_compact: boo
     dataframes = []
     for (ids, h3indexes) in geometries_to_h3_generator(df[geometry_column].to_numpy(), df[index_column_name].to_numpy(),
                                                        h3_resolution,
-                                                       do_compact=do_compact, chunk_size=1000):
+                                                       do_compact=do_compact, chunk_size=chunk_size,
+                                                       intersecting=intersecting):
         dataframes.append(pd.DataFrame({
             index_column_name: ids,
             "h3index": h3indexes
