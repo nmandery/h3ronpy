@@ -68,7 +68,7 @@ jobs:
       - name: run the README notebook
         run: |
           . venv/bin/activate
-          pip install jupyter
+          pip install -r requirements.documentation.txt
           jupyter nbconvert --to Markdown --execute README.ipynb
         
 
