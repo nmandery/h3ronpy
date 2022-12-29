@@ -27,23 +27,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+
       - name: Install latest stable rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
           components: rustfmt, clippy
 
       - name: Lint with rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
+        run: cargo fmt
 
       - name: Lint with clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features
+        run: cargo clippy --all-targets --all-features
 
       - name: Install Python dependencies
         run: |
