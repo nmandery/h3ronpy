@@ -1,6 +1,6 @@
 # `h3ronpy`
 
-[![PyPI version](https://img.shields.io/pypi/v/h3ronpy)](https://pypi.python.org/pypi/h3ronpy/) [![dependency status](https://deps.rs/repo/github/nmandery/h3ronpy/status.svg)](https://deps.rs/repo/github/nmandery/h3ronpy)
+[![PyPI version](https://img.shields.io/pypi/v/h3ronpy)](https://pypi.python.org/pypi/h3ronpy/) [![dependency status](https://deps.rs/repo/github/nmandery/h3ronpy/status.svg)](https://deps.rs/repo/github/nmandery/h3ronpy) [![DOI](https://zenodo.org/badge/402118389.svg)](https://zenodo.org/badge/latestdoi/402118389)
 
 Python extension for the [H3](https://h3geo.org) geospatial indexing system exposing some functionalities of the [h3ron](https://github.com/nmandery/h3ron) rust crates to the python language and integrating with the [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/),
 [geopandas](https://geopandas.org/), [rasterio](https://rasterio.readthedocs.io/en/latest/) and [gdal](https://gdal.org/) libraries. 
