@@ -6,6 +6,7 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
+* Upgrade from pyo3 0.17 to 0.18.
 
 ## h3ronpy [0.16.0] - 2022-12-28
 

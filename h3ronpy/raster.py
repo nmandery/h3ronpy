@@ -99,7 +99,7 @@ def raster_to_dataframe(in_raster: np.array, transform, h3_resolution: int, noda
     else:
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
-    values, indexes = func(in_raster, _get_transform(transform), nodata_value, h3_resolution, axis_order, compacted)
+    values, indexes = func(in_raster, _get_transform(transform), h3_resolution, axis_order, compacted, nodata_value)
     if geo:
         return gp.GeoDataFrame({
             "h3index": indexes,

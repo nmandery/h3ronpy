@@ -122,10 +122,10 @@ macro_rules! make_raster_to_h3_variant {
         fn $name(
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
-            nodata_value: Option<$dtype>,
             h3_resolution: u8,
             axis_order_str: &str,
             compacted: bool,
+            nodata_value: Option<$dtype>,
         ) -> PyResult<(Py<PyArray<$dtype, Ix1>>, Py<PyArray<u64, Ix1>>)> {
             let arr = np_array.as_array();
             raster_to_h3(
@@ -154,10 +154,10 @@ macro_rules! make_raster_to_h3_float_variant {
         fn $name(
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
-            nodata_value: Option<$dtype>,
             h3_resolution: u8,
             axis_order_str: &str,
             compacted: bool,
+            nodata_value: Option<$dtype>,
         ) -> PyResult<(Py<PyArray<$dtype, Ix1>>, Py<PyArray<u64, Ix1>>)> {
             {
                 let arr = np_array.as_array();
