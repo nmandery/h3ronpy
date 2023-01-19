@@ -21,8 +21,8 @@ geozero = { version = "0.9", default-features = false, features = ["with-geo", "
 h3ron = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
 h3ron-ndarray = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
 ndarray = { version = "0.15", features = ["rayon"] }
-numpy = "0.17.0"
+numpy = "0.18"
 ordered-float = ">=2.0.1"
-py_geo_interface = { version = "0.4", features = ["f64", "wkb"] }
-pyo3 = { version = "0.17.0", features = ["extension-module", "abi3", "abi3-py38"] }
+py_geo_interface = { version = "0.5", features = ["f64", "wkb"] }
+pyo3 = { version = "0.18", features = ["extension-module", "abi3", "abi3-py38"] }
 rayon = "^1.5"
