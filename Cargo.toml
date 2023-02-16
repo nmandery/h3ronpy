@@ -1,6 +1,6 @@
 [package]
 name = "h3ronpy"
-version = "0.16.0"
+version = "0.16.1"
 authors = ["Nico Mandery <nico@nmandery.net>"]
 description = "python bindings for h3ron"
 edition = "2021"
