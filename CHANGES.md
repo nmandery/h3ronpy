@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## h3ronpy [Unreleased]
 * Upgrade from pyo3 0.17 to 0.18.
+* Support minimum supported python version to 3.7 again
 
 ## h3ronpy [0.16.0] - 2022-12-28
 

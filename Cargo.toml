@@ -24,5 +24,5 @@ ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.18"
 ordered-float = ">=2.0.1"
 py_geo_interface = { version = "0.5", features = ["f64", "wkb"] }
-pyo3 = { version = "0.18", features = ["extension-module", "abi3", "abi3-py38"] }
+pyo3 = { version = "0.18", features = ["extension-module", "abi3", "abi3-py37"] }
 rayon = "^1.5"
