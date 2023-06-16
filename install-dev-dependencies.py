@@ -7,28 +7,34 @@ from pathlib import Path
 import sys
 import os
 
+
 def install(packages, upgrade=False):
-    pkg_manager = os.environ.get("PKG_MANAGER") or 'pip'
+    pkg_manager = os.environ.get("PKG_MANAGER") or "pip"
     cmd = [pkg_manager, "install"]
-    if upgrade and pkg_manager == 'pip':
+    if upgrade and pkg_manager == "pip":
         cmd.append("--upgrade")
     if packages:
         subprocess.run(cmd + packages, stdout=sys.stdout, stderr=sys.stderr)
 
 
-if __name__ == '__main__':
-    install(["pip", "toml"], upgrade=True)  # always upgrade pip
+if __name__ == "__main__":
+    install(["pip", "toml", "black", "patchelf"], upgrade=True)  # always upgrade pip
+
+    packages = []
+
+    def harvest_deps(section, keys):
+        for k in keys:
+            packages.extend(section.get(k, []))
 
     import toml  # import only after it has been installed
 
-    directory = Path(__file__).parent
-    packages = []
+    pyproject_toml = toml.load(Path(__file__).parent / "pyproject.toml")
+    harvest_deps(pyproject_toml.get("build-system", {}), ("requires", "requires-dist"))
+    project = pyproject_toml.get("project", {})
+    harvest_deps(project, ("dependencies",))
 
-    pyproject_toml = toml.load(directory / "pyproject.toml")
-    pyproject_bs = pyproject_toml.get("build-system", {})
-    for k in ("requires", "requires-dist"):
-        for pkg in pyproject_bs.get(k, []):
-            packages.append(pkg)
+    for deps in project.get("optional-dependencies", {}).values():
+        packages.extend(deps)
 
     pytest = pyproject_toml.get("tool", {}).get("pytest")
     if pytest is not None:
