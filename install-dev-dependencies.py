@@ -18,7 +18,7 @@ def install(packages, upgrade=False):
 
 
 if __name__ == "__main__":
-    install(["pip", "toml", "black", "patchelf"], upgrade=True)  # always upgrade pip
+    install(["pip", "toml", "black", "ruff"], upgrade=True)  # always upgrade pip
 
     packages = []
 

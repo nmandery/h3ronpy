@@ -8,21 +8,20 @@
     nonstandard_style
 )]
 
-use pyo3::{prelude::*, wrap_pyfunction, PyNativeType, Python};
+use pyo3::{prelude::*, wrap_pyfunction, Python};
 
 use crate::op::init_op_submodule;
 use crate::raster::init_raster_submodule;
 use crate::vector::init_vector_submodule;
-use crate::{collections::H3CompactedVec, polygon::Polygon};
-use h3ron::{H3Cell, Index};
 
-mod collections;
+mod arrow_interop;
 mod error;
 mod op;
-mod polygon;
 mod raster;
 mod transform;
 mod vector;
+
+pub(crate) const DEFAULT_CELL_COLUMN_NAME: &str = "cell";
 
 /// version of the module
 #[pyfunction]
@@ -30,19 +29,22 @@ fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
-/// h3ron python bindings
+/// indicates if this extension has been compiled in release-mode
+#[pyfunction]
+fn is_release_build() -> bool {
+    #[cfg(debug_assertions)]
+    return false;
+
+    #[cfg(not(debug_assertions))]
+    return true;
+}
+
 #[pymodule]
 fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     env_logger::init(); // run with the environment variable RUST_LOG set to "debug" for log output
 
-    m.add("H3CompactedVec", m.py().get_type::<H3CompactedVec>())?;
-    m.add("Polygon", m.py().get_type::<Polygon>())?;
-
     m.add_function(wrap_pyfunction!(version, m)?)?;
-
-    let vector_submod = PyModule::new(py, "vector")?;
-    init_vector_submodule(vector_submod)?;
-    m.add_submodule(vector_submod)?;
+    m.add_function(wrap_pyfunction!(is_release_build, m)?)?;
 
     let raster_submod = PyModule::new(py, "raster")?;
     init_raster_submodule(raster_submod)?;
@@ -52,9 +54,11 @@ fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     init_op_submodule(op_submod)?;
     m.add_submodule(op_submod)?;
 
-    Ok(())
-}
+    let vector_submod = PyModule::new(py, "vector")?;
+    init_vector_submodule(vector_submod)?;
+    m.add_submodule(vector_submod)?;
 
-pub fn cells_to_h3indexes(cells: Vec<H3Cell>) -> Vec<u64> {
-    cells.into_iter().map(|cell| cell.h3index()).collect()
+    m.add("DEFAULT_CELL_COLUMN_NAME", DEFAULT_CELL_COLUMN_NAME)?;
+
+    Ok(())
 }
