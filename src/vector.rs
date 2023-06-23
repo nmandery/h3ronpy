@@ -1,132 +1,268 @@
-use geo_types::Geometry;
-use std::io::Cursor;
+use geo::BoundingRect;
+use h3arrow::algorithm::ToCoordinatesOp;
+use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
+use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBLines, ToWKBPoints, ToWKBPolygons};
+use h3arrow::array::CellIndexArray;
+use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray};
+use h3arrow::export::arrow2::bitmap::Bitmap;
+use h3arrow::export::geoarrow::{GeometryArrayTrait, WKBArray};
+use h3arrow::export::h3o::geom::ToGeo;
+use h3arrow::export::h3o::Resolution;
+use itertools::multizip;
+use pyo3::prelude::*;
+use pyo3::types::PyTuple;
 
-use geozero::wkb::{FromWkb, WkbDialect};
-use numpy::{IntoPyArray, Ix1, PyArray, PyReadonlyArray1};
-use pyo3::exceptions::PyValueError;
-use pyo3::{prelude::*, wrap_pyfunction};
-use rayon::prelude::*;
-
-use h3ron::{compact_cells, H3Cell, Index, ToH3Cells, ToIntersectingH3Cells};
-use ndarray::{Array1, Zip};
-use pyo3::types::PyBytes;
-
+use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
 
-fn geom_to_h3(
-    geom: &Geometry,
-    h3_resolution: u8,
-    do_compact: bool,
-    partial_intersecting: bool,
-) -> PyResult<Vec<u64>> {
-    let mut cells: Vec<H3Cell> = match (geom, partial_intersecting) {
-        (Geometry::Polygon(poly), true) => poly
-            .to_intersecting_h3_cells(h3_resolution)
-            .into_pyresult()?,
-        (Geometry::MultiPolygon(mpoly), true) => mpoly
-            .to_intersecting_h3_cells(h3_resolution)
-            .into_pyresult()?,
-        _ => geom
-            .to_h3_cells(h3_resolution)
-            .into_pyresult()?
-            .iter()
-            .collect(),
-    };
-
-    // deduplicate, in the case of overlaps or lines
-    cells.sort_unstable();
-    cells.dedup();
-
-    let cells = if do_compact {
-        compact_cells(&cells)
-            .into_pyresult()?
-            .iter()
-            .map(|i| i.h3index())
-            .collect()
+#[pyfunction]
+#[pyo3(signature = (cellarray,))]
+pub(crate) fn cells_bounds(cellarray: &PyAny) -> PyResult<Option<PyObject>> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    if let Some(rect) = cellindexarray.bounding_rect() {
+        Python::with_gil(|py| {
+            Ok(Some(
+                PyTuple::new(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
+                    .to_object(py),
+            ))
+        })
     } else {
-        cells.into_iter().map(|i| i.h3index()).collect()
-    };
-    Ok(cells)
+        Ok(None)
+    }
 }
 
-#[allow(clippy::type_complexity)]
 #[pyfunction]
-fn wkbbytes_with_ids_to_h3(
-    id_array: PyReadonlyArray1<u64>,
-    wkb_array: PyReadonlyArray1<PyObject>,
-    h3_resolution: u8,
-    do_compact: bool,
-    partial_intersecting: bool,
-) -> PyResult<(Py<PyArray<u64, Ix1>>, Py<PyArray<u64, Ix1>>)> {
-    // the solution with the argument typed as list of byte-instances is not great. This
-    // maybe can be improved with https://github.com/PyO3/rust-numpy/issues/175
+#[pyo3(signature = (cellarray,))]
+pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let mut minx_vec = vec![0.0f64; cellindexarray.len()];
+    let mut miny_vec = vec![0.0f64; cellindexarray.len()];
+    let mut maxx_vec = vec![0.0f64; cellindexarray.len()];
+    let mut maxy_vec = vec![0.0f64; cellindexarray.len()];
+    let mut validity_vec = vec![false; cellindexarray.len()];
 
-    if id_array.len() != wkb_array.len() {
-        return Err(PyValueError::new_err(
-            "input Ids and WKBs must be of the same length",
-        ));
+    for (cell, minx, miny, maxx, maxy, validity) in multizip((
+        cellindexarray.iter(),
+        minx_vec.iter_mut(),
+        miny_vec.iter_mut(),
+        maxx_vec.iter_mut(),
+        maxy_vec.iter_mut(),
+        validity_vec.iter_mut(),
+    )) {
+        if let Some(cell) = cell {
+            if let Some(rect) = cell
+                .to_geom(true)
+                .ok()
+                .and_then(|poly| poly.bounding_rect())
+            {
+                *validity = true;
+                *minx = rect.min().x;
+                *miny = rect.min().y;
+                *maxx = rect.min().x;
+                *maxy = rect.max().y;
+            };
+        }
     }
 
-    let geom_array: Array1<_> = extract_geometries(wkb_array)?.into();
+    let validity_bm = Bitmap::from(validity_vec.as_slice());
 
-    let out = Zip::from(id_array.as_array())
-        .and(geom_array.view())
-        .into_par_iter()
-        .map(|(id, geom)| {
-            geom_to_h3(geom, h3_resolution, do_compact, partial_intersecting)
-                .map(|h3indexes| (*id, h3indexes))
-        })
-        .try_fold(
-            || (vec![], vec![]),
-            |mut a, b| match b {
-                Ok((id, mut indexes)) => {
-                    for _ in 0..indexes.len() {
-                        a.0.push(id);
-                    }
-                    a.1.append(&mut indexes);
-                    Ok(a)
-                }
-                Err(err) => Err(err),
-            },
-        )
-        .try_reduce(
-            || (vec![], vec![]),
-            |mut a, mut b| {
-                b.0.append(&mut a.0);
-                b.1.append(&mut a.1);
-                Ok(b)
-            },
-        )?;
+    with_pyarrow(|py, pyarrow| {
+        let arrays = [
+            native_to_pyarray(
+                Float64Array::from_vec(minx_vec)
+                    .with_validity(Some(validity_bm.clone()))
+                    .boxed(),
+                py,
+                pyarrow,
+            )?,
+            native_to_pyarray(
+                Float64Array::from_vec(miny_vec)
+                    .with_validity(Some(validity_bm.clone()))
+                    .boxed(),
+                py,
+                pyarrow,
+            )?,
+            native_to_pyarray(
+                Float64Array::from_vec(maxx_vec)
+                    .with_validity(Some(validity_bm.clone()))
+                    .boxed(),
+                py,
+                pyarrow,
+            )?,
+            native_to_pyarray(
+                Float64Array::from_vec(maxy_vec)
+                    .with_validity(Some(validity_bm.clone()))
+                    .boxed(),
+                py,
+                pyarrow,
+            )?,
+        ];
+        let table = pyarrow
+            .getattr("Table")?
+            .call_method1("from_arrays", (arrays, ["minx", "miny", "maxx", "maxy"]))?;
+        Ok(table.to_object(py))
+    })
+}
 
-    Ok(Python::with_gil(|py| {
-        (
-            out.0.into_pyarray(py).to_owned(),
-            out.1.into_pyarray(py).to_owned(),
+#[pyfunction]
+#[pyo3(signature = (cellarray, radians = false))]
+pub(crate) fn cells_to_coordinates(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+
+    let coordinate_arrays = if radians {
+        cellindexarray.to_coordinates_radians()
+    } else {
+        cellindexarray.to_coordinates()
+    }
+    .into_pyresult()?;
+
+    with_pyarrow(|py, pyarrow| {
+        let arrays = [
+            native_to_pyarray(coordinate_arrays.lat.boxed(), py, pyarrow)?,
+            native_to_pyarray(coordinate_arrays.lng.boxed(), py, pyarrow)?,
+        ];
+        let table = pyarrow
+            .getattr("Table")?
+            .call_method1("from_arrays", (arrays, ["lat", "lng"]))?;
+        Ok(table.to_object(py))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (cellarray, radians = false, link_cells = false))]
+pub(crate) fn cells_to_wkb_polygons(
+    cellarray: &PyAny,
+    radians: bool,
+    link_cells: bool,
+) -> PyResult<PyObject> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+
+    let cells = if link_cells {
+        WKBArray::from(
+            cellindexarray
+                .iter()
+                .flatten()
+                .to_geom(radians)
+                .into_pyresult()?
+                .0
+                .into_iter()
+                .map(|poly| Some(geo_types::Geometry::from(poly)))
+                .collect::<Vec<_>>(),
         )
-    }))
+    } else {
+        cellindexarray.to_wkb_polygons(!radians).unwrap()
+    }
+    .into_arrow()
+    .boxed();
+
+    with_pyarrow(|py, pyarrow| native_to_pyarray(cells, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (cellarray, radians = false))]
+pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let out = cellindexarray
+        .to_wkb_points(!radians)
+        .unwrap()
+        .into_arrow()
+        .boxed();
+    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (vertexarray, radians = false))]
+pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+    let vertexindexarray = pyarray_to_vertexindexarray(vertexarray)?;
+    let out = vertexindexarray
+        .to_wkb_points(!radians)
+        .unwrap()
+        .into_arrow()
+        .boxed();
+    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (array, radians = false))]
+pub(crate) fn directededges_to_wkb_lines(array: &PyAny, radians: bool) -> PyResult<PyObject> {
+    let array = pyarray_to_directededgeindexarray(array)?;
+    let out = array.to_wkb_lines(!radians).unwrap().into_arrow().boxed();
+    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (array, radians = false))]
+pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> PyResult<PyObject> {
+    let array = pyarray_to_directededgeindexarray(array)?;
+    let out = array
+        .to_wkb_linestrings(!radians)
+        .unwrap()
+        .into_arrow()
+        .boxed();
+    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (array, resolution, compact = false, all_intersecting = true, flatten = false))]
+pub(crate) fn wkb_to_cells(
+    array: &PyAny,
+    resolution: u8,
+    compact: bool,
+    all_intersecting: bool,
+    flatten: bool,
+) -> PyResult<PyObject> {
+    let options = ToCellsOptions {
+        resolution: Resolution::try_from(resolution).into_pyresult()?,
+        compact,
+        all_intersecting,
+    };
+    let wkbarray = WKBArray::new(pyarray_to_native::<BinaryArray<i64>>(array)?);
+
+    if flatten {
+        let array = wkbarray
+            .to_cellindexarray(&options)
+            .into_pyresult()?
+            .into_inner();
+        with_pyarrow(|py, pyarrow| native_to_pyarray(array.boxed(), py, pyarrow))
+    } else {
+        let listarray: ListArray<_> = wkbarray
+            .to_celllistarray(&options)
+            .into_pyresult()?
+            .into_inner();
+        with_pyarrow(|py, pyarrow| native_to_pyarray(listarray.boxed(), py, pyarrow))
+    }
+}
+
+#[pyfunction]
+#[pyo3(signature = (obj, resolution, compact = false, all_intersecting = true))]
+pub(crate) fn geometry_to_cells(
+    obj: py_geo_interface::Geometry,
+    resolution: u8,
+    compact: bool,
+    all_intersecting: bool,
+) -> PyResult<PyObject> {
+    let options = ToCellsOptions {
+        resolution: Resolution::try_from(resolution).into_pyresult()?,
+        compact,
+        all_intersecting,
+    };
+
+    let cellindexarray = CellIndexArray::from(
+        h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
+    );
+    with_pyarrow(|py, pyarrow| native_to_pyarray(cellindexarray.into_inner().boxed(), py, pyarrow))
 }
 
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(wkbbytes_with_ids_to_h3, m)?)?;
+    m.add_function(wrap_pyfunction!(cells_to_coordinates, m)?)?;
+    m.add_function(wrap_pyfunction!(cells_bounds, m)?)?;
+    m.add_function(wrap_pyfunction!(cells_bounds_arrays, m)?)?;
+    m.add_function(wrap_pyfunction!(cells_to_wkb_polygons, m)?)?;
+    m.add_function(wrap_pyfunction!(cells_to_wkb_points, m)?)?;
+    m.add_function(wrap_pyfunction!(vertexes_to_wkb_points, m)?)?;
+    m.add_function(wrap_pyfunction!(directededges_to_wkb_linestrings, m)?)?;
+    m.add_function(wrap_pyfunction!(directededges_to_wkb_lines, m)?)?;
+    m.add_function(wrap_pyfunction!(wkb_to_cells, m)?)?;
+    m.add_function(wrap_pyfunction!(geometry_to_cells, m)?)?;
     Ok(())
-}
-
-fn extract_geometries(array: PyReadonlyArray1<PyObject>) -> PyResult<Vec<Geometry>> {
-    let array = array.as_array();
-    Python::with_gil(|py| {
-        array
-            .iter()
-            .map(|obj| match obj.extract::<&PyBytes>(py) {
-                // is WKB
-                Ok(pb) => {
-                    let mut cur = Cursor::new(pb.as_bytes());
-                    Geometry::from_wkb(&mut cur, WkbDialect::Wkb)
-                        .map_err(|e| PyValueError::new_err(format!("unable to parse WKB: {:?}", e)))
-                }
-
-                // is some kind ob object, trying to extract a geometry from it
-                Err(_) => obj.extract::<py_geo_interface::Geometry>(py).map(|gi| gi.0),
-            })
-            .collect::<PyResult<Vec<_>>>()
-    })
 }

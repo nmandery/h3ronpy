@@ -2,21 +2,21 @@ use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
 
+use h3arrow::array::CellIndexArray;
+use h3arrow::export::arrow2::array::PrimitiveArray;
+use h3arrow::export::h3o::{CellIndex, Resolution};
 use ndarray::ArrayView2;
-use numpy::{IntoPyArray, Ix1, PyArray, PyReadonlyArray2};
+use numpy::PyReadonlyArray2;
 use ordered_float::OrderedFloat;
 use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction, PyNativeType};
 
-use h3ron::error::check_valid_h3_resolution;
-use h3ron_ndarray as h3n;
-
-use crate::cells_to_h3indexes;
+use crate::arrow_interop::{native_to_pyarray, with_pyarrow};
 use crate::error::IntoPyResult;
 use crate::transform::Transform;
 
 pub struct AxisOrder {
-    pub inner: h3n::AxisOrder,
+    pub inner: rasterh3::AxisOrder,
 }
 
 impl FromStr for AxisOrder {
@@ -25,10 +25,10 @@ impl FromStr for AxisOrder {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "yx" | "YX" => Ok(Self {
-                inner: h3n::AxisOrder::YX,
+                inner: rasterh3::AxisOrder::YX,
             }),
             "xy" | "XY" => Ok(Self {
-                inner: h3n::AxisOrder::XY,
+                inner: rasterh3::AxisOrder::XY,
             }),
             _ => Err(PyValueError::new_err("unknown axis order")),
         }
@@ -36,7 +36,7 @@ impl FromStr for AxisOrder {
 }
 
 pub struct ResolutionSearchMode {
-    pub inner: h3n::ResolutionSearchMode,
+    pub inner: rasterh3::ResolutionSearchMode,
 }
 
 impl FromStr for ResolutionSearchMode {
@@ -45,10 +45,10 @@ impl FromStr for ResolutionSearchMode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "min_diff" | "min-diff" => Ok(Self {
-                inner: h3n::ResolutionSearchMode::MinDiff,
+                inner: rasterh3::ResolutionSearchMode::MinDiff,
             }),
             "smaller_than_pixel" | "smaller-than-pixel" => Ok(Self {
-                inner: h3n::ResolutionSearchMode::SmallerThanPixel,
+                inner: rasterh3::ResolutionSearchMode::SmallerThanPixel,
             }),
             _ => Err(PyValueError::new_err("unknown resolution search mode")),
         }
@@ -68,13 +68,11 @@ pub fn nearest_h3_resolution(
     let search_mode = ResolutionSearchMode::from_str(search_mode_str)?;
     let shape: [usize; 2] = shape_any.extract()?;
 
-    h3n::resolution::nearest_h3_resolution(
-        &shape,
-        &transform.inner,
-        &axis_order.inner,
-        search_mode.inner,
-    )
-    .into_pyresult()
+    search_mode
+        .inner
+        .nearest_h3_resolution(shape, &transform.inner, &axis_order.inner)
+        .into_pyresult()
+        .map(Into::into)
 }
 
 #[allow(clippy::type_complexity)]
@@ -84,36 +82,28 @@ fn raster_to_h3<'a, T>(
     nodata_value: &'a Option<T>,
     h3_resolution: u8,
     axis_order_str: &str,
-    compacted: bool,
-) -> PyResult<(Vec<T>, Vec<u64>)>
+    compact: bool,
+) -> PyResult<(Vec<T>, Vec<CellIndex>)>
 where
     T: PartialEq + Sized + Sync + Eq + Hash + Copy,
 {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
-    check_valid_h3_resolution(h3_resolution).into_pyresult()?;
+    let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
 
-    let conv = h3n::H3Converter::new(arr, nodata_value, &transform.inner, axis_order.inner);
+    let conv = rasterh3::H3Converter::new(arr, nodata_value, &transform.inner, axis_order.inner);
 
     let mut values = vec![];
     let mut cells = vec![];
-    for (value, compacted_vec) in conv.to_h3(h3_resolution, compacted).into_pyresult()? {
-        let num_cells = if compacted {
-            let len_before = cells.len();
-            cells.extend(compacted_vec.iter_compacted_cells());
-            cells.len() - len_before
+    for (value, cell_coverage) in conv.to_h3(h3_resolution, compact).into_pyresult()? {
+        let len_before = cells.len();
+        if compact {
+            cells.extend(cell_coverage.into_compacted_iter());
         } else {
-            let mut value_cells = compacted_vec
-                .iter_uncompacted_cells(h3_resolution)
-                .collect::<Result<Vec<_>, _>>()
-                .into_pyresult()?;
-            let num_cells = value_cells.len();
-            cells.append(&mut value_cells);
-            num_cells
+            cells.extend(cell_coverage.into_uncompacted_iter(h3_resolution));
         };
-        values.extend(repeat(*value).take(num_cells));
+        values.extend(repeat(*value).take(cells.len() - len_before));
     }
-
-    Ok((values, cells_to_h3indexes(cells)))
+    Ok((values, cells))
 }
 
 macro_rules! make_raster_to_h3_variant {
@@ -124,25 +114,30 @@ macro_rules! make_raster_to_h3_variant {
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
-            compacted: bool,
+            compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(Py<PyArray<$dtype, Ix1>>, Py<PyArray<u64, Ix1>>)> {
+        ) -> PyResult<(PyObject, PyObject)> {
             let arr = np_array.as_array();
-            raster_to_h3(
+            let (values, cells) = raster_to_h3(
                 &arr,
                 transform,
                 &nodata_value,
                 h3_resolution,
                 axis_order_str,
-                compacted,
-            )
-            .map(|(values, h3indexes)| {
-                Python::with_gil(|py| {
-                    (
-                        values.into_pyarray(py).to_owned(),
-                        h3indexes.into_pyarray(py).to_owned(),
-                    )
-                })
+                compact,
+            )?;
+
+            with_pyarrow(|py, pyarrow| {
+                let values = PrimitiveArray::from_vec(values);
+                let cells = native_to_pyarray(
+                    CellIndexArray::from(cells).into_inner().boxed(),
+                    py,
+                    pyarrow,
+                )?;
+
+                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+
+                Ok((values, cells))
             })
         }
     };
@@ -156,31 +151,35 @@ macro_rules! make_raster_to_h3_float_variant {
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
-            compacted: bool,
+            compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(Py<PyArray<$dtype, Ix1>>, Py<PyArray<u64, Ix1>>)> {
-            {
-                let arr = np_array.as_array();
-                // create a copy with the values wrapped in ordered floats to
-                // support the internal hashing
-                let of_arr = arr.map(|v| OrderedFloat::from(*v));
-                raster_to_h3(
-                    &of_arr.view(),
-                    transform,
-                    &nodata_value.map(OrderedFloat::from),
-                    h3_resolution,
-                    axis_order_str,
-                    compacted,
-                )
-            }
-            .map(|(values, h3indexes)| {
-                let float_vec: Vec<_> = values.into_iter().map(|v| *v).collect();
-                Python::with_gil(|py| {
-                    (
-                        float_vec.into_pyarray(py).to_owned(),
-                        h3indexes.into_pyarray(py).to_owned(),
-                    )
-                })
+        ) -> PyResult<(PyObject, PyObject)> {
+            let arr = np_array.as_array();
+            // create a copy with the values wrapped in ordered floats to
+            // support the internal hashing
+            let of_arr = arr.map(|v| OrderedFloat::from(*v));
+            let (values, cells) = raster_to_h3(
+                &of_arr.view(),
+                transform,
+                &nodata_value.map(OrderedFloat::from),
+                h3_resolution,
+                axis_order_str,
+                compact,
+            )?;
+
+            with_pyarrow(|py, pyarrow| {
+                let values = PrimitiveArray::<$dtype>::from_vec(
+                    values.into_iter().map(|v| v.into_inner()).collect(),
+                );
+                let cells = native_to_pyarray(
+                    CellIndexArray::from(cells).into_inner().boxed(),
+                    py,
+                    pyarrow,
+                )?;
+
+                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+
+                Ok((values, cells))
             })
         }
     };

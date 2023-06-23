@@ -91,6 +91,8 @@ jobs:
 
       - name: Build Python package
         shell: bash
+        env:
+          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
         run: |
           source $HOME/.cargo/env
           export PATH="/opt/python/cp38-cp38/bin/:$PATH"
@@ -128,6 +130,8 @@ jobs:
           python-version: "3.8"
           architecture: x64
       - name: Install Python dependencies and build
+        env:
+          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
         run: |
           python -V
           pip install wheel
@@ -160,6 +164,8 @@ jobs:
       - name: Set LIBCLANG_PATH
         run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
       - name: Install Python dependencies and build
+        env:
+          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
         # binary dependencies without wheels on pypi are installed via conda
         run: |
           python -V

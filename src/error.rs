@@ -1,62 +1,85 @@
+use h3arrow::error::Error as A3Error;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{PyErr, PyResult};
+use rasterh3::Error;
 
 pub trait IntoPyResult<T> {
     fn into_pyresult(self) -> PyResult<T>;
 }
 
-trait IntoPyErr {
+pub trait IntoPyErr {
     fn into_pyerr(self) -> PyErr;
 }
 
-impl IntoPyErr for h3ron::Error {
+impl IntoPyErr for h3arrow::export::arrow2::error::Error {
+    fn into_pyerr(self) -> PyErr {
+        PyRuntimeError::new_err(self.to_string())
+    }
+}
+
+impl IntoPyErr for A3Error {
     fn into_pyerr(self) -> PyErr {
         match self {
-            Self::Domain
-            | Self::LatLonDomain
-            | Self::ResDomain
-            | Self::CellInvalid
-            | Self::DirectedEdgeInvalid
-            | Self::UndirectedEdgeInvalid
-            | Self::VertexInvalid
-            | Self::Pentagon
-            | Self::DuplicateInput
-            | Self::NotNeighbors
-            | Self::ResMismatch
-            | Self::MemoryBounds
-            | Self::OptionInvalid
-            | Self::DirectionInvalid(_) => PyValueError::new_err(self.to_string()),
-
-            Self::Failed
-            | Self::MemoryAlloc
-            | Self::UnknownError(_)
-            | Self::DecompressionError(_) => PyRuntimeError::new_err(self.to_string()),
+            A3Error::InvalidCellIndex(e) => e.into_pyerr(),
+            A3Error::InvalidVertexIndex(e) => e.into_pyerr(),
+            A3Error::InvalidDirectedEdgeIndex(e) => e.into_pyerr(),
+            A3Error::InvalidResolution(e) => e.into_pyerr(),
+            A3Error::InvalidLatLng(e) => e.into_pyerr(),
+            A3Error::InvalidGeometry(e) => e.into_pyerr(),
+            A3Error::CompactionError(e) => e.into_pyerr(),
+            A3Error::OutlinerError(e) => e.into_pyerr(),
+            A3Error::Arrow2(e) => e.into_pyerr(),
+            A3Error::NotAPrimitiveArrayU64
+            | A3Error::NonParsableCellIndex
+            | A3Error::InvalidWKB => PyValueError::new_err(self.to_string()),
         }
     }
 }
 
-impl<T> IntoPyResult<T> for Result<T, h3ron::Error> {
-    fn into_pyresult(self) -> PyResult<T> {
+macro_rules! impl_h3o_value_err {
+    ($($err_type:ty,)*) => {
+        $(
+            impl IntoPyErr for $err_type {
+                fn into_pyerr(self) -> PyErr {
+                    PyValueError::new_err(
+                        self.to_string()
+                    )
+                }
+            }
+        )*
+    }
+}
+
+impl_h3o_value_err!(
+    h3arrow::export::h3o::error::CompactionError,
+    h3arrow::export::h3o::error::InvalidCellIndex,
+    h3arrow::export::h3o::error::InvalidDirectedEdgeIndex,
+    h3arrow::export::h3o::error::InvalidGeometry,
+    h3arrow::export::h3o::error::InvalidLatLng,
+    h3arrow::export::h3o::error::InvalidResolution,
+    h3arrow::export::h3o::error::InvalidVertexIndex,
+    h3arrow::export::h3o::error::OutlinerError,
+);
+
+impl IntoPyErr for rasterh3::Error {
+    fn into_pyerr(self) -> PyErr {
         match self {
-            Ok(v) => Ok(v),
-            Err(err) => Err(err.into_pyerr()),
+            Error::TransformNotInvertible | Error::EmptyArray => {
+                PyValueError::new_err(self.to_string())
+            }
+            Error::InvalidLatLng(e) => e.into_pyerr(),
+            Error::InvalidGeometry(e) => e.into_pyerr(),
+            Error::InvalidResolution(e) => e.into_pyerr(),
+            Error::CompactionError(e) => e.into_pyerr(),
         }
     }
 }
 
-impl<T> IntoPyResult<T> for Result<T, h3ron_ndarray::Error> {
+impl<T, E> IntoPyResult<T> for Result<T, E>
+where
+    E: IntoPyErr,
+{
     fn into_pyresult(self) -> PyResult<T> {
-        match self {
-            Ok(v) => Ok(v),
-            Err(err) => match err {
-                h3ron_ndarray::Error::EmptyArray | h3ron_ndarray::Error::UnsupportedArrayShape => {
-                    Err(PyValueError::new_err(err.to_string()))
-                }
-                h3ron_ndarray::Error::TransformNotInvertible => {
-                    Err(PyRuntimeError::new_err(err.to_string()))
-                }
-                h3ron_ndarray::Error::H3ron(h3ron_e) => Err(h3ron_e.into_pyerr()),
-            },
-        }
+        self.map_err(IntoPyErr::into_pyerr)
     }
 }

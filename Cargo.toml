@@ -1,12 +1,11 @@
 [package]
 name = "h3ronpy"
-version = "0.16.1"
+version = "0.17.0"
 authors = ["Nico Mandery <nico@nmandery.net>"]
-description = "python bindings for h3ron"
+description = "Data science toolkit for the H3 geospatial grid"
 edition = "2021"
 license = "MIT"
-keywords = ["geo", "spatial", "h3", "ndarray", "numpy", "python"]
-readme = "README.md"
+keywords = ["geo", "spatial", "h3", "pandas", "geopandas", "arrow", "polars", "numpy", "python"]
 homepage = "https://github.com/nmandery/h3ronpy"
 repository = "https://github.com/nmandery/h3ronpy"
 
@@ -17,12 +16,21 @@ crate-type = ["cdylib"]
 [dependencies]
 env_logger = "^0.10"
 geo-types = "^0.7"
-geozero = { version = "0.9", default-features = false, features = ["with-geo", "with-wkb"] }
-h3ron = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
-h3ron-ndarray = { git = "https://github.com/nmandery/h3ron.git", rev = "b72c4220f7fd0e787f2ea6e99b9e7fafdbfec6cd" }
+rasterh3 = { git = "https://github.com/nmandery/rasterh3.git", rev = "a8f46d56ae8197e1978385c13c30b3b8f5a932a0" }
+h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "2ed9cb76b73658b1209440edd810a1c198032299", features = ["geoarrow", "rayon"] }
+#h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
 ndarray = { version = "0.15", features = ["rayon"] }
-numpy = "0.18"
+numpy = "0.19"
 ordered-float = ">=2.0.1"
-py_geo_interface = { version = "0.5", features = ["f64", "wkb"] }
-pyo3 = { version = "0.18", features = ["extension-module", "abi3", "abi3-py37"] }
+py_geo_interface = { version = "0.6", features = ["f64", "wkb"] }
+pyo3 = { version = "0.19", features = ["extension-module", "abi3", "abi3-py38"] }
 rayon = "^1.5"
+hashbrown = "0.13"
+geo = "0.25"
+itertools = "0.10"
+
+
+[profile.release]
+lto = "thin"
+strip = true
+debug = false
