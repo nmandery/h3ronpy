@@ -22,6 +22,9 @@ if __name__ == "__main__":
 
     packages = []
 
+    if sys.platform == "linux":
+        packages.append("patchelf")
+
     def harvest_deps(section, keys):
         for k in keys:
             packages.extend(section.get(k, []))

@@ -1,7 +1,6 @@
 [build-system]
 requires = [
     "maturin==1.1",
-    "patchelf",
 ]
 build-backend = "maturin"
 
