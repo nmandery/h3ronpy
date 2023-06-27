@@ -10,9 +10,13 @@ Converting raster data
     import h3.api.numpy_int as h3
     from scipy import ndimage
     import geopandas as gpd
+    from pathlib import Path
+    import os
 
     # increase the plot size
     pyplot.rcParams['figure.dpi'] = 120
+
+    project_root = Path(os.environ["PROJECT_ROOT"])
 
 
 Prepare a dataset using rasterio first
@@ -23,7 +27,7 @@ Prepare a dataset using rasterio first
     import rasterio
     from rasterio.plot import show
 
-    src = rasterio.open("../data/europe-and-north-africa.tif")
+    src = rasterio.open(project_root / "data/europe-and-north-africa.tif")
     print(src.colorinterp)
 
     green = src.read(2)

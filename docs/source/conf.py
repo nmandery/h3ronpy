@@ -40,3 +40,7 @@ html_theme = "sphinx_rtd_theme"
 epub_show_urls = "footnote"
 
 autodoc_typehints = "both"
+
+import os
+from pathlib import Path
+os.environ["PROJECT_ROOT"] = str(Path(__file__).parent.parent.parent)

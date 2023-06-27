@@ -4,16 +4,20 @@ Converting vector data
 .. jupyter-execute::
 
     from matplotlib import pyplot
+    from pathlib import Path
+    import os
 
     # increase the plot size
     pyplot.rcParams['figure.dpi'] = 120
+
+    project_root = Path(os.environ["PROJECT_ROOT"])
 
 
 .. jupyter-execute::
 
     import geopandas as gpd
 
-    world = gpd.read_file("../data/naturalearth_110m_admin_0_countries.fgb")
+    world = gpd.read_file(project_root / "data/naturalearth_110m_admin_0_countries.fgb")
     africa = world[world["CONTINENT"] == "Africa"]
     africa.plot(column="NAME_EN")
 
