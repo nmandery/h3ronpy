@@ -8,7 +8,7 @@ Changelog <https://keepachangelog.com/en/1.0.0/>`__, and this project
 adheres to `Semantic
 Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
-0.17.0 - Unreleased
+0.17.0 - 2023-06-27
 -------------------
 
 In this release the project migrated to the `arrow memory model <https://arrow.apache.org/>`_ and switched
