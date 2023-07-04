@@ -16,8 +16,8 @@ crate-type = ["cdylib"]
 [dependencies]
 env_logger = "^0.10"
 geo-types = "^0.7"
-rasterh3 = { git = "https://github.com/nmandery/rasterh3.git", rev = "a8f46d56ae8197e1978385c13c30b3b8f5a932a0" }
-h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "2ed9cb76b73658b1209440edd810a1c198032299", features = ["geoarrow", "rayon"] }
+rasterh3 = "0.4.0"
+h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "d203ce6b34faca838eba9cceb6a95cc242b3b0de", features = ["geoarrow", "rayon"] }
 #h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
 ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.19"
@@ -25,9 +25,9 @@ ordered-float = ">=2.0.1"
 py_geo_interface = { version = "0.6", features = ["f64", "wkb"] }
 pyo3 = { version = "0.19", features = ["extension-module", "abi3", "abi3-py38"] }
 rayon = "^1.5"
-hashbrown = "0.13"
+hashbrown = "0.14"
 geo = "0.25"
-itertools = "0.10"
+itertools = "0.11"
 
 
 [profile.release]
