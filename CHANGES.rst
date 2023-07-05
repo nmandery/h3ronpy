@@ -8,6 +8,12 @@ Changelog <https://keepachangelog.com/en/1.0.0/>`__, and this project
 adheres to `Semantic
 Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
+
+Unreleased
+----------
+- Improved documentation of the raster modules.
+
+
 0.17.0 - 2023-06-27
 -------------------
 

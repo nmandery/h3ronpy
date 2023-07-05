@@ -1,8 +1,23 @@
 """
-Conversion of raster `numpy` arrays to H3 cells
+Conversion of 2D `numpy` arrays to H3 cells.
 
-Resolution search modes
------------------------
+The geo-context is passed to this library using a coordinate transformation matrix - this can be either
+a `GDAL-like array <https://gdal.org/tutorials/geotransforms_tut.html>`_ of six float values, or a
+`Affine <https://pypi.org/project/affine/>`_-object as used by `rasterio`.
+
+.. note::
+
+    As H3 itself used WGS84 (EPSG:4326) Lat/Lon coordinates, the coordinate transformation matrix used in this module
+    must be based on WGS84 as well. Raster data using other coordinate systems need to be reprojected accordingly.
+
+
+While H3 cells are hexagons and pentagons, this raster conversion process only takes the raster value under the centroid
+of the cell into account. When the data shall be aggregated, use the `nearest_h3_resolution` function to convert
+to the H3 resolution nearest to the pixel size of the raster. After that the cell resolution can be changed using
+the `change_resolution` function and dataframe libraries can be used to perform the desired aggregations. This can be
+a rather memory-intensive process.
+
+Resolution search modes of `nearest_h3_resolution`:
 
 * "min_diff": chose the H3 resolution where the difference in the area of a pixel and the h3index is as small as possible.
 * "smaller_than_pixel":  chose the H3 resolution where the area of the h3index is smaller than the area of a pixel.
