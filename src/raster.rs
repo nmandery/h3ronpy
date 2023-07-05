@@ -1,3 +1,4 @@
+use geo_types::Coord;
 use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
@@ -35,6 +36,30 @@ impl FromStr for AxisOrder {
     }
 }
 
+fn check_wgs84_bounds(
+    transform: &rasterh3::Transform,
+    axis_order: &rasterh3::AxisOrder,
+    shape: &(usize, usize),
+) -> PyResult<()> {
+    let mn = transform * Coord::from((0.0, 0.0));
+    let mx = transform
+        * match axis_order {
+            rasterh3::AxisOrder::XY => Coord::from((shape.0 as f64, shape.1 as f64)),
+            rasterh3::AxisOrder::YX => Coord::from((shape.1 as f64, shape.0 as f64)),
+        };
+
+    // note: coordinates itself are not validated as multiple rotations around an axis are
+    //       still perfectly valid.
+
+    if mx.x - mn.x > 360.0 || mx.y - mn.y > 180.0 {
+        Err(PyValueError::new_err(
+            "Input array spans more than the bounds of WGS84 - input needs to be in WGS84 projection with lat/lon coordinates",
+        ))
+    } else {
+        Ok(())
+    }
+}
+
 pub struct ResolutionSearchMode {
     pub inner: rasterh3::ResolutionSearchMode,
 }
@@ -59,14 +84,14 @@ impl FromStr for ResolutionSearchMode {
 /// of the given shape with the given transform
 #[pyfunction]
 pub fn nearest_h3_resolution(
-    shape_any: &PyAny,
+    shape: [usize; 2],
     transform: &Transform,
     axis_order_str: &str,
     search_mode_str: &str,
 ) -> PyResult<u8> {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
+    check_wgs84_bounds(&transform.inner, &axis_order.inner, &(shape[0], shape[1]))?;
     let search_mode = ResolutionSearchMode::from_str(search_mode_str)?;
-    let shape: [usize; 2] = shape_any.extract()?;
 
     search_mode
         .inner
@@ -88,6 +113,8 @@ where
     T: PartialEq + Sized + Sync + Eq + Hash + Copy,
 {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
+    check_wgs84_bounds(&transform.inner, &axis_order.inner, &arr.dim())?;
+
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
 
     let conv = rasterh3::H3Converter::new(arr, nodata_value, &transform.inner, axis_order.inner);
