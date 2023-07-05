@@ -12,10 +12,14 @@ a `GDAL-like array <https://gdal.org/tutorials/geotransforms_tut.html>`_ of six 
 
 
 While H3 cells are hexagons and pentagons, this raster conversion process only takes the raster value under the centroid
-of the cell into account. When the data shall be aggregated, use the `nearest_h3_resolution` function to convert
-to the H3 resolution nearest to the pixel size of the raster. After that the cell resolution can be changed using
-the `change_resolution` function and dataframe libraries can be used to perform the desired aggregations. This can be
-a rather memory-intensive process.
+of the cell into account. When the data shall be aggregated, use any of these methods:
+
+1. Make use the `nearest_h3_resolution` function to convert to the H3 resolution nearest to the pixel size of the raster.
+   After that the cell resolution can be changed using the `change_resolution` function and dataframe libraries can be used to
+   perform the desired aggregations. This can be a rather memory-intensive process.
+
+2. Scale the raster down using an interpolation algorithm. After that use method 1. This can save a lot of memory, but may
+   not be applicable to all datasets - for example dataset with absolute values per pixel like population counts.
 
 Resolution search modes of `nearest_h3_resolution`:
 
