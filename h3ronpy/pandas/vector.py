@@ -5,10 +5,11 @@ import pyarrow as pa
 import pandas as pd
 import geopandas as gpd
 from functools import wraps
+from typing import Optional
 from .. import H3_CRS, DEFAULT_CELL_COLUMN_NAME
 
 
-def _geoseries_from_wkb(func):
+def _geoseries_from_wkb(func, doc: Optional[str] = None, name: Optional[str] = None):
     @wraps(func)
     def wrapper(*args, **kw):
         return gpd.GeoSeries.from_wkb(func(*args, **kw), crs=H3_CRS)
@@ -16,6 +17,10 @@ def _geoseries_from_wkb(func):
     # create a copy to avoid modifying the dict of the wrapped function
     wrapper.__annotations__ = dict(**wrapper.__annotations__)
     wrapper.__annotations__["return"] = gpd.GeoSeries
+    if doc is not None:
+        wrapper.__doc__ = doc
+    if name is not None:
+        wrapper.__name__ = name
 
     return wrapper
 
@@ -24,15 +29,35 @@ cells_to_coordinates = _wrap(_av.cells_to_coordinates, ret_type=pd.DataFrame)
 cells_bounds = _av.cells_bounds
 cells_bounds_arrays = _wrap(_av.cells_bounds_arrays, ret_type=pd.DataFrame)
 cells_to_wkb_polygons = _wrap(_av.cells_to_wkb_polygons, ret_type=pd.Series)
-cells_to_polygons = _geoseries_from_wkb(cells_to_wkb_polygons)
+cells_to_polygons = _geoseries_from_wkb(
+    cells_to_wkb_polygons,
+    doc="Create a geoseries containing the polygon geometries of a cell array",
+    name="cells_to_polygons",
+)
 cells_to_wkb_points = _wrap(_av.cells_to_wkb_points, ret_type=pd.Series)
-cells_to_points = _geoseries_from_wkb(cells_to_wkb_points)
+cells_to_points = _geoseries_from_wkb(
+    cells_to_wkb_points,
+    doc="Create a geoseries containing the centroid point geometries of a cell array",
+    name="cells_to_points",
+)
 vertexes_to_wkb_points = _wrap(_av.vertexes_to_wkb_points, ret_type=pd.Series)
-vertexes_to_points = _geoseries_from_wkb(vertexes_to_wkb_points)
+vertexes_to_points = _geoseries_from_wkb(
+    vertexes_to_wkb_points,
+    doc="Create a geoseries containing the point geometries of a vertex array",
+    name="vertexes_to_points",
+)
 directededges_to_wkb_lines = _wrap(_av.directededges_to_wkb_lines, ret_type=pd.Series)
-directededges_to_lines = _geoseries_from_wkb(directededges_to_wkb_lines)
+directededges_to_lines = _geoseries_from_wkb(
+    directededges_to_wkb_lines,
+    doc="Create a geoseries containing the line geometries of a directededge array",
+    name="directededges_to_lines",
+)
 directededges_to_wkb_linestrings = _wrap(_av.directededges_to_wkb_linestrings, ret_type=pd.Series)
-directededges_to_linestrings = _geoseries_from_wkb(directededges_to_wkb_linestrings)
+directededges_to_linestrings = _geoseries_from_wkb(
+    directededges_to_wkb_linestrings,
+    doc="Create a geoseries containing the linestrings geometries of a directededge array",
+    name="directededges_to_linestrings",
+)
 wkb_to_cells = _wrap(_av.wkb_to_cells, ret_type=pd.Series)
 geometry_to_cells = _wrap(_av.geometry_to_cells, ret_type=pd.Series)
 

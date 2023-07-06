@@ -14,6 +14,7 @@ Unreleased
 
 - Improved documentation of the raster modules.
 - Validate bounds of input raster arrays to be within WGS84 lat/lon coordinates.
+- Make the GeoSeries-returning function show up in the `h3ronpy.pandas.vector` module.
 
 
 0.17.0 - 2023-06-27
