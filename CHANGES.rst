@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.17.1 - 2023-07-06
+-------------------
+
 - Improved documentation of the raster modules.
 - Validate bounds of input raster arrays to be within WGS84 lat/lon coordinates.
 - Make the GeoSeries-returning function show up in the `h3ronpy.pandas.vector` module.
