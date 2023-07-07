@@ -219,16 +219,11 @@ pub(crate) fn wkb_to_cells(
     let wkbarray = WKBArray::new(pyarray_to_native::<BinaryArray<i64>>(array)?);
 
     if flatten {
-        let array = wkbarray
-            .to_cellindexarray(&options)
-            .into_pyresult()?
-            .into_inner();
-        with_pyarrow(|py, pyarrow| native_to_pyarray(array.boxed(), py, pyarrow))
+        let cells = wkbarray.to_cellindexarray(&options).into_pyresult()?;
+
+        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
     } else {
-        let listarray: ListArray<_> = wkbarray
-            .to_celllistarray(&options)
-            .into_pyresult()?
-            .into_inner();
+        let listarray: ListArray<_> = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
         with_pyarrow(|py, pyarrow| native_to_pyarray(listarray.boxed(), py, pyarrow))
     }
 }
@@ -250,7 +245,7 @@ pub(crate) fn geometry_to_cells(
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
     );
-    with_pyarrow(|py, pyarrow| native_to_pyarray(cellindexarray.into_inner().boxed(), py, pyarrow))
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py, pyarrow))
 }
 
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {

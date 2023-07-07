@@ -13,5 +13,5 @@ pub(crate) fn cells_parse(utf8array: &PyAny, set_failing_to_invalid: bool) -> Py
         .parse_cells(set_failing_to_invalid)
         .into_pyresult()?;
 
-    with_pyarrow(|py, pyarrow| native_to_pyarray(cells.into_inner().boxed(), py, pyarrow))
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
 }

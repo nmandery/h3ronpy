@@ -16,7 +16,7 @@ pub(crate) fn compact(cellarray: &PyAny, mixed_resolutions: bool) -> PyResult<Py
     }
     .into_pyresult()?;
 
-    with_pyarrow(|py, pyarrow| native_to_pyarray(compacted.into_inner().boxed(), py, pyarrow))
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(compacted, py, pyarrow))
 }
 
 #[pyfunction]
@@ -24,5 +24,5 @@ pub(crate) fn compact(cellarray: &PyAny, mixed_resolutions: bool) -> PyResult<Py
 pub(crate) fn uncompact(cellarray: &PyAny, target_resolution: u8) -> PyResult<PyObject> {
     let target_resolution = Resolution::try_from(target_resolution).into_pyresult()?;
     let out = pyarray_to_cellindexarray(cellarray)?.uncompact(target_resolution);
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out.into_inner().boxed(), py, pyarrow))
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(out, py, pyarrow))
 }

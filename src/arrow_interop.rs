@@ -1,7 +1,9 @@
 use std::any::{type_name, Any};
 
-use h3arrow::array::{CellIndexArray, DirectedEdgeIndexArray, VertexIndexArray};
-use h3arrow::export::arrow2::array::{Array, UInt64Array};
+use h3arrow::array::{
+    CellIndexArray, DirectedEdgeIndexArray, H3Array, H3IndexArrayValue, VertexIndexArray,
+};
+use h3arrow::export::arrow2::array::{Array, PrimitiveArray, UInt64Array};
 use h3arrow::export::arrow2::datatypes::Field;
 use h3arrow::export::arrow2::ffi;
 use pyo3::exceptions::PyValueError;
@@ -44,6 +46,18 @@ pub(crate) fn native_to_pyarray(
     )?;
 
     Ok(array.to_object(py))
+}
+
+#[inline]
+pub fn h3array_to_pyarray<IX>(
+    h3array: H3Array<IX>,
+    py: Python,
+    pyarrow: &PyModule,
+) -> PyResult<PyObject>
+where
+    IX: H3IndexArrayValue,
+{
+    native_to_pyarray(PrimitiveArray::from(h3array).boxed(), py, pyarrow)
 }
 
 pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {

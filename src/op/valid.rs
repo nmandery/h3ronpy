@@ -1,25 +1,25 @@
-use h3arrow::array::{
-    CellIndexArray, DirectedEdgeIndexArray, FromIteratorWithValidity, H3Array, VertexIndexArray,
-};
+use h3arrow::array::{FromIteratorWithValidity, H3Array, H3IndexArrayValue};
 use h3arrow::export::arrow2::array::{BooleanArray, PrimitiveArray};
 use h3arrow::export::arrow2::bitmap::{Bitmap, MutableBitmap};
 use h3arrow::export::arrow2::datatypes::DataType;
+use h3arrow::h3o;
+use h3o::{CellIndex, DirectedEdgeIndex, VertexIndex};
 use pyo3::prelude::*;
 
 use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
 
-fn h3index_valid<A>(arr: &PyAny, booleanarray: bool) -> PyResult<PyObject>
+fn h3index_valid<IX>(arr: &PyAny, booleanarray: bool) -> PyResult<PyObject>
 where
-    A: FromIteratorWithValidity<Option<u64>> + Into<PrimitiveArray<u64>> + H3Array,
+    IX: H3IndexArrayValue,
 {
     let u64array = pyarray_to_uint64array(arr)?;
-    let validated = A::from_iter_with_validity(u64array.iter().map(|v| v.copied()));
+    let validated = H3Array::<IX>::from_iter_with_validity(u64array.iter().map(|v| v.copied()));
 
     with_pyarrow(|py, pyarrow| {
         native_to_pyarray(
             if booleanarray {
-                let pa = validated.into();
+                let pa: PrimitiveArray<_> = validated.into();
                 let bm: Bitmap = pa
                     .validity()
                     .cloned()
@@ -28,7 +28,7 @@ where
                     .into_pyresult()?
                     .boxed()
             } else {
-                validated.into().boxed()
+                PrimitiveArray::from(validated).boxed()
             },
             py,
             pyarrow,
@@ -46,6 +46,6 @@ macro_rules! impl_h3index_valid {
     };
 }
 
-impl_h3index_valid!(cells_valid, CellIndexArray);
-impl_h3index_valid!(vertexes_valid, VertexIndexArray);
-impl_h3index_valid!(directededges_valid, DirectedEdgeIndexArray);
+impl_h3index_valid!(cells_valid, CellIndex);
+impl_h3index_valid!(vertexes_valid, VertexIndex);
+impl_h3index_valid!(directededges_valid, DirectedEdgeIndex);

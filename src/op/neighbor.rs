@@ -1,6 +1,5 @@
 use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
-use h3arrow::array::CellIndexArray;
-use h3arrow::export::arrow2::array::{Array, PrimitiveArray};
+use h3arrow::export::arrow2::array::{Array, ListArray, PrimitiveArray};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{PyObject, PyResult};
 use std::str::FromStr;
@@ -17,11 +16,11 @@ pub(crate) fn grid_disk(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<Py
     let listarray = cellindexarray.grid_disk(k).into_pyresult()?;
     if flatten {
         let cellindexarray = listarray.into_flattened().into_pyresult()?;
-        with_pyarrow(|py, pyarrow| {
-            native_to_pyarray(cellindexarray.into_inner().boxed(), py, pyarrow)
-        })
+        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py, pyarrow))
     } else {
-        with_pyarrow(|py, pyarrow| native_to_pyarray(listarray.into_inner().boxed(), py, pyarrow))
+        with_pyarrow(|py, pyarrow| {
+            native_to_pyarray(ListArray::from(listarray).boxed(), py, pyarrow)
+        })
     }
 }
 
@@ -54,17 +53,12 @@ pub(crate) fn grid_ring_distances(
 }
 
 fn return_griddiskdistances_table(
-    griddiskdistances: GridDiskDistances<CellIndexArray>,
+    griddiskdistances: GridDiskDistances,
     flatten: bool,
 ) -> PyResult<PyObject> {
     let (cells, distances) = if flatten {
         (
-            griddiskdistances
-                .cells
-                .into_flattened()
-                .into_pyresult()?
-                .into_inner()
-                .boxed(),
+            PrimitiveArray::from(griddiskdistances.cells.into_flattened().into_pyresult()?).boxed(),
             griddiskdistances
                 .distances
                 .values()
@@ -75,7 +69,7 @@ fn return_griddiskdistances_table(
         )
     } else {
         (
-            griddiskdistances.cells.into_inner().boxed(),
+            ListArray::from(griddiskdistances.cells).boxed(),
             griddiskdistances.distances.boxed(),
         )
     };
@@ -121,7 +115,7 @@ pub(crate) fn grid_disk_aggregate_k(
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            native_to_pyarray(griddiskaggk.cells.into_inner().to_boxed(), py, pyarrow)?,
+            h3array_to_pyarray(griddiskaggk.cells, py, pyarrow)?,
             native_to_pyarray(griddiskaggk.distances.to_boxed(), py, pyarrow)?,
         ];
         let table = pyarrow
