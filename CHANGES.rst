@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.17.2 - 2023-07-13
+-------------------
+
 - Support arrow2 ``Utf8Array<i64>`` / polars ``LargeUtf8`` in ``cells_parse``. Fixes #24
 
 0.17.1 - 2023-07-06
