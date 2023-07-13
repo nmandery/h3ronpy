@@ -12,14 +12,14 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
-- Support arrow2 `Utf8Array<i64>` / polars `LargeUtf8` in `cells_parse`. Fixes #24
+- Support arrow2 ``Utf8Array<i64>`` / polars ``LargeUtf8`` in ``cells_parse``. Fixes #24
 
 0.17.1 - 2023-07-06
 -------------------
 
 - Improved documentation of the raster modules.
 - Validate bounds of input raster arrays to be within WGS84 lat/lon coordinates.
-- Make the GeoSeries-returning function show up in the `h3ronpy.pandas.vector` module.
+- Make the GeoSeries-returning function show up in the ``h3ronpy.pandas.vector`` module.
 
 
 0.17.0 - 2023-06-27
@@ -27,8 +27,8 @@ Unreleased
 
 In this release the project migrated to the `arrow memory model <https://arrow.apache.org/>`_ and switched
 from the `h3ron library <https://github.com/nmandery/h3ron>`_ to the Rust implementation of H3 named `h3o <https://github.com/HydroniumLabs/h3o>`_.
-This comes along with safer code and `performance improvements <https://github.com/nmandery/rasterh3/issues/1>`_. Although `h3ronpy` is no longer
-build on the `h3ron` rust crate, the name remains.
+This comes along with safer code and `performance improvements <https://github.com/nmandery/rasterh3/issues/1>`_. Although ``h3ronpy`` is no longer
+build on the ``h3ron`` rust crate, the name remains.
 
 As a result of these migrations, the Python API has completely changed. Due to this it is easier to refer to new
 new documentation than listing the changes here. That is another aspect of these changes - there now exists a sphinx generated
