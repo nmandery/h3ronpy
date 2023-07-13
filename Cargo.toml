@@ -17,7 +17,7 @@ crate-type = ["cdylib"]
 env_logger = "^0.10"
 geo-types = "^0.7"
 rasterh3 = "0.4.0"
-h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "ea2823f4df299f505f3caa82deeda70438aed561", features = ["geoarrow", "rayon"] }
+h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "2bcee20a4eebb0e2ab5ac7d1c4a8b6d77b3e7fa5", features = ["geoarrow", "rayon"] }
 #h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
 ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.19"

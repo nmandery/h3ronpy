@@ -5,7 +5,7 @@ use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBLines, ToWKBPoints, ToW
 use h3arrow::array::CellIndexArray;
 use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray};
 use h3arrow::export::arrow2::bitmap::Bitmap;
-use h3arrow::export::geoarrow::{GeometryArrayTrait, WKBArray};
+use h3arrow::export::geoarrow::{array::WKBArray, GeometryArrayTrait};
 use h3arrow::export::h3o::geom::ToGeo;
 use h3arrow::export::h3o::Resolution;
 use itertools::multizip;
