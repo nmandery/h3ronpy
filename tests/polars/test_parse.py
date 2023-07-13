@@ -13,6 +13,12 @@ def test_cells_parse():
     assert cells[0] == cells[1]
 
 
+def test_cells_parse_largeutf8():
+    # polars uses LargeUtf8 datatype for strings
+    cells = cells_parse(pl.Series(["801ffffffffffff"]))
+    assert len(cells) == 1
+
+
 def test_parse_cell_fail():
     strings = np.array(
         [

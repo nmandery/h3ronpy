@@ -60,7 +60,7 @@ where
     native_to_pyarray(PrimitiveArray::from(h3array).boxed(), py, pyarrow)
 }
 
-pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {
+pub(crate) fn pyarray_to_boxed(obj: &PyAny) -> PyResult<Box<dyn Array>> {
     // prepare a pointer to receive the Array struct
     let array = Box::new(ffi::ArrowArray::empty());
     let schema = Box::new(ffi::ArrowSchema::empty());
@@ -79,6 +79,11 @@ pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult
         let field = ffi::import_field_from_c(schema.as_ref()).into_pyresult()?;
         ffi::import_array_from_c(*array, field.data_type).into_pyresult()?
     };
+    Ok(array)
+}
+
+pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {
+    let array = pyarray_to_boxed(obj)?;
 
     // downcast to the concrete type
     Ok(array
