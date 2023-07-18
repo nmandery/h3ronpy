@@ -137,6 +137,18 @@ def cells_area_rads2(cellarray) -> pa.Array:
     return op.cells_area_rads2(_to_uint64_array(cellarray))
 
 
+def cells_to_string(cellarray) -> pa.Array:
+    return op.cells_to_string(_to_uint64_array(cellarray))
+
+
+def vertexes_to_string(vertexesarray) -> pa.Array:
+    return op.vertexes_to_string(_to_uint64_array(vertexesarray))
+
+
+def directededges_to_string(directededgearray) -> pa.Array:
+    return op.directededges_to_string(_to_uint64_array(directededgearray))
+
+
 __all__ = [
     change_resolution.__name__,
     change_resolution_paired.__name__,
@@ -154,4 +166,7 @@ __all__ = [
     cells_area_m2.__name__,
     cells_area_km2.__name__,
     cells_area_rads2.__name__,
+    cells_to_string.__name__,
+    vertexes_to_string.__name__,
+    directededges_to_string.__name__,
 ]

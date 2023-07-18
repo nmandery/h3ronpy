@@ -1,6 +1,6 @@
 import pytest
 
-from h3ronpy.polars import cells_parse, cells_valid
+from h3ronpy.polars import cells_parse, cells_valid, cells_to_string
 import numpy as np
 import h3.api.numpy_int as h3
 import polars as pl
@@ -58,3 +58,16 @@ def test_cells_valid():
     assert bools[1] is True
 
     assert cells.is_not_null().eq(bools).all()
+
+
+def test_cells_to_string():
+    cells = np.array(
+        [
+            h3.geo_to_h3(45.5, 10.2, 5),
+        ]
+    )
+    strings = cells_to_string(cells)
+    assert len(strings) == len(cells)
+    assert isinstance(strings, pl.Series)
+    assert strings.dtype == pl.Utf8
+    assert strings[0] == "851f9923fffffff"

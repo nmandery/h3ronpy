@@ -12,6 +12,8 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Added ``cells_to_string``, ``vertexes_to_string`` and ``directededges_to_string`` functions to convert to Utf8Array.
+
 0.17.2 - 2023-07-13
 -------------------
 

@@ -1,5 +1,5 @@
 use h3arrow::error::Error as A3Error;
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
+use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
 use pyo3::{PyErr, PyResult};
 use rasterh3::Error;
 
@@ -31,7 +31,10 @@ impl IntoPyErr for A3Error {
             A3Error::Arrow2(e) => e.into_pyerr(),
             A3Error::NotAPrimitiveArrayU64
             | A3Error::NonParsableCellIndex
+            | A3Error::NonParsableDirectedEdgeIndex
+            | A3Error::NonParsableVertexIndex
             | A3Error::InvalidWKB => PyValueError::new_err(self.to_string()),
+            A3Error::IO(e) => e.into_pyerr(),
         }
     }
 }
@@ -72,6 +75,12 @@ impl IntoPyErr for rasterh3::Error {
             Error::InvalidResolution(e) => e.into_pyerr(),
             Error::CompactionError(e) => e.into_pyerr(),
         }
+    }
+}
+
+impl IntoPyErr for std::io::Error {
+    fn into_pyerr(self) -> PyErr {
+        PyIOError::new_err(self.to_string())
     }
 }
 

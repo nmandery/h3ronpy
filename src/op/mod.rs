@@ -3,8 +3,8 @@ use pyo3::prelude::*;
 mod compact;
 mod measure;
 mod neighbor;
-mod parse;
 mod resolution;
+mod utf8;
 mod valid;
 
 pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
@@ -15,7 +15,10 @@ pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(neighbor::grid_disk_distances, m)?)?;
     m.add_function(wrap_pyfunction!(neighbor::grid_ring_distances, m)?)?;
     m.add_function(wrap_pyfunction!(neighbor::grid_disk_aggregate_k, m)?)?;
-    m.add_function(wrap_pyfunction!(parse::cells_parse, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::cells_parse, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::cells_to_string, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::vertexes_to_string, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::directededges_to_string, m)?)?;
     m.add_function(wrap_pyfunction!(compact::compact, m)?)?;
     m.add_function(wrap_pyfunction!(compact::uncompact, m)?)?;
     m.add_function(wrap_pyfunction!(valid::cells_valid, m)?)?;

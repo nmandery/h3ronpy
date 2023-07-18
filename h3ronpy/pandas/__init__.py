@@ -47,6 +47,9 @@ grid_disk_aggregate_k = _wrap(_arrow.grid_disk_aggregate_k, ret_type=pd.DataFram
 cells_area_m2 = _wrap(_arrow.cells_area_m2, ret_type=pd.Series)
 cells_area_km2 = _wrap(_arrow.cells_area_km2, ret_type=pd.Series)
 cells_area_rads2 = _wrap(_arrow.cells_area_rads2, ret_type=pd.Series)
+cells_to_string = _wrap(_arrow.cells_to_string, ret_type=pd.Series)
+vertexes_to_string = _wrap(_arrow.vertexes_to_string, ret_type=pd.Series)
+directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pd.Series)
 
 
 __all__ = [
@@ -66,4 +69,7 @@ __all__ = [
     cells_area_m2.__name__,
     cells_area_km2.__name__,
     cells_area_rads2.__name__,
+    cells_to_string.__name__,
+    vertexes_to_string.__name__,
+    directededges_to_string.__name__,
 ]
