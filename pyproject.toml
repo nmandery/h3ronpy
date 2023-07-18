@@ -30,6 +30,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 
+
 [project.optional-dependencies]
 test = [
     "rasterio",
@@ -37,4 +38,5 @@ test = [
     "geopandas>=0.10",
     "pytest>=6",
     "h3>=3.7",
+    "pytest-benchmark"
 ]
