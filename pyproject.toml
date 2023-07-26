@@ -32,10 +32,14 @@ classifiers = [
 
 
 [project.optional-dependencies]
+polars = [
+    "polars"
+]
+pandas = [
+    "geopandas>=0.10",
+]
 test = [
     "rasterio",
-    "polars",
-    "geopandas>=0.10",
     "pytest>=6",
     "h3>=3.7",
     "pytest-benchmark"
