@@ -13,6 +13,7 @@ Unreleased
 ----------
 
 - Added ``cells_to_string``, ``vertexes_to_string`` and ``directededges_to_string`` functions to convert to Utf8Array.
+- Added more documentation for the ``vector`` modules.
 
 0.17.2 - 2023-07-13
 -------------------
