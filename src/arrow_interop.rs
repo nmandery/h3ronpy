@@ -115,6 +115,7 @@ pub(crate) fn pyarray_to_uint64array(obj: &PyAny) -> PyResult<UInt64Array> {
     pyarray_to_native::<UInt64Array>(obj)
 }
 
+#[inline]
 fn pyarray_to_h3array<T>(obj: &PyAny) -> PyResult<T>
 where
     T: TryFrom<UInt64Array>,
