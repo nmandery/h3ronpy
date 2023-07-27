@@ -12,6 +12,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Fixed ``maxx`` value returned by ``cells_bounds_arrays`` - a bug caused this to be identical to ``minx``.
 - Added ``cells_to_string``, ``vertexes_to_string`` and ``directededges_to_string`` functions to convert to Utf8Array.
 - Added more documentation for the ``vector`` modules.
 

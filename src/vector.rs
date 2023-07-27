@@ -58,7 +58,7 @@ pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
                 *validity = true;
                 *minx = rect.min().x;
                 *miny = rect.min().y;
-                *maxx = rect.min().x;
+                *maxx = rect.max().x;
                 *maxy = rect.max().y;
             };
         }
