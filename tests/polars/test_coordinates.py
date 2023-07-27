@@ -48,3 +48,7 @@ def test_cells_bounds_arrays():
     assert "maxx" in bounds_df
     assert "miny" in bounds_df
     assert "maxy" in bounds_df
+    assert bounds_df["minx"][0] < 45.1
+    assert bounds_df["maxx"][0] > 45.1
+    assert bounds_df["miny"][0] < 10.3
+    assert bounds_df["maxy"][0] > 10.3
