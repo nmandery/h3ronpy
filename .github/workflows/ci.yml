@@ -60,19 +60,14 @@ jobs:
           . venv/bin/activate
           pytest -v
 
-      #- name: run the README notebook
-      #  run: |
-      #    . venv/bin/activate
-      #    pip install -r requirements.documentation.txt
-      #    jupyter nbconvert --to Markdown --execute README.ipynb
-        
-
 
   publish-manylinux-2-28:
     if: (github.event_name == 'release' && github.event.action == 'created') || github.event_name == 'schedule'
     needs: lint
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
+    env:
+      RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
     steps:
       - uses: actions/checkout@v3
 
@@ -87,8 +82,6 @@ jobs:
 
       - name: Build Python package
         shell: bash
-        env:
-          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
         run: |
           source $HOME/.cargo/env
           export PATH="/opt/python/cp38-cp38/bin/:$PATH"
@@ -117,6 +110,8 @@ jobs:
     needs: lint
     if: (github.event_name == 'release' && github.event.action == 'created') || github.event_name == 'schedule'
     runs-on: macos-latest
+    env:
+      RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -126,8 +121,6 @@ jobs:
           python-version: "3.8"
           architecture: x64
       - name: Install Python dependencies and build
-        env:
-          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
         run: |
           python -V
           pip install wheel
@@ -147,27 +140,19 @@ jobs:
     needs: lint
     if: (github.event_name == 'release' && github.event.action == 'created') || github.event_name == 'schedule'
     runs-on: windows-latest
+    env:
+      RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: "3.8"
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          use-mamba: true
-      - name: Set LIBCLANG_PATH
-        run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
-      - name: Install Python dependencies and build
-        env:
-          RUSTFLAGS: "-C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma"
-        # binary dependencies without wheels on pypi are installed via conda
+      - name: Install Python dependencies
         run: |
           python -V
           pip install wheel
-          conda install rasterio geopandas
           python install-dev-dependencies.py
+      - name: Build
+        run: |
+          python -V
           maturin build --release --strip --interpreter python
           pip install --find-links=target/wheels h3ronpy
       - name: PyPi publish
