@@ -12,6 +12,11 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.17.4 - 2023-07-28
+-------------------
+
+- Rebuild with h3o 0.3.4 to fix `#25 <https://github.com/nmandery/h3ronpy/issues/25>`_.
+
 0.17.3 - 2023-07-27
 -------------------
 
