@@ -1,7 +1,7 @@
 from typing import Union
 
 import pyarrow as pa
-from ..h3ronpy import op
+from h3ronpy.h3ronpyrs import op
 
 try:
     import polars as pl

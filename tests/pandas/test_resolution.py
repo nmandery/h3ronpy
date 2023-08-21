@@ -1,7 +1,8 @@
-from h3ronpy.pandas import change_resolution, change_resolution_paired, cells_resolution
 import numpy as np
 import math
 import h3.api.numpy_int as h3
+
+from h3ronpy.pandas import change_resolution, change_resolution_paired, cells_resolution
 
 
 def test_change_resolution_up():

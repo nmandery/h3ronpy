@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "maturin==1.1",
+    "maturin==1.2",
 ]
 build-backend = "maturin"
 
@@ -44,3 +44,7 @@ test = [
     "h3>=3.7",
     "pytest-benchmark"
 ]
+
+[tool.maturin]
+python-source = "python"
+module-name = "h3ronpy.h3ronpyrs"

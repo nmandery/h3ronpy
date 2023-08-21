@@ -7,7 +7,7 @@ target
 perf.data
 perf.data.old
 flamegraph*.svg
-/h3ronpy/h3ronpy*.so
+*.so
 .ipynb_checkpoints
 /venv
 __pycache__
@@ -15,3 +15,5 @@ __pycache__
 .ruff_cache
 /docs/build/
 /docs/source/generated/
+/docs/source/_build/
+/dist

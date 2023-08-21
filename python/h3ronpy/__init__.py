@@ -1,5 +1,5 @@
-from . import h3ronpy as _native
-from .h3ronpy import version, DEFAULT_CELL_COLUMN_NAME  # noqa: F401
+from . import h3ronpyrs as _native
+from .h3ronpyrs import version, DEFAULT_CELL_COLUMN_NAME  # noqa: F401
 
 __version__ = version()
 
