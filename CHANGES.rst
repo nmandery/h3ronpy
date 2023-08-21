@@ -12,6 +12,8 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Rework packaging and build process in CI. Adds support for apple silicon.
+
 0.17.4 - 2023-07-28
 -------------------
 

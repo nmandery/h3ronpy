@@ -5,7 +5,7 @@ authors = ["Nico Mandery <nico@nmandery.net>"]
 description = "Data science toolkit for the H3 geospatial grid"
 edition = "2021"
 license = "MIT"
-keywords = ["geo", "spatial", "h3", "pandas", "geopandas", "arrow", "polars", "numpy", "python"]
+keywords = ["geo", "spatial", "h3", "arrow", "python"]
 homepage = "https://github.com/nmandery/h3ronpy"
 repository = "https://github.com/nmandery/h3ronpy"
 

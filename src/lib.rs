@@ -40,7 +40,7 @@ fn is_release_build() -> bool {
 }
 
 #[pymodule]
-fn h3ronpy(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn h3ronpyrs(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     env_logger::init(); // run with the environment variable RUST_LOG set to "debug" for log output
 
     m.add_function(wrap_pyfunction!(version, m)?)?;

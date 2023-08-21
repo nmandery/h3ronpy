@@ -28,7 +28,7 @@ Resolution search modes of `nearest_h3_resolution`:
 
 """
 
-from ..h3ronpy import raster
+from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME
 import numpy as np
 import pyarrow as pa

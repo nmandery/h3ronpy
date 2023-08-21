@@ -1,4 +1,4 @@
-from ..h3ronpy import vector
+from h3ronpy.h3ronpyrs import vector
 from . import _to_uint64_array, _HAS_POLARS
 from typing import Optional, Tuple, Union
 import pyarrow as pa
