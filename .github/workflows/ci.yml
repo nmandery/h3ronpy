@@ -5,10 +5,12 @@ on:
     branches:
       - main
     tags:
-      - '*'
-  release:
-    types: [ created ]
+      - 'v*'
+#  release:
+#    types: [ created ]
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
