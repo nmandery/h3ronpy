@@ -24,6 +24,7 @@ Documentation is available on `<https://h3ronpy.readthedocs.io/>`_.
 Features
 --------
 
+* H3 algorithms provided using the performant `h3o <https://github.com/HydroniumLabs/h3o>`_ library.
 * Build on `Apache Arrow <https://arrow.apache.org>`_ and `pyarrow <https://arrow.apache.org/docs/python/index.html>`_ for efficient data handling.
 * Dedicated APIs for the the `pandas <https://pandas.pydata.org>`_ and `polars <https://www.pola.rs/>`_ dataframe libraries. The `pandas` support includes `geopandas <https://geopandas.org>`_.
 * Multi-threaded conversion of raster data to the H3 grid using `numpy arrays <https://numpy.org/>`_.
