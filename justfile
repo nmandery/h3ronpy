@@ -7,6 +7,7 @@ ruff:
     ruff check python tests *.py docs/source/*.py
 
 test:
+    rm -f dist/*.whl
     maturin build --out dist
     pip install --force-reinstall dist/*.whl
     pytest -s
