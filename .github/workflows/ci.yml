@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pip install h3ronpy --find-links dist --force-reinstall
+          pip install --force-reinstall dist/*.whl
           pytest -s tests
 
   linux-aarch64:
@@ -131,7 +131,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          pip install h3ronpy --find-links dist --force-reinstall
+          pip install --force-reinstall dist/*.whl
           pytest tests
 
   macos-aarch64:
