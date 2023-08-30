@@ -1,5 +1,5 @@
 from h3ronpy.h3ronpyrs import vector
-from . import _to_uint64_array, _HAS_POLARS
+from . import _to_uint64_array, _HAS_POLARS, _to_arrow_array
 from typing import Optional, Tuple, Union
 import pyarrow as pa
 
@@ -9,6 +9,25 @@ def cells_to_coordinates(arr, radians: bool = False) -> pa.Table:
     convert to point coordinates in degrees
     """
     return vector.cells_to_coordinates(_to_uint64_array(arr), radians=radians)
+
+
+def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) -> pa.Array:
+    """
+    Convert coordinates arrays to cells.
+
+    :param latarray: array of lat values
+    :param lngarray: array of lng values
+    :param resarray: Either an array of resolutions or a single resolution as an integer to apply to all coordinates.
+    :param radians: Set to True to pass `lat` and `lng` in radians
+    :return: cell array
+    """
+    if type(resarray) in (int, float):
+        res = int(resarray)
+    else:
+        res = _to_arrow_array(resarray, pa.uint8())
+    return vector.coordinates_to_cells(
+        _to_arrow_array(latarray, pa.float64()), _to_arrow_array(lngarray, pa.float64()), res, radians=radians
+    )
 
 
 def cells_bounds(arr) -> Optional[Tuple]:
@@ -135,6 +154,7 @@ def geometry_to_cells(geom, resolution: int, compact: bool = False, all_intersec
 
 __all__ = [
     cells_to_coordinates.__name__,
+    coordinates_to_cells.__name__,
     cells_bounds.__name__,
     cells_bounds_arrays.__name__,
     cells_to_wkb_polygons.__name__,
