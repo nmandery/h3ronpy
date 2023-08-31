@@ -1,4 +1,4 @@
-from h3ronpy.arrow.vector import geometry_to_cells, cells_to_coordinates
+from h3ronpy.arrow.vector import geometry_to_cells, ContainmentMode
 import pyarrow as pa
 import shapely
 from shapely.geometry import Point
@@ -7,7 +7,7 @@ import h3.api.numpy_int as h3
 
 def test_geometry_to_cells():
     geom = shapely.Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)))
-    cells = geometry_to_cells(geom, 5, all_intersecting=True)
+    cells = geometry_to_cells(geom, 5, containment_mode=ContainmentMode.IntersectsBoundary)
     assert isinstance(cells, pa.Array)
     assert cells.type == pa.uint64()
     assert len(cells) > 10

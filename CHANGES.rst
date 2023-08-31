@@ -14,6 +14,9 @@ Unreleased
 
 - Added ``coordinates_to_cells`` function.
 - Added ``rasterize_cells`` function to generate raster arrays from cells.
+- Updated h3o from v0.3 to v0.4. Due to the new polyfill modes this leads to API changes in all functions converting
+  geometries to cells. The ``all_intersecting`` parameter is now deprecated (will be removed in v0.19) and is replaced
+  by ``containment_mode``.
 
 0.17.5 - 2023-08-22
 -------------------

@@ -6,8 +6,9 @@ use h3arrow::array::{CellIndexArray, ResolutionArray};
 use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray, UInt8Array};
 use h3arrow::export::arrow2::bitmap::Bitmap;
 use h3arrow::export::geoarrow::{array::WKBArray, GeometryArrayTrait};
-use h3arrow::export::h3o::geom::ToGeo;
+use h3arrow::export::h3o::geom::{ContainmentMode, ToGeo};
 use h3arrow::export::h3o::Resolution;
+use h3arrow::h3o::geom::PolyfillConfig;
 use h3arrow::h3o::LatLng;
 use itertools::multizip;
 use pyo3::exceptions::PyValueError;
@@ -15,7 +16,53 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
 use crate::arrow_interop::*;
-use crate::error::IntoPyResult;
+use crate::error::{warn_deprecated, IntoPyResult};
+
+/// Containment mode used to decide if a cell is contained in a polygon or not.
+///
+/// Modes:
+///
+/// * ContainsCentroid: This mode will select every cells whose centroid are contained inside the polygon.
+///
+///         This is the fasted option and ensures that every cell is uniquely
+///         assigned (e.g. two adjacent polygon with zero overlap also have zero
+///         overlapping cells).
+///         
+///         On the other hand, some cells may cover area outside of the polygon
+///         (overshooting) and some parts of the polygon may be left uncovered.
+///
+/// * ContainsBoundary: This mode will select every cells whose boundaries are entirely within the polygon.
+///
+///         This ensures that every cell is uniquely assigned  (e.g. two adjacent
+///         polygon with zero overlap also have zero overlapping cells) and avoids
+///         any coverage overshooting.
+///         
+///         Some parts of the polygon may be left uncovered (more than with
+///         `ContainsCentroid`).
+///
+/// * IntersectsBoundary: This mode will select every cells whose boundaries are within the polygon, even partially.
+///
+///         This guarantees a complete coverage of the polygon, but some cells may
+///         belong to two different polygons if they are adjacent/close enough. Some
+///         cells may cover area outside of the polygon.
+///
+#[pyclass(name = "ContainmentMode")]
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum PyContainmentMode {
+    ContainsCentroid,
+    ContainsBoundary,
+    IntersectsBoundary,
+}
+
+impl PyContainmentMode {
+    fn containment_mode(&self) -> ContainmentMode {
+        match self {
+            PyContainmentMode::ContainsCentroid => ContainmentMode::ContainsCentroid,
+            PyContainmentMode::ContainsBoundary => ContainmentMode::ContainsBoundary,
+            PyContainmentMode::IntersectsBoundary => ContainmentMode::IntersectsBoundary,
+        }
+    }
+}
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
@@ -269,20 +316,46 @@ pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> 
     with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
 }
 
+fn get_containment_mode(
+    pycm: Option<PyContainmentMode>,
+    all_intersecting: Option<bool>,
+) -> PyResult<ContainmentMode> {
+    if all_intersecting.is_some() {
+        warn_deprecated("The all_intersecting parameter is deprecated and will be removed. Use containment_mode instead.")?;
+    }
+    if let Some(pycm) = pycm {
+        return Ok(pycm.containment_mode());
+    }
+    if all_intersecting == Some(true) {
+        return Ok(ContainmentMode::IntersectsBoundary);
+    }
+    Ok(ContainmentMode::ContainsCentroid)
+}
+
+fn get_to_cells_options(
+    resolution: u8,
+    containment_mode: Option<PyContainmentMode>,
+    all_intersecting: Option<bool>,
+    compact: bool,
+) -> PyResult<ToCellsOptions> {
+    Ok(ToCellsOptions::new(
+        PolyfillConfig::new(Resolution::try_from(resolution).into_pyresult()?)
+            .containment_mode(get_containment_mode(containment_mode, all_intersecting)?),
+    )
+    .compact(compact))
+}
+
 #[pyfunction]
-#[pyo3(signature = (array, resolution, compact = false, all_intersecting = true, flatten = false))]
+#[pyo3(signature = (array, resolution, containment_mode = None, compact = false, all_intersecting = None, flatten = false))]
 pub(crate) fn wkb_to_cells(
     array: &PyAny,
     resolution: u8,
+    containment_mode: Option<PyContainmentMode>,
     compact: bool,
-    all_intersecting: bool,
+    all_intersecting: Option<bool>, // todo: DEPRECATED. Remove in v0.19
     flatten: bool,
 ) -> PyResult<PyObject> {
-    let options = ToCellsOptions {
-        resolution: Resolution::try_from(resolution).into_pyresult()?,
-        compact,
-        all_intersecting,
-    };
+    let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
     let wkbarray = WKBArray::new(pyarray_to_native::<BinaryArray<i64>>(array)?);
 
     if flatten {
@@ -296,19 +369,15 @@ pub(crate) fn wkb_to_cells(
 }
 
 #[pyfunction]
-#[pyo3(signature = (obj, resolution, compact = false, all_intersecting = true))]
+#[pyo3(signature = (obj, resolution, containment_mode = None, compact = false, all_intersecting = None))]
 pub(crate) fn geometry_to_cells(
     obj: py_geo_interface::Geometry,
     resolution: u8,
+    containment_mode: Option<PyContainmentMode>,
     compact: bool,
-    all_intersecting: bool,
+    all_intersecting: Option<bool>,
 ) -> PyResult<PyObject> {
-    let options = ToCellsOptions {
-        resolution: Resolution::try_from(resolution).into_pyresult()?,
-        compact,
-        all_intersecting,
-    };
-
+    let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
     );

@@ -1,7 +1,9 @@
 from h3ronpy.h3ronpyrs import vector
+from .. import ContainmentMode
 from . import _to_uint64_array, _HAS_POLARS, _to_arrow_array
 from typing import Optional, Tuple, Union
 import pyarrow as pa
+
 
 
 def cells_to_coordinates(arr, radians: bool = False) -> pa.Table:
@@ -108,7 +110,12 @@ def directededges_to_wkb_linestrings(arr, radians: bool = False) -> pa.Array:
 
 
 def wkb_to_cells(
-    arr, resolution: int, compact: bool = False, all_intersecting: bool = True, flatten: bool = False
+    arr,
+    resolution: int,
+    containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
+    compact: bool = False,
+    all_intersecting: Optional[bool] = None,
+    flatten: bool = False,
 ) -> Union[pa.Array, pa.ListArray]:
     """
     Convert a Series/Array/List of WKB values to H3 cells.
@@ -118,10 +125,12 @@ def wkb_to_cells(
 
     :param arr: The input array.
     :param resolution: H3 resolution
+    :param containment_mode: Containment mode used to decide if a cell is contained in a polygon or not.
+            See the ContainmentMode class.
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
-    :param all_intersecting: Also return cells which only overlap partially with the given geometry
-            (without intersecting with their centroid).
+    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
+            (without intersecting with their centroid)).
     :param flatten: Return a non-nested cell array instead of a list array.
     """
     if _HAS_POLARS:
@@ -135,21 +144,38 @@ def wkb_to_cells(
 
     if isinstance(arr, pa.ChunkedArray):
         arr = arr.combine_chunks()
-    return vector.wkb_to_cells(arr, resolution, compact=compact, all_intersecting=all_intersecting, flatten=flatten)
+    return vector.wkb_to_cells(
+        arr,
+        resolution,
+        containment_mode=containment_mode,
+        compact=compact,
+        all_intersecting=all_intersecting,
+        flatten=flatten,
+    )
 
 
-def geometry_to_cells(geom, resolution: int, compact: bool = False, all_intersecting: bool = True) -> pa.Array:
+def geometry_to_cells(
+    geom,
+    resolution: int,
+    containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
+    compact: bool = False,
+    all_intersecting: Optional[bool] = None,
+) -> pa.Array:
     """
     Convert a single object which supports the python `__geo_interface__` protocol to H3 cells
 
     :param geom: geometry
     :param resolution: H3 resolution
+    :param containment_mode: Containment mode used to decide if a cell is contained in a polygon or not.
+            See the ContainmentMode class.
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
-    :param all_intersecting: Also return cells which only overlap partially with the given geometry
-            (without intersecting with their centroid).
+    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
+            (without intersecting with their centroid)).
     """
-    return vector.geometry_to_cells(geom, resolution, compact=compact, all_intersecting=all_intersecting)
+    return vector.geometry_to_cells(
+        geom, resolution, containment_mode=containment_mode, compact=compact, all_intersecting=all_intersecting
+    )
 
 
 __all__ = [
