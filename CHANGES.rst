@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.18.0 - 2023-08-31
+-------------------
+
 - Added ``coordinates_to_cells`` function.
 - Added ``rasterize_cells`` function to generate raster arrays from cells.
 - Updated h3o from v0.3 to v0.4. Due to the new polyfill modes this leads to API changes in all functions converting

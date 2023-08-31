@@ -1,6 +1,6 @@
 [package]
 name = "h3ronpy"
-version = "0.17.5"
+version = "0.18.0"
 authors = ["Nico Mandery <nico@nmandery.net>"]
 description = "Data science toolkit for the H3 geospatial grid"
 edition = "2021"
