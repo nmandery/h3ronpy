@@ -2,13 +2,15 @@ use geo::BoundingRect;
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBLines, ToWKBPoints, ToWKBPolygons};
-use h3arrow::array::CellIndexArray;
-use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray};
+use h3arrow::array::{CellIndexArray, ResolutionArray};
+use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray, UInt8Array};
 use h3arrow::export::arrow2::bitmap::Bitmap;
 use h3arrow::export::geoarrow::{array::WKBArray, GeometryArrayTrait};
 use h3arrow::export::h3o::geom::ToGeo;
 use h3arrow::export::h3o::Resolution;
+use h3arrow::h3o::LatLng;
 use itertools::multizip;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
@@ -126,6 +128,70 @@ pub(crate) fn cells_to_coordinates(cellarray: &PyAny, radians: bool) -> PyResult
             .call_method1("from_arrays", (arrays, ["lat", "lng"]))?;
         Ok(table.to_object(py))
     })
+}
+
+#[pyfunction]
+#[pyo3(signature = (latarray, lngarray, resolution, radians = false))]
+pub(crate) fn coordinates_to_cells(
+    latarray: &PyAny,
+    lngarray: &PyAny,
+    resolution: &PyAny,
+    radians: bool,
+) -> PyResult<PyObject> {
+    let latarray: Float64Array = pyarray_to_native(latarray)?;
+    let lngarray: Float64Array = pyarray_to_native(lngarray)?;
+    if lngarray.len() != latarray.len() {
+        return Err(PyValueError::new_err(
+            "latarray and lngarray must be of the same length",
+        ));
+    }
+
+    let cells = if let Ok(resolution) = resolution.extract::<u8>() {
+        let resolution = Resolution::try_from(resolution).into_pyresult()?;
+
+        latarray
+            .iter()
+            .zip(lngarray.iter())
+            .map(|(lat, lng)| {
+                if let (Some(lat), Some(lng)) = (lat, lng) {
+                    if radians {
+                        LatLng::from_radians(*lat, *lng).into_pyresult()
+                    } else {
+                        LatLng::new(*lat, *lng).into_pyresult()
+                    }
+                    .map(|ll| Some(ll.to_cell(resolution)))
+                } else {
+                    Ok(None)
+                }
+            })
+            .collect::<PyResult<CellIndexArray>>()?
+    } else {
+        let resarray = ResolutionArray::try_from(pyarray_to_native::<UInt8Array>(resolution)?)
+            .into_pyresult()?;
+
+        if resarray.len() != latarray.len() {
+            return Err(PyValueError::new_err(
+                "resarray must be of the same length as the coordinate arrays",
+            ));
+        }
+
+        multizip((latarray.iter(), lngarray.iter(), resarray.iter()))
+            .map(|(lat, lng, res)| {
+                if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
+                    if radians {
+                        LatLng::from_radians(*lat, *lng).into_pyresult()
+                    } else {
+                        LatLng::new(*lat, *lng).into_pyresult()
+                    }
+                    .map(|ll| Some(ll.to_cell(res)))
+                } else {
+                    Ok(None)
+                }
+            })
+            .collect::<PyResult<CellIndexArray>>()?
+    };
+
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
 }
 
 #[pyfunction]
@@ -259,5 +325,6 @@ pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(directededges_to_wkb_lines, m)?)?;
     m.add_function(wrap_pyfunction!(wkb_to_cells, m)?)?;
     m.add_function(wrap_pyfunction!(geometry_to_cells, m)?)?;
+    m.add_function(wrap_pyfunction!(coordinates_to_cells, m)?)?;
     Ok(())
 }

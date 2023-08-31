@@ -12,6 +12,8 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Added ``coordinates_to_cells`` function.
+
 0.17.5 - 2023-08-22
 -------------------
 
