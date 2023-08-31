@@ -25,11 +25,12 @@ Converting vector data
 Converting a complete `GeoDataFrame` to cells
 ---------------------------------------------
 
-Includes building a new `GeoDataFrame` with the cell geometries using :py:func:`h3ronpy.pandas.geodataframe_to_cells`:
+Includes building a new `GeoDataFrame` with the cell geometries using :py:func:`h3ronpy.pandas.vector.geodataframe_to_cells`:
 
 .. jupyter-execute::
 
     from h3ronpy.pandas.vector import geodataframe_to_cells, cells_dataframe_to_geodataframe
+    from h3ronpy import ContainmentMode
 
     df = geodataframe_to_cells(africa, 3)
     gdf = cells_dataframe_to_geodataframe(df)
@@ -53,11 +54,19 @@ Depending on the shape of the geometry the resulting cells may look like below:
 
     fill_namibia()
 
-The `all_intersecting` argument extends this to include all cells which intersect with the polygon geometry:
+The `containment_mode` argument allow the control how polygons are filled. See :py:class:`h3ronpy.ContainmentMode` for details.
 
 .. jupyter-execute::
 
-    fill_namibia(all_intersecting=True)
+    fill_namibia(containment_mode=ContainmentMode.ContainsCentroid)
+
+.. jupyter-execute::
+
+    fill_namibia(containment_mode=ContainmentMode.ContainsBoundary)
+
+.. jupyter-execute::
+
+    fill_namibia(containment_mode=ContainmentMode.IntersectsBoundary)
 
 
 Merging cells into larger polygons

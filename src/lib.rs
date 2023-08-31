@@ -12,7 +12,7 @@ use pyo3::{prelude::*, wrap_pyfunction, Python};
 
 use crate::op::init_op_submodule;
 use crate::raster::init_raster_submodule;
-use crate::vector::init_vector_submodule;
+use crate::vector::{init_vector_submodule, PyContainmentMode};
 
 mod arrow_interop;
 mod error;
@@ -43,6 +43,7 @@ fn is_release_build() -> bool {
 fn h3ronpyrs(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     env_logger::init(); // run with the environment variable RUST_LOG set to "debug" for log output
 
+    m.add_class::<PyContainmentMode>()?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
     m.add_function(wrap_pyfunction!(is_release_build, m)?)?;
 

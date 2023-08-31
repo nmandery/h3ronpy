@@ -1,5 +1,6 @@
 from . import _wrap
 from ..arrow import vector as _av
+from .. import ContainmentMode
 from ..arrow import util as _arrow_util
 import pyarrow as pa
 import pandas as pd
@@ -87,9 +88,10 @@ def cells_dataframe_to_geodataframe(
 def geodataframe_to_cells(
     gdf: gpd.GeoDataFrame,
     resolution: int,
+    containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
     cell_column_name: str = DEFAULT_CELL_COLUMN_NAME,
-    all_intersecting: bool = False,
+    all_intersecting: Optional[bool] = None,
 ) -> pd.DataFrame:
     """
     Convert a `GeoDataFrame` to H3 cells while exploding all other columns according to the number of cells derived
@@ -101,13 +103,23 @@ def geodataframe_to_cells(
     some of the more low-level conversion functions should be preferred.
 
     :param gdf:
-    :param resolution:
-    :param compact:
+    :param resolution: H3 resolution
+    :param containment_mode: Containment mode used to decide if a cell is contained in a polygon or not.
+            See the ContainmentMode class.
+    :param compact: Compact the returned cells by replacing cells with their parent cells when all children
+            of that cell are part of the set.
     :param cell_column_name:
-    :param all_intersecting:
+    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
+            (without intersecting with their centroid)).
     :return:
     """
-    cells = _av.wkb_to_cells(gdf.geometry.to_wkb(), resolution, compact=compact, all_intersecting=all_intersecting)
+    cells = _av.wkb_to_cells(
+        gdf.geometry.to_wkb(),
+        resolution,
+        containment_mode=containment_mode,
+        compact=compact,
+        all_intersecting=all_intersecting,
+    )
     table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns="geometry"))).append_column(cell_column_name, cells)
     return _arrow_util.explode_table_include_null(table, cell_column_name).to_pandas().reset_index(drop=True)
 
