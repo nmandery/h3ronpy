@@ -9,6 +9,7 @@ from .vector import cells_dataframe_to_geodataframe
 __doc__ = arrow_raster.__doc__
 
 nearest_h3_resolution = arrow_raster.nearest_h3_resolution
+rasterize_cells = arrow_raster.rasterize_cells
 
 
 def raster_to_dataframe(

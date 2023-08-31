@@ -13,6 +13,7 @@ Unreleased
 ----------
 
 - Added ``coordinates_to_cells`` function.
+- Added ``rasterize_cells`` function to generate raster arrays from cells.
 
 0.17.5 - 2023-08-22
 -------------------

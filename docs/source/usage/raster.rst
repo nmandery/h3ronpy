@@ -1,5 +1,5 @@
-Converting raster data
-======================
+Converting raster data to H3
+============================
 
 .. jupyter-execute::
 
@@ -92,3 +92,26 @@ Now we convert the raster directly into a geopandas `GeoDataFrame`:
 
     vegetation_h3_df.plot(column="value", linewidth=0.2, edgecolor="black", **vegetation_plot_args)
     pyplot.show()
+
+
+Converting H3 cells to raster
+=============================
+
+.. jupyter-execute::
+
+    import pandas as pd
+    from h3ronpy.pandas.raster import rasterize_cells
+    from rasterio.plot import show
+
+    df = pd.read_parquet(project_root / "data/population-841fa8bffffffff.parquet")
+    size = 1000
+    nodata_value = -1
+    array, transform = rasterize_cells(
+        df["h3index"],
+        df["pop_general"].astype("int32"),
+        size,
+        nodata_value=nodata_value
+    )
+
+    show(array, cmap="viridis", transform=transform, contour=False)
+
