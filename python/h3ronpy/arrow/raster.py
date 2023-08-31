@@ -27,11 +27,14 @@ Resolution search modes of `nearest_h3_resolution`:
 * "smaller_than_pixel":  chose the H3 resolution where the area of the h3index is smaller than the area of a pixel.
 
 """
-
+import shapely
 from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME
+from . import _to_uint64_array, _to_arrow_array
+from .vector import cells_to_wkb_polygons, cells_bounds
 import numpy as np
 import pyarrow as pa
+import typing
 
 try:
     # affine library is used by rasterio
@@ -124,3 +127,78 @@ def raster_to_dataframe(
         arrays=func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value),
         names=["value", DEFAULT_CELL_COLUMN_NAME],
     )
+
+
+def rasterize_cells(
+    cells, values, size: typing.Union[int, typing.Tuple[int, int]], nodata_value=0
+) -> (np.ndarray, typing.Tuple[float, float, float, float, float, float]):
+    """
+    Generate a raster numpy array from arrays of cells and values.
+
+    This function requires the ``rasterio`` library.
+
+    :param cells: array with H3 cells
+    :param values: array with the values which shall be written into the raster
+    :param size: The desired output size of the raster. Maybe a tuple of ints (width, height) or a single int. In case
+            of the latter, the other dimension is interpolated from the bounds of the input data.
+    :param nodata_value: The nodata value for the output array
+    :return: 2D numpy array typed accordingly to the passed in values array, and the geotransform (WGS84 coordinate
+            system, ordering used by the affine library and rasterio)
+    """
+    from rasterio.transform import from_bounds
+    from rasterio.features import rasterize
+
+    cells = _to_uint64_array(cells)
+    values = _to_arrow_array(values, None)
+
+    if len(cells) != len(values):
+        raise ValueError("length of cells and values array needs to be equal")
+    bounds = cells_bounds(cells)
+
+    if bounds is None:
+        # no contents, nothing to rasterize
+        return None, None
+
+    if type(size) == int:
+        (minx, miny, maxx, maxy) = bounds
+        size = (size, int(float(size) / (maxx - minx) * (maxy - miny)))
+
+    transform = from_bounds(*bounds, *size)
+
+    # reduce the number of features to loop over by grouping by value
+    # https://arrow.apache.org/docs/python/generated/pyarrow.TableGroupBy.html
+    grouped = (
+        pa.Table.from_arrays([cells, values], names=["cells", "values"])
+        .group_by("values")
+        .aggregate(
+            [
+                ("cells", "hash_distinct"),
+            ]
+        )
+    )
+
+    # drop any unused references to free some memory
+    del cells
+    del values
+
+    values_array = grouped["values"].to_numpy()
+    rasterized = np.full(size, nodata_value, dtype=values_array.dtype)
+
+    for cells, value in zip(grouped["cells_distinct"], grouped["values"]):
+        value = value.as_py()
+
+        # linking cells should speed up rendering in case of large homogenous areas
+        polygons = cells_to_wkb_polygons(cells, link_cells=True)
+        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
+
+        # draw
+        rasterize(
+            polygons,
+            out_shape=size,
+            out=rasterized,
+            default_value=value,
+            transform=transform,
+            all_touched=False,
+        )
+
+    return rasterized, transform

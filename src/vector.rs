@@ -202,13 +202,14 @@ pub(crate) fn cells_to_wkb_polygons(
     link_cells: bool,
 ) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let use_degrees = !radians;
 
     let cells = if link_cells {
         WKBArray::from(
             cellindexarray
                 .iter()
                 .flatten()
-                .to_geom(radians)
+                .to_geom(use_degrees)
                 .into_pyresult()?
                 .0
                 .into_iter()
@@ -216,7 +217,7 @@ pub(crate) fn cells_to_wkb_polygons(
                 .collect::<Vec<_>>(),
         )
     } else {
-        cellindexarray.to_wkb_polygons(!radians).unwrap()
+        cellindexarray.to_wkb_polygons(use_degrees).unwrap()
     }
     .into_arrow()
     .boxed();
