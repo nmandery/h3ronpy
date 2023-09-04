@@ -57,11 +57,17 @@ def cells_resolution(arr) -> pa.Array:
 
 def cells_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
     """
-    Parse H3 cells from string arrays
+    Parse H3 cells from string arrays.
 
     Setting `set_failing_to_invalid` to true will trigger setting the validity bitmap according
     the successful parsing of an individual element. Having this set to false will cause the
     method to fail upon encountering the first unparsable value.
+
+    This function is able to parse multiple representations of H3 cells:
+
+        * hexadecimal (Example: ``8552dc63fffffff``)
+        * numeric integer strings (Example: ``600436454824345599``)
+        * strings like ``[x], [y], [resolution]`` or  ``[x]; [y]; [resolution]``. (Example: ``10.2,45.5,5``)
     """
     return op.cells_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
 

@@ -11,6 +11,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 Unreleased
 ----------
+- Extend documentation of ``cells_parse``.
 
 0.18.0 - 2023-08-31
 -------------------
