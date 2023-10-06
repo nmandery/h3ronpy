@@ -5,7 +5,6 @@ from typing import Optional, Tuple, Union
 import pyarrow as pa
 
 
-
 def cells_to_coordinates(arr, radians: bool = False) -> pa.Table:
     """
     convert to point coordinates in degrees
