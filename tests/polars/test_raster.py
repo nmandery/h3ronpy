@@ -77,7 +77,7 @@ def test_rasterize_cells_auto_aspect():
     array, transform = rasterize_cells(df["h3index"], df["pop_general"].cast(pl.Int32), size, nodata_value=nodata_value)
 
     assert array.shape[0] == size
-    #print(array.shape)
+    # print(array.shape)
     assert np.int32 == array.dtype.type
     assert np.any(array > 0)
 

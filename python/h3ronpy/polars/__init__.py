@@ -49,6 +49,37 @@ cells_to_string = _wrap(_arrow.cells_to_string, ret_type=pl.Series)
 vertexes_to_string = _wrap(_arrow.vertexes_to_string, ret_type=pl.Series)
 directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pl.Series)
 
+
+@pl.api.register_expr_namespace("h3")
+class H3Expr:
+    def __init__(self, expr: pl.Expr):
+        self._expr = expr
+
+    def cells_resolution(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_resolution(s)).alias("resolution")
+
+    def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
+        return self._expr.map(lambda s: cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias("cell")
+
+    def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
+        return self._expr.map(lambda s: grid_disk(s, k, flatten=flatten))
+
+
+@pl.api.register_series_namespace("h3")
+class H3Shortcuts:
+    def __init__(self, s: pl.Series):
+        self._s = s
+
+    def cells_resolution(self) -> pl.Series:
+        return cells_resolution(self._s)
+
+    def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
+        return cells_parse(self._s, set_failing_to_invalid=set_failing_to_invalid)
+
+    def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
+        return grid_disk(self._s, k, flatten=flatten)
+
+
 __all__ = [
     change_resolution.__name__,
     change_resolution_paired.__name__,
@@ -69,4 +100,6 @@ __all__ = [
     cells_to_string.__name__,
     vertexes_to_string.__name__,
     directededges_to_string.__name__,
+    H3Expr.__name__,
+    H3Shortcuts.__name__,
 ]
