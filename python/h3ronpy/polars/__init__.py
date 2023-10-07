@@ -64,6 +64,39 @@ class H3Expr:
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
         return self._expr.map(lambda s: grid_disk(s, k, flatten=flatten))
 
+    def compact(self, mixed_resolutions: bool = False) -> pl.Expr:
+        return self._expr.map(lambda s: compact(s, mixed_resolutions=mixed_resolutions))
+
+    def uncompact(self, target_resolution: int) -> pl.Expr:
+        return self._expr.map(lambda s: uncompact(s, target_resolution))
+
+    def cells_area_m2(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_area_m2(s)).alias("area_m2")
+
+    def cells_area_km2(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_area_km2(s)).alias("area_km2")
+
+    def cells_area_rads2(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_area_rads2(s)).alias("area_rads2")
+
+    def cells_valid(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_valid(s)).alias("cells_valid")
+
+    def vertexes_valid(self) -> pl.Expr:
+        return self._expr.map(lambda s: vertexes_valid(s)).alias("vertexes_valid")
+
+    def directededges_valid(self) -> pl.Expr:
+        return self._expr.map(lambda s: directededges_valid(s)).alias("directededges_valid")
+
+    def cells_to_string(self) -> pl.Expr:
+        return self._expr.map(lambda s: cells_to_string(s))
+
+    def vertexes_to_string(self) -> pl.Expr:
+        return self._expr.map(lambda s: vertexes_to_string(s))
+
+    def directededges_to_string(self) -> pl.Expr:
+        return self._expr.map(lambda s: directededges_to_string(s))
+
 
 @pl.api.register_series_namespace("h3")
 class H3Shortcuts:
@@ -78,6 +111,39 @@ class H3Shortcuts:
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
         return grid_disk(self._s, k, flatten=flatten)
+
+    def compact(self, mixed_resolutions: bool = False) -> pl.Series:
+        return compact(self._s, mixed_resolutions=mixed_resolutions)
+
+    def uncompact(self, target_resolution: int) -> pl.Series:
+        return uncompact(self._s, target_resolution)
+
+    def cells_area_m2(self) -> pl.Series:
+        return cells_area_m2(self._s)
+
+    def cells_area_km2(self) -> pl.Series:
+        return cells_area_km2(self._s)
+
+    def cells_area_rads2(self) -> pl.Series:
+        return cells_area_rads2(self._s)
+
+    def cells_valid(self) -> pl.Series:
+        return cells_valid(self._s)
+
+    def vertexes_valid(self) -> pl.Series:
+        return vertexes_valid(self._s)
+
+    def directededges_valid(self) -> pl.Series:
+        return directededges_valid(self._s)
+
+    def cells_to_string(self) -> pl.Series:
+        return cells_to_string(self._s)
+
+    def vertexes_to_string(self) -> pl.Series:
+        return vertexes_to_string(self._s)
+
+    def directededges_to_string(self) -> pl.Series:
+        return directededges_to_string(self._s)
 
 
 __all__ = [
