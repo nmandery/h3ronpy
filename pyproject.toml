@@ -8,7 +8,6 @@ build-backend = "maturin"
 minversion = "6.0"
 addopts = "--doctest-modules -v -s"
 testpaths = [
-    "h3ronpy",
     "tests"
 ]
 
