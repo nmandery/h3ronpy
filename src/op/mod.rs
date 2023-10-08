@@ -16,6 +16,8 @@ pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(neighbor::grid_ring_distances, m)?)?;
     m.add_function(wrap_pyfunction!(neighbor::grid_disk_aggregate_k, m)?)?;
     m.add_function(wrap_pyfunction!(utf8::cells_parse, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::vertexes_parse, m)?)?;
+    m.add_function(wrap_pyfunction!(utf8::directededges_parse, m)?)?;
     m.add_function(wrap_pyfunction!(utf8::cells_to_string, m)?)?;
     m.add_function(wrap_pyfunction!(utf8::vertexes_to_string, m)?)?;
     m.add_function(wrap_pyfunction!(utf8::directededges_to_string, m)?)?;
