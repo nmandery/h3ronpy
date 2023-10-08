@@ -52,6 +52,13 @@ directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pl.Seri
 
 @pl.api.register_expr_namespace("h3")
 class H3Expr:
+    """
+    Registers H3 functionality with polars Expr expressions.
+
+    The methods of this class mirror the functionality provided by the functions of this
+    module. Please refer to the module functions for more documentation.
+    """
+
     def __init__(self, expr: pl.Expr):
         self._expr = expr
 
@@ -99,7 +106,14 @@ class H3Expr:
 
 
 @pl.api.register_series_namespace("h3")
-class H3Shortcuts:
+class H3SeriesShortcuts:
+    """
+    Registers H3 functionality with polars Series.
+
+    The methods of this class mirror the functionality provided by the functions of this
+    module. Please refer to the module functions for more documentation.
+    """
+
     def __init__(self, s: pl.Series):
         self._s = s
 
@@ -167,5 +181,5 @@ __all__ = [
     vertexes_to_string.__name__,
     directededges_to_string.__name__,
     H3Expr.__name__,
-    H3Shortcuts.__name__,
+    H3SeriesShortcuts.__name__,
 ]

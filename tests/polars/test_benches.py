@@ -4,7 +4,7 @@ from h3ronpy.polars import cells_to_string
 import polars as pl
 
 
-def some_cells() -> pl.Series:
+def some_cells() -> np.ndarray:
     return np.full(1000, h3.geo_to_h3(45.5, 10.2, 5), dtype="uint64")
 
 
