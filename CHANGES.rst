@@ -12,6 +12,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 - Polars expressions and series shortcuts. #33
+- Parse directed edges and vertexes from utf8 strings.
 - Extend documentation of ``cells_parse``.
 
 0.18.0 - 2023-08-31

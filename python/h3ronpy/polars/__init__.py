@@ -33,6 +33,8 @@ change_resolution = _wrap(_arrow.change_resolution, ret_type=pl.Series)
 change_resolution_paired = _wrap(_arrow.change_resolution_paired, ret_type=pl.DataFrame)
 cells_resolution = _wrap(_arrow.cells_resolution, ret_type=pl.Series)
 cells_parse = _wrap(_arrow.cells_parse, ret_type=pl.Series)
+vertexes_parse = _wrap(_arrow.vertexes_parse, ret_type=pl.Series)
+directededges_parse = _wrap(_arrow.directededges_parse, ret_type=pl.Series)
 compact = _wrap(_arrow.compact, ret_type=pl.Series)
 uncompact = _wrap(_arrow.uncompact, ret_type=pl.Series)
 cells_valid = _wrap(_arrow.cells_valid, ret_type=pl.Series)
@@ -67,6 +69,16 @@ class H3Expr:
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self._expr.map(lambda s: cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias("cell")
+
+    def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
+        return self._expr.map(lambda s: vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
+            "vertex"
+        )
+
+    def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
+        return self._expr.map(lambda s: directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
+            "directededge"
+        )
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
         return self._expr.map(lambda s: grid_disk(s, k, flatten=flatten))
@@ -123,6 +135,12 @@ class H3SeriesShortcuts:
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
         return cells_parse(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
+    def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
+        return vertexes_parse(self._s, set_failing_to_invalid=set_failing_to_invalid)
+
+    def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
+        return directededges_parse(self._s, set_failing_to_invalid=set_failing_to_invalid)
+
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
         return grid_disk(self._s, k, flatten=flatten)
 
@@ -165,6 +183,8 @@ __all__ = [
     change_resolution_paired.__name__,
     cells_resolution.__name__,
     cells_parse.__name__,
+    vertexes_parse.__name__,
+    directededges_parse.__name__,
     compact.__name__,
     uncompact.__name__,
     cells_valid.__name__,

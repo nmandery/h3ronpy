@@ -72,6 +72,28 @@ def cells_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
     return op.cells_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
 
 
+def vertexes_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
+    """
+    Parse H3 vertexes from string arrays.
+
+    Setting `set_failing_to_invalid` to true will trigger setting the validity bitmap according
+    the successful parsing of an individual element. Having this set to false will cause the
+    method to fail upon encountering the first unparsable value.
+    """
+    return op.vertexes_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
+
+
+def directededges_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
+    """
+    Parse H3 directed edges from string arrays.
+
+    Setting `set_failing_to_invalid` to true will trigger setting the validity bitmap according
+    the successful parsing of an individual element. Having this set to false will cause the
+    method to fail upon encountering the first unparsable value.
+    """
+    return op.directededges_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
+
+
 def compact(arr, mixed_resolutions: bool = False) -> pa.Array:
     """
     Compact the given cells
@@ -160,6 +182,8 @@ __all__ = [
     change_resolution_paired.__name__,
     cells_resolution.__name__,
     cells_parse.__name__,
+    vertexes_parse.__name__,
+    directededges_parse.__name__,
     compact.__name__,
     uncompact.__name__,
     cells_valid.__name__,

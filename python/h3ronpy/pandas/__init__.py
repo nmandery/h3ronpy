@@ -35,6 +35,8 @@ change_resolution.__annotations__["return"] = pd.Series
 change_resolution_paired = _wrap(_arrow.change_resolution_paired, ret_type=pd.DataFrame)
 cells_resolution = _wrap(_arrow.cells_resolution, ret_type=pd.Series)
 cells_parse = _wrap(_arrow.cells_parse, ret_type=pd.Series)
+vertexes_parse = _wrap(_arrow.vertexes_parse, ret_type=pd.Series)
+directededges_parse = _wrap(_arrow.directededges_parse, ret_type=pd.Series)
 compact = _wrap(_arrow.compact, ret_type=pd.Series)
 uncompact = _wrap(_arrow.uncompact, ret_type=pd.Series)
 cells_valid = _wrap(_arrow.cells_valid, ret_type=pd.Series)
@@ -57,6 +59,8 @@ __all__ = [
     change_resolution_paired.__name__,
     cells_resolution.__name__,
     cells_parse.__name__,
+    vertexes_parse.__name__,
+    directededges_parse.__name__,
     compact.__name__,
     uncompact.__name__,
     cells_valid.__name__,

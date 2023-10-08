@@ -1,5 +1,5 @@
 use h3arrow::algorithm::{ParseUtf8Array, ToUtf8Array};
-use h3arrow::array::CellIndexArray;
+use h3arrow::array::{CellIndexArray, DirectedEdgeIndexArray, VertexIndexArray};
 use h3arrow::export::arrow2::array::{Array, Utf8Array};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -22,6 +22,48 @@ pub(crate) fn cells_parse(utf8array: &PyAny, set_failing_to_invalid: bool) -> Py
     };
 
     with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (utf8array, set_failing_to_invalid = false))]
+pub(crate) fn vertexes_parse(
+    utf8array: &PyAny,
+    set_failing_to_invalid: bool,
+) -> PyResult<PyObject> {
+    let boxed_array = pyarray_to_boxed(utf8array)?;
+    let vertexes = if let Some(utf8array) = boxed_array.as_any().downcast_ref::<Utf8Array<i32>>() {
+        VertexIndexArray::parse_utf8array(utf8array, set_failing_to_invalid).into_pyresult()?
+    } else if let Some(utf8array) = boxed_array.as_any().downcast_ref::<Utf8Array<i64>>() {
+        VertexIndexArray::parse_utf8array(utf8array, set_failing_to_invalid).into_pyresult()?
+    } else {
+        return Err(PyValueError::new_err(
+            "unsupported array type to parse vertexes from",
+        ));
+    };
+
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(vertexes, py, pyarrow))
+}
+
+#[pyfunction]
+#[pyo3(signature = (utf8array, set_failing_to_invalid = false))]
+pub(crate) fn directededges_parse(
+    utf8array: &PyAny,
+    set_failing_to_invalid: bool,
+) -> PyResult<PyObject> {
+    let boxed_array = pyarray_to_boxed(utf8array)?;
+    let edges = if let Some(utf8array) = boxed_array.as_any().downcast_ref::<Utf8Array<i32>>() {
+        DirectedEdgeIndexArray::parse_utf8array(utf8array, set_failing_to_invalid)
+            .into_pyresult()?
+    } else if let Some(utf8array) = boxed_array.as_any().downcast_ref::<Utf8Array<i64>>() {
+        DirectedEdgeIndexArray::parse_utf8array(utf8array, set_failing_to_invalid)
+            .into_pyresult()?
+    } else {
+        return Err(PyValueError::new_err(
+            "unsupported array type to parse directededges from",
+        ));
+    };
+
+    with_pyarrow(|py, pyarrow| h3array_to_pyarray(edges, py, pyarrow))
 }
 
 #[pyfunction]
