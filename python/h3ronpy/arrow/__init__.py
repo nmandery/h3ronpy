@@ -30,7 +30,27 @@ def _to_uint64_array(arr) -> pa.Array:
 
 
 def change_resolution(arr, resolution: int) -> pa.Array:
+    """
+    Change the H3 resolutions of all contained values to `resolution`.
+
+    In case of resolution increases all child indexes will be added, so the returned
+    value may contain more indexes than the input.
+
+    Invalid/empty values are omitted.
+    """
     return op.change_resolution(_to_uint64_array(arr), resolution)
+
+
+def change_resolution_list(arr, resolution: int) -> pa.Array:
+    """
+    Change the H3 resolutions of all contained values to `resolution`.
+
+    The output list array has the same length as the input array, positions of the elements
+    in input and output are corresponding to each other.
+
+    Invalid/empty values are preserved as such.
+    """
+    return op.change_resolution_list(_to_uint64_array(arr), resolution)
 
 
 def change_resolution_paired(arr, resolution: int) -> pa.Table:
@@ -179,6 +199,7 @@ def directededges_to_string(directededgearray) -> pa.Array:
 
 __all__ = [
     change_resolution.__name__,
+    change_resolution_list.__name__,
     change_resolution_paired.__name__,
     cells_resolution.__name__,
     cells_parse.__name__,

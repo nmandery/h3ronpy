@@ -31,6 +31,7 @@ def _wrap(func, ret_type=None):
 
 
 change_resolution = _wrap(_arrow.change_resolution, ret_type=pd.Series)
+change_resolution_list = _wrap(_arrow.change_resolution, ret_type=pd.Series)
 change_resolution.__annotations__["return"] = pd.Series
 change_resolution_paired = _wrap(_arrow.change_resolution_paired, ret_type=pd.DataFrame)
 cells_resolution = _wrap(_arrow.cells_resolution, ret_type=pd.Series)
@@ -56,6 +57,7 @@ directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pd.Seri
 
 __all__ = [
     change_resolution.__name__,
+    change_resolution_list.__name__,
     change_resolution_paired.__name__,
     cells_resolution.__name__,
     cells_parse.__name__,

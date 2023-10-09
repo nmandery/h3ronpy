@@ -14,6 +14,7 @@ Unreleased
 - Polars expressions and series shortcuts. #33
 - Parse directed edges and vertexes from utf8 strings.
 - Extend documentation of ``cells_parse``.
+- Add ``change_resolution_list`` #35.
 
 0.18.0 - 2023-08-31
 -------------------
