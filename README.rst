@@ -56,6 +56,12 @@ leads to the following result on a standard laptop:
 
 The benchmark implementation can be found in ``tests/polars/test_benches.py`` and uses `pytest-benchmark <https://pypi.org/project/pytest-benchmark/>`_.
 
+Limitations
+-----------
+
+Not all functionalities of the H3 grid are wrapped by this library, the current feature-set was implemented
+when there was a need and the time for it. As a opensource library new features can be requested in the form of github issues
+or contributed using pull requests.
 
 License
 -------
