@@ -11,6 +11,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 Unreleased
 ----------
+- Upgrade pyo3 from 0.19 to 0.20
 
 0.19.0 - 2023-10-11
 -------------------
