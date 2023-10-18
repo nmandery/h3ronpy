@@ -68,11 +68,11 @@ class H3Expr:
     def cells_resolution(self) -> pl.Expr:
         return self._expr.map(lambda s: cells_resolution(s)).alias("resolution")
 
-    def change_resolution(self) -> pl.Expr:
-        return self._expr.map(lambda s: change_resolution(s))
+    def change_resolution(self, resolution: int) -> pl.Expr:
+        return self._expr.map(lambda s: change_resolution(s, resolution))
 
-    def change_resolution_list(self) -> pl.Expr:
-        return self._expr.map(lambda s: change_resolution_list(s))
+    def change_resolution_list(self, resolution: int) -> pl.Expr:
+        return self._expr.map(lambda s: change_resolution_list(s, resolution))
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self._expr.map(lambda s: cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias("cell")
@@ -139,11 +139,11 @@ class H3SeriesShortcuts:
     def cells_resolution(self) -> pl.Series:
         return cells_resolution(self._s)
 
-    def change_resolution(self) -> pl.Series:
-        return change_resolution(self._s)
+    def change_resolution(self, resolution: int) -> pl.Series:
+        return change_resolution(self._s, resolution)
 
-    def change_resolution_list(self) -> pl.Series:
-        return change_resolution_list(self._s)
+    def change_resolution_list(self, resolution: int) -> pl.Series:
+        return change_resolution_list(self._s, resolution)
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
         return cells_parse(self._s, set_failing_to_invalid=set_failing_to_invalid)
