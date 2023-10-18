@@ -18,7 +18,8 @@ def install(packages, upgrade=False):
 
 
 if __name__ == "__main__":
-    install(["pip", "toml", "black", "ruff"], upgrade=True)  # always upgrade pip
+    # do not update pip - may fail on windows
+    install(["toml", "black", "ruff"], upgrade=True)  # always upgrade pip
 
     packages = []
 
