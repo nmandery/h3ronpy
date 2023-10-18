@@ -11,6 +11,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 Unreleased
 ----------
+- Add missing resolution param for change_resolution in polars namespaces. #83
 - Upgrade pyo3 from 0.19 to 0.20
 
 0.19.0 - 2023-10-11
