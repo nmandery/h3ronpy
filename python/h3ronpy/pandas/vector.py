@@ -120,7 +120,9 @@ def geodataframe_to_cells(
         compact=compact,
         all_intersecting=all_intersecting,
     )
-    table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns="geometry"))).append_column(cell_column_name, cells)
+    table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns=gdf.geometry.name))).append_column(
+        cell_column_name, cells
+    )
     return _arrow_util.explode_table_include_null(table, cell_column_name).to_pandas().reset_index(drop=True)
 
 

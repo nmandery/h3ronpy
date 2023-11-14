@@ -1,7 +1,7 @@
 import shapely
 
 import pandas as pd
-from shapely.geometry import Point, GeometryCollection
+from shapely.geometry import Point, GeometryCollection, Polygon
 import pytest
 from h3ronpy.pandas import change_resolution
 from h3ronpy.pandas.vector import (
@@ -11,7 +11,7 @@ from h3ronpy.pandas.vector import (
     geodataframe_to_cells,
     geoseries_to_cells,
 )
-from h3ronpy import DEFAULT_CELL_COLUMN_NAME
+from h3ronpy import DEFAULT_CELL_COLUMN_NAME, ContainmentMode
 import geopandas as gpd
 from .. import load_africa
 
@@ -109,3 +109,35 @@ def test_fail_on_empty_point():
     )
     with pytest.raises(ValueError):
         geodataframe_to_cells(gdf, 4)
+
+
+def test_geometry_results_in_no_cells():
+    gdf = gpd.GeoDataFrame(
+        {
+            "geometry": [
+                Polygon(
+                    [
+                        (1.100000, 4.50000),
+                        (1.100001, 4.50000),
+                        (1.100001, 4.50001),
+                        (1.100000, 4.50001),
+                        (1.100000, 4.50000),
+                    ]
+                ),
+            ],
+            "col1": [1],
+        },
+        crs="epsg:4326",
+    )
+    df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.ContainsCentroid)
+    assert len(df) == 0
+
+
+def test_non_standard_geometry_column_name():
+    africa = load_africa()
+    assert africa.geometry.name == "geometry"
+    africa.rename_geometry("something_else", inplace=True)
+    assert africa.geometry.name == "something_else"
+    df = geodataframe_to_cells(africa, 4)
+    assert len(df) > len(africa)
+    assert df.dtypes[DEFAULT_CELL_COLUMN_NAME] == "uint64"

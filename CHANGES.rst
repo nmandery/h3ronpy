@@ -11,6 +11,7 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 Unreleased
 ----------
+- Fix bug which required geopandas geometry columns to be named "geometry" in `geodataframe_to_cells`.
 
 0.19.1 - 2023-10-18
 -------------------
