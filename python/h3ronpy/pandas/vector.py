@@ -119,6 +119,7 @@ def geodataframe_to_cells(
         containment_mode=containment_mode,
         compact=compact,
         all_intersecting=all_intersecting,
+        flatten=False,
     )
     table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns=gdf.geometry.name))).append_column(
         cell_column_name, cells
