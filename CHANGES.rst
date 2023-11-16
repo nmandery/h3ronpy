@@ -11,6 +11,10 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 Unreleased
 ----------
+
+0.19.2 - 2023-11-16
+-------------------
+
 - Fix bug which required geopandas geometry columns to be named "geometry" in `geodataframe_to_cells`.
 - Warn about possible memory exhaustion when encountering a `ArrowIndexError` in
   `explode_table_include_null` / `geodataframe_to_cells`.
