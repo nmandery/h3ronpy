@@ -1,7 +1,7 @@
+use arrow::array::{Array, BooleanArray};
+use arrow::buffer::NullBuffer;
+use arrow::pyarrow::IntoPyArrow;
 use h3arrow::array::{FromIteratorWithValidity, H3Array, H3IndexArrayValue};
-use h3arrow::export::arrow2::array::{BooleanArray, PrimitiveArray};
-use h3arrow::export::arrow2::bitmap::{Bitmap, MutableBitmap};
-use h3arrow::export::arrow2::datatypes::DataType;
 use h3arrow::h3o;
 use h3o::{CellIndex, DirectedEdgeIndex, VertexIndex};
 use pyo3::prelude::*;
@@ -14,25 +14,21 @@ where
     IX: H3IndexArrayValue,
 {
     let u64array = pyarray_to_uint64array(arr)?;
-    let validated = H3Array::<IX>::from_iter_with_validity(u64array.iter().map(|v| v.copied()));
+    let validated = H3Array::<IX>::from_iter_with_validity(u64array.iter());
 
     with_pyarrow(|py, pyarrow| {
-        native_to_pyarray(
-            if booleanarray {
-                let pa: PrimitiveArray<_> = validated.into();
-                let bm: Bitmap = pa
-                    .validity()
-                    .cloned()
-                    .unwrap_or_else(|| MutableBitmap::from_len_set(pa.len()).into());
-                BooleanArray::try_new(DataType::Boolean, bm, None)
-                    .into_pyresult()?
-                    .boxed()
-            } else {
-                PrimitiveArray::from(validated).boxed()
-            },
-            py,
-            pyarrow,
-        )
+        if booleanarray {
+            let nullbuffer = validated
+                .primitive_array()
+                .nulls()
+                .cloned()
+                .unwrap_or_else(|| NullBuffer::new_valid(validated.len()));
+            BooleanArray::from(nullbuffer.into_inner())
+                .into_data()
+                .into_pyarrow(py)
+        } else {
+            h3array_to_pyarray(validated, py)
+        }
     })
 }
 

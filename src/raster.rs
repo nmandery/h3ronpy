@@ -4,7 +4,6 @@ use std::iter::repeat;
 use std::str::FromStr;
 
 use h3arrow::array::CellIndexArray;
-use h3arrow::export::arrow2::array::PrimitiveArray;
 use h3arrow::export::h3o::{CellIndex, Resolution};
 use ndarray::ArrayView2;
 use numpy::PyReadonlyArray2;
@@ -156,9 +155,9 @@ macro_rules! make_raster_to_h3_variant {
 
             with_pyarrow(|py, pyarrow| {
                 let values = PrimitiveArray::from_vec(values);
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py, pyarrow)?;
+                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
-                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+                let values = native_to_pyarray(values.boxed(), py)?;
 
                 Ok((values, cells))
             })
@@ -194,9 +193,9 @@ macro_rules! make_raster_to_h3_float_variant {
                 let values = PrimitiveArray::<$dtype>::from_vec(
                     values.into_iter().map(|v| v.into_inner()).collect(),
                 );
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py, pyarrow)?;
+                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
-                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+                let values = native_to_pyarray(values.boxed(), py)?;
 
                 Ok((values, cells))
             })

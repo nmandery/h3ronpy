@@ -29,7 +29,7 @@ impl IntoPyErr for A3Error {
             A3Error::CompactionError(e) => e.into_pyerr(),
             A3Error::OutlinerError(e) => e.into_pyerr(),
             A3Error::Arrow2(e) => e.into_pyerr(),
-            A3Error::NotAPrimitiveArrayU64
+            A3Error::NotAUint64Array
             | A3Error::NonParsableCellIndex
             | A3Error::NonParsableDirectedEdgeIndex
             | A3Error::NonParsableVertexIndex

@@ -1,3 +1,4 @@
+use arrow::array::UInt32Array;
 use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
 use h3arrow::export::arrow2::array::{Array, ListArray, PrimitiveArray};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
@@ -16,11 +17,9 @@ pub(crate) fn grid_disk(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<Py
     let listarray = cellindexarray.grid_disk(k).into_pyresult()?;
     if flatten {
         let cellindexarray = listarray.into_flattened().into_pyresult()?;
-        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py, pyarrow))
+        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py))
     } else {
-        with_pyarrow(|py, pyarrow| {
-            native_to_pyarray(ListArray::from(listarray).boxed(), py, pyarrow)
-        })
+        with_pyarrow(|py, pyarrow| native_to_pyarray(ListArray::from(listarray).boxed(), py))
     }
 }
 
@@ -53,7 +52,7 @@ pub(crate) fn grid_ring_distances(
 }
 
 fn return_griddiskdistances_table(
-    griddiskdistances: GridDiskDistances,
+    griddiskdistances: GridDiskDistances<i64>,
     flatten: bool,
 ) -> PyResult<PyObject> {
     let (cells, distances) = if flatten {
@@ -63,7 +62,7 @@ fn return_griddiskdistances_table(
                 .distances
                 .values()
                 .as_any()
-                .downcast_ref::<PrimitiveArray<u32>>()
+                .downcast_ref::<UInt32Array>()
                 .ok_or_else(|| PyRuntimeError::new_err("expected primitivearray<u32>"))
                 .map(|pa| pa.clone().to_boxed())?,
         )
@@ -76,8 +75,8 @@ fn return_griddiskdistances_table(
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            native_to_pyarray(cells, py, pyarrow)?,
-            native_to_pyarray(distances, py, pyarrow)?,
+            native_to_pyarray(cells, py)?,
+            native_to_pyarray(distances, py)?,
         ];
         let table = pyarrow
             .getattr("Table")?
@@ -115,8 +114,8 @@ pub(crate) fn grid_disk_aggregate_k(
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            h3array_to_pyarray(griddiskaggk.cells, py, pyarrow)?,
-            native_to_pyarray(griddiskaggk.distances.to_boxed(), py, pyarrow)?,
+            h3array_to_pyarray(griddiskaggk.cells, py)?,
+            native_to_pyarray(griddiskaggk.distances.to_boxed(), py)?,
         ];
         let table = pyarrow
             .getattr("Table")?
