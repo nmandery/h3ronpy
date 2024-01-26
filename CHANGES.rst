@@ -12,6 +12,10 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Migrate from the unmaintained arrow2 arrow implementation to the official arrow-rs from apache. This comes along
+  with a few changes:
+  - `directededges_to_wkb_lines` and `directededges_to_lines` have been removed. Use the linestring-versions instead.
+
 0.19.2 - 2023-11-16
 -------------------
 

@@ -84,18 +84,6 @@ def vertexes_to_wkb_points(arr, radians: bool = False) -> pa.Array:
     return vector.vertexes_to_wkb_points(_to_uint64_array(arr), radians=radians)
 
 
-def directededges_to_wkb_lines(arr, radians: bool = False) -> pa.Array:
-    """
-    Convert directed edges to lines.
-
-    The returned geometries in the output array will match the order of the input array.
-
-    :param: arr: The directed edge array
-    :param radians: Generate geometries using radians instead of degrees
-    """
-    return vector.directededges_to_wkb_lines(_to_uint64_array(arr), radians=radians)
-
-
 def directededges_to_wkb_linestrings(arr, radians: bool = False) -> pa.Array:
     """
     Convert directed edges to linestrings.
@@ -186,7 +174,6 @@ __all__ = [
     cells_to_wkb_points.__name__,
     vertexes_to_wkb_points.__name__,
     directededges_to_wkb_linestrings.__name__,
-    directededges_to_wkb_lines.__name__,
     wkb_to_cells.__name__,
     geometry_to_cells.__name__,
 ]

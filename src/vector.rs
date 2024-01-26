@@ -1,7 +1,7 @@
 use geo::BoundingRect;
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
-use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBLines, ToWKBPoints, ToWKBPolygons};
+use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
 use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray, UInt8Array};
 use h3arrow::export::arrow2::bitmap::Bitmap;
@@ -298,14 +298,6 @@ pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyRe
 
 #[pyfunction]
 #[pyo3(signature = (array, radians = false))]
-pub(crate) fn directededges_to_wkb_lines(array: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let array = pyarray_to_directededgeindexarray(array)?;
-    let out = array.to_wkb_lines(!radians).unwrap().into_arrow().boxed();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
-}
-
-#[pyfunction]
-#[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> PyResult<PyObject> {
     let array = pyarray_to_directededgeindexarray(array)?;
     let out = array
@@ -392,7 +384,6 @@ pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cells_to_wkb_points, m)?)?;
     m.add_function(wrap_pyfunction!(vertexes_to_wkb_points, m)?)?;
     m.add_function(wrap_pyfunction!(directededges_to_wkb_linestrings, m)?)?;
-    m.add_function(wrap_pyfunction!(directededges_to_wkb_lines, m)?)?;
     m.add_function(wrap_pyfunction!(wkb_to_cells, m)?)?;
     m.add_function(wrap_pyfunction!(geometry_to_cells, m)?)?;
     m.add_function(wrap_pyfunction!(coordinates_to_cells, m)?)?;

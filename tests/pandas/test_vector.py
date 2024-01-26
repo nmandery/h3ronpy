@@ -13,7 +13,7 @@ from h3ronpy.pandas.vector import (
 )
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, ContainmentMode
 import geopandas as gpd
-from .. import load_africa
+from .. import load_africa, TESTDATA_PATH
 
 
 def test_cells_to_points():
@@ -141,3 +141,10 @@ def test_non_standard_geometry_column_name():
     df = geodataframe_to_cells(africa, 4)
     assert len(df) > len(africa)
     assert df.dtypes[DEFAULT_CELL_COLUMN_NAME] == "uint64"
+
+
+def test_issue43_r4():
+    gdf = gpd.read_file(TESTDATA_PATH / "issue-43.geojson")
+    print(gdf)
+    df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.IntersectsBoundary, all_intersecting=True)
+    print(df)

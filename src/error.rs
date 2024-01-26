@@ -11,7 +11,7 @@ pub trait IntoPyErr {
     fn into_pyerr(self) -> PyErr;
 }
 
-impl IntoPyErr for h3arrow::export::arrow2::error::Error {
+impl IntoPyErr for h3arrow::export::arrow::error::ArrowError {
     fn into_pyerr(self) -> PyErr {
         PyRuntimeError::new_err(self.to_string())
     }

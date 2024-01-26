@@ -48,12 +48,6 @@ vertexes_to_points = _geoseries_from_wkb(
     doc="Create a geoseries containing the point geometries of a vertex array",
     name="vertexes_to_points",
 )
-directededges_to_wkb_lines = _wrap(_av.directededges_to_wkb_lines, ret_type=pd.Series)
-directededges_to_lines = _geoseries_from_wkb(
-    directededges_to_wkb_lines,
-    doc="Create a geoseries containing the line geometries of a directededge array",
-    name="directededges_to_lines",
-)
 directededges_to_wkb_linestrings = _wrap(_av.directededges_to_wkb_linestrings, ret_type=pd.Series)
 directededges_to_linestrings = _geoseries_from_wkb(
     directededges_to_wkb_linestrings,
@@ -140,8 +134,6 @@ __all__ = [
     vertexes_to_points.__name__,
     directededges_to_wkb_linestrings.__name__,
     directededges_to_linestrings.__name__,
-    directededges_to_wkb_lines.__name__,
-    directededges_to_lines.__name__,
     cells_dataframe_to_geodataframe.__name__,
     wkb_to_cells.__name__,
     geometry_to_cells.__name__,
