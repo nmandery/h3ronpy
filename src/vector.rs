@@ -1,4 +1,5 @@
-use arrow::array::{Array, BinaryArray, Float64Array, LargeBinaryArray};
+use arrow::array::{Array, BinaryArray, Float64Array, LargeBinaryArray, UInt8Array};
+use arrow::buffer::NullBuffer;
 use arrow::pyarrow::IntoPyArrow;
 use geo::BoundingRect;
 use h3arrow::algorithm::ToCoordinatesOp;
@@ -118,34 +119,22 @@ pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
         }
     }
 
-    let validity_bm = Bitmap::from(validity_vec.as_slice());
+    let validity = NullBuffer::from(validity_vec);
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            native_to_pyarray(
-                Float64Array::from_vec(minx_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(miny_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(maxx_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(maxy_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-            )?,
+            Float64Array::new(minx_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(miny_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(maxx_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(maxy_vec.into(), Some(validity))
+                .into_data()
+                .into_pyarrow(py)?,
         ];
         let table = pyarrow
             .getattr("Table")?
@@ -227,9 +216,9 @@ pub(crate) fn coordinates_to_cells(
             .map(|(lat, lng, res)| {
                 if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
                     if radians {
-                        LatLng::from_radians(*lat, *lng).into_pyresult()
+                        LatLng::from_radians(lat, lng).into_pyresult()
                     } else {
-                        LatLng::new(*lat, *lng).into_pyresult()
+                        LatLng::new(lat, lng).into_pyresult()
                     }
                     .map(|ll| Some(ll.to_cell(res)))
                 } else {
@@ -276,8 +265,9 @@ pub(crate) fn cells_to_wkb_polygons(
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
 pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
-    let out: WKBArray<i64> = cellindexarray.to_wkb_points(!radians).expect("wkbarray");
+    let out = pyarray_to_cellindexarray(cellarray)?
+        .to_wkb_points::<i64>(!radians)
+        .expect("wkbarray");
 
     Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
@@ -285,8 +275,9 @@ pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<
 #[pyfunction]
 #[pyo3(signature = (vertexarray, radians = false))]
 pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let vertexindexarray = pyarray_to_vertexindexarray(vertexarray)?;
-    let out: WKBArray<i64> = vertexindexarray.to_wkb_points(!radians).expect("wkbarray");
+    let out = pyarray_to_vertexindexarray(vertexarray)?
+        .to_wkb_points::<i64>(!radians)
+        .expect("wkbarray");
 
     Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
@@ -294,8 +285,9 @@ pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyRe
 #[pyfunction]
 #[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let array = pyarray_to_directededgeindexarray(array)?;
-    let out: WKBArray<i64> = array.to_wkb_linestrings(!radians).expect("wkbarray");
+    let out = pyarray_to_directededgeindexarray(array)?
+        .to_wkb_linestrings::<i64>(!radians)
+        .expect("wkbarray");
 
     Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }

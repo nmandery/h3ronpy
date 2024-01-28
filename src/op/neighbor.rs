@@ -1,6 +1,6 @@
-use arrow::array::UInt32Array;
+use arrow::array::{Array, GenericListArray, PrimitiveArray, UInt32Array};
+use arrow::pyarrow::IntoPyArrow;
 use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
-use h3arrow::export::arrow2::array::{Array, ListArray, PrimitiveArray};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{PyObject, PyResult};
 use std::str::FromStr;
@@ -57,27 +57,25 @@ fn return_griddiskdistances_table(
 ) -> PyResult<PyObject> {
     let (cells, distances) = if flatten {
         (
-            PrimitiveArray::from(griddiskdistances.cells.into_flattened().into_pyresult()?).boxed(),
+            PrimitiveArray::from(griddiskdistances.cells.into_flattened().into_pyresult()?)
+                .into_data(),
             griddiskdistances
                 .distances
                 .values()
                 .as_any()
                 .downcast_ref::<UInt32Array>()
                 .ok_or_else(|| PyRuntimeError::new_err("expected primitivearray<u32>"))
-                .map(|pa| pa.clone().to_boxed())?,
+                .map(|pa| pa.clone().into_data())?,
         )
     } else {
         (
-            ListArray::from(griddiskdistances.cells).boxed(),
-            griddiskdistances.distances.boxed(),
+            GenericListArray::<i64>::from(griddiskdistances.cells).into_data(),
+            griddiskdistances.distances.into_data(),
         )
     };
 
     with_pyarrow(|py, pyarrow| {
-        let arrays = [
-            native_to_pyarray(cells, py)?,
-            native_to_pyarray(distances, py)?,
-        ];
+        let arrays = [cells.into_pyarrow(py)?, distances.into_pyarrow(py)?];
         let table = pyarrow
             .getattr("Table")?
             .call_method1("from_arrays", (arrays, [DEFAULT_CELL_COLUMN_NAME, "k"]))?;
@@ -115,7 +113,7 @@ pub(crate) fn grid_disk_aggregate_k(
     with_pyarrow(|py, pyarrow| {
         let arrays = [
             h3array_to_pyarray(griddiskaggk.cells, py)?,
-            native_to_pyarray(griddiskaggk.distances.to_boxed(), py)?,
+            griddiskaggk.distances.into_data().into_pyarrow(py)?,
         ];
         let table = pyarrow
             .getattr("Table")?

@@ -7,7 +7,6 @@ use h3o::{CellIndex, DirectedEdgeIndex, VertexIndex};
 use pyo3::prelude::*;
 
 use crate::arrow_interop::*;
-use crate::error::IntoPyResult;
 
 fn h3index_valid<IX>(arr: &PyAny, booleanarray: bool) -> PyResult<PyObject>
 where

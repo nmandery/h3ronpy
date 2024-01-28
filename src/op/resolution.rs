@@ -1,5 +1,6 @@
+use arrow::array::{Array, PrimitiveArray};
+use arrow::pyarrow::IntoPyArrow;
 use h3arrow::algorithm::ChangeResolutionOp;
-use h3arrow::export::arrow2::array::{ListArray, PrimitiveArray};
 use h3arrow::export::h3o::Resolution;
 use pyo3::prelude::*;
 
@@ -59,5 +60,5 @@ pub(crate) fn change_resolution_paired(cellarray: &PyAny, h3_resolution: u8) -> 
 #[pyfunction]
 pub(crate) fn cells_resolution(cellarray: &PyAny) -> PyResult<PyObject> {
     let resarray = pyarray_to_cellindexarray(cellarray)?.resolution();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(PrimitiveArray::from(resarray).boxed(), py))
+    with_pyarrow(|py, pyarrow| PrimitiveArray::from(resarray).into_data().into_pyarrow(py))
 }
