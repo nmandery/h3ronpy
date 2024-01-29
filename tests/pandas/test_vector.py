@@ -85,6 +85,7 @@ def test_geoseries_to_cells_flatten():
     assert cells.dtype == "uint64"
 
 
+@pytest.mark.skip(reason="GeometryCollections are unsupported until https://github.com/geoarrow/geoarrow-rs/blob/3a2aaa883126274037cabaf46b1f5f6459938297/src/io/wkb/reader/geometry_collection.rs#L23 is fixed")
 def test_empty_geometrycollection_omitted():
     gdf = gpd.GeoDataFrame(
         {
@@ -145,6 +146,6 @@ def test_non_standard_geometry_column_name():
 
 def test_issue43_r4():
     gdf = gpd.read_file(TESTDATA_PATH / "issue-43.geojson")
-    print(gdf)
+    #print(gdf)
     df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.IntersectsBoundary, all_intersecting=True)
-    print(df)
+    #print(df)

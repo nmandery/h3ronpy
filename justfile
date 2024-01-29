@@ -10,4 +10,4 @@ test:
     rm -f dist/*.whl
     maturin build --out dist
     pip install --force-reinstall dist/*.whl
-    pytest -s
+    RUST_BACKTRACE=1 pytest -s

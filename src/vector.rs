@@ -1,7 +1,7 @@
 use arrow::array::{Array, Float64Array, LargeBinaryArray, LargeListArray, UInt8Array};
 use arrow::buffer::NullBuffer;
 use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
-use geo::BoundingRect;
+use geo::{BoundingRect, HasDimensions};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
@@ -359,6 +359,9 @@ pub(crate) fn geometry_to_cells(
     compact: bool,
     all_intersecting: Option<bool>,
 ) -> PyResult<PyObject> {
+    if obj.0.is_empty() {
+        return Python::with_gil(|py| h3array_to_pyarray(CellIndexArray::new_null(0), py));
+    }
     let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
