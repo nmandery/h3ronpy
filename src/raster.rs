@@ -16,7 +16,7 @@ use ordered_float::OrderedFloat;
 use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction, PyNativeType};
 
-use crate::arrow_interop::{h3array_to_pyarray, with_pyarrow};
+use crate::arrow_interop::h3array_to_pyarray;
 use crate::error::IntoPyResult;
 use crate::transform::Transform;
 
@@ -158,7 +158,7 @@ macro_rules! make_raster_to_h3_variant {
                 compact,
             )?;
 
-            with_pyarrow(|py, pyarrow| {
+            Python::with_gil(|py| {
                 let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
                 let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
@@ -192,11 +192,9 @@ macro_rules! make_raster_to_h3_float_variant {
                 compact,
             )?;
 
-            with_pyarrow(|py, pyarrow| {
-                let values =
-                    <$array_dtype>::from(values.into_iter().map(|v| v.into_inner()).collect())
-                        .into_data()
-                        .into_pyarrow(py)?;
+            Python::with_gil(|py| {
+                let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
+                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
                 let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
                 Ok((values, cells))

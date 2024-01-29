@@ -1,4 +1,4 @@
-use arrow::array::{Array, ArrayData, UInt64Array};
+use arrow::array::{make_array, Array, ArrayData, UInt64Array};
 use arrow::pyarrow::{FromPyArrow, IntoPyArrow};
 use std::any::{type_name, Any};
 
@@ -22,11 +22,6 @@ where
 }
 
 #[inline]
-pub(crate) fn native_to_pyarray(array_data: ArrayData, py: Python) -> PyResult<PyObject> {
-    array_data.into_pyarrow(py)
-}
-
-#[inline]
 pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python) -> PyResult<PyObject>
 where
     IX: H3IndexArrayValue,
@@ -41,10 +36,9 @@ pub(crate) fn pyarray_to_boxed(obj: &PyAny) -> PyResult<ArrayData> {
 }
 
 pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {
-    let array = pyarray_to_boxed(obj)?;
+    let array = make_array(pyarray_to_boxed(obj)?);
 
-    // downcast to the concrete type
-    Ok(array
+    let array = array
         .as_any()
         .downcast_ref::<T>()
         .ok_or_else(|| {
@@ -54,7 +48,10 @@ pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult
                 array.data_type(),
             ))
         })?
-        .clone())
+        .clone();
+
+    // downcast to the concrete type
+    Ok(array)
 }
 
 pub(crate) fn pyarray_to_cellindexarray(obj: &PyAny) -> PyResult<CellIndexArray> {

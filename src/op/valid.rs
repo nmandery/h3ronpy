@@ -15,7 +15,7 @@ where
     let u64array = pyarray_to_uint64array(arr)?;
     let validated = H3Array::<IX>::from_iter_with_validity(u64array.iter());
 
-    with_pyarrow(|py, pyarrow| {
+    Python::with_gil(|py| {
         if booleanarray {
             let nullbuffer = validated
                 .primitive_array()

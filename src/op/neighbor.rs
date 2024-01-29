@@ -1,5 +1,5 @@
-use arrow::array::{Array, GenericListArray, PrimitiveArray, UInt32Array};
-use arrow::pyarrow::IntoPyArrow;
+use arrow::array::{Array, GenericListArray, LargeListArray, PrimitiveArray, UInt32Array};
+use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
 use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{PyObject, PyResult};
@@ -17,9 +17,9 @@ pub(crate) fn grid_disk(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<Py
     let listarray = cellindexarray.grid_disk(k).into_pyresult()?;
     if flatten {
         let cellindexarray = listarray.into_flattened().into_pyresult()?;
-        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py))
+        Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
     } else {
-        with_pyarrow(|py, pyarrow| native_to_pyarray(ListArray::from(listarray).boxed(), py))
+        Python::with_gil(|py| LargeListArray::from(listarray).into_data().to_pyarrow(py))
     }
 }
 

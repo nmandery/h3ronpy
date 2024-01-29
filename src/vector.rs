@@ -1,12 +1,12 @@
-use arrow::array::{Array, BinaryArray, Float64Array, LargeBinaryArray, UInt8Array};
+use arrow::array::{Array, Float64Array, LargeBinaryArray, LargeListArray, UInt8Array};
 use arrow::buffer::NullBuffer;
-use arrow::pyarrow::IntoPyArrow;
+use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
 use geo::BoundingRect;
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
-use h3arrow::export::geoarrow::{array::WKBArray, GeometryArrayTrait};
+use h3arrow::export::geoarrow::array::{WKBArray, WKBBuilder, WKBCapacity};
 use h3arrow::export::h3o::geom::{ContainmentMode, ToGeo};
 use h3arrow::export::h3o::Resolution;
 use h3arrow::h3o::geom::PolyfillConfig;
@@ -228,7 +228,7 @@ pub(crate) fn coordinates_to_cells(
             .collect::<PyResult<CellIndexArray>>()?
     };
 
-    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py))
+    Python::with_gil(|py| h3array_to_pyarray(cells, py))
 }
 
 #[pyfunction]
@@ -242,17 +242,20 @@ pub(crate) fn cells_to_wkb_polygons(
     let use_degrees = !radians;
 
     let out: WKBArray<i64> = if link_cells {
-        WKBArray::from(
-            cellindexarray
-                .iter()
-                .flatten()
-                .to_geom(use_degrees)
-                .into_pyresult()?
-                .0
-                .into_iter()
-                .map(|poly| Some(geo_types::Geometry::from(poly)))
-                .collect::<Vec<_>>(),
-        )
+        let geoms = cellindexarray
+            .iter()
+            .flatten()
+            .to_geom(use_degrees)
+            .into_pyresult()?
+            .0
+            .into_iter()
+            .map(|poly| Some(geo_types::Geometry::from(poly)))
+            .collect::<Vec<_>>();
+        let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
+            geoms.iter().map(|v| v.as_ref()),
+        ));
+        builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
+        builder.finish()
     } else {
         cellindexarray
             .to_wkb_polygons(use_degrees)
@@ -332,15 +335,18 @@ pub(crate) fn wkb_to_cells(
     flatten: bool,
 ) -> PyResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
-    let wkbarray = WKBArray::new(pyarray_to_native::<LargeBinaryArray>(array)?); // TODO: handle BinaryArray i32
+    let wkbarray = WKBArray::new(
+        pyarray_to_native::<LargeBinaryArray>(array)?,
+        Default::default(),
+    ); // TODO: handle BinaryArray i32
 
     if flatten {
         let cells = wkbarray.to_cellindexarray(&options).into_pyresult()?;
 
-        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py))
+        Python::with_gil(|py| h3array_to_pyarray(cells, py))
     } else {
-        let listarray: ListArray<_> = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
-        with_pyarrow(|py, pyarrow| native_to_pyarray(listarray.boxed(), py))
+        let listarray: LargeListArray = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
+        Python::with_gil(|py| listarray.into_data().to_pyarrow(py))
     }
 }
 
@@ -357,7 +363,7 @@ pub(crate) fn geometry_to_cells(
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
     );
-    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py))
+    Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
 }
 
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
