@@ -17,7 +17,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 
 use crate::arrow_interop::*;
-use crate::error::{warn_deprecated, IntoPyResult};
+use crate::error::IntoPyResult;
 
 /// Containment mode used to decide if a cell is contained in a polygon or not.
 ///
@@ -57,6 +57,12 @@ pub enum PyContainmentMode {
     ContainsBoundary,
     IntersectsBoundary,
     Covers,
+}
+
+impl Default for PyContainmentMode {
+    fn default() -> Self {
+        Self::ContainsCentroid
+    }
 }
 
 impl PyContainmentMode {
@@ -295,46 +301,28 @@ pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> 
     Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
 
-fn get_containment_mode(
-    pycm: Option<PyContainmentMode>,
-    all_intersecting: Option<bool>,
-) -> PyResult<ContainmentMode> {
-    if all_intersecting.is_some() {
-        warn_deprecated("The all_intersecting parameter is deprecated and will be removed. Use containment_mode instead.")?;
-    }
-    if let Some(pycm) = pycm {
-        return Ok(pycm.containment_mode());
-    }
-    if all_intersecting == Some(true) {
-        return Ok(ContainmentMode::IntersectsBoundary);
-    }
-    Ok(ContainmentMode::ContainsCentroid)
-}
-
 fn get_to_cells_options(
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
-    all_intersecting: Option<bool>,
     compact: bool,
 ) -> PyResult<ToCellsOptions> {
     Ok(ToCellsOptions::new(
         PolyfillConfig::new(Resolution::try_from(resolution).into_pyresult()?)
-            .containment_mode(get_containment_mode(containment_mode, all_intersecting)?),
+            .containment_mode(containment_mode.unwrap_or_default().containment_mode()),
     )
     .compact(compact))
 }
 
 #[pyfunction]
-#[pyo3(signature = (array, resolution, containment_mode = None, compact = false, all_intersecting = None, flatten = false))]
+#[pyo3(signature = (array, resolution, containment_mode = None, compact = false, flatten = false))]
 pub(crate) fn wkb_to_cells(
     array: &PyAny,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
-    all_intersecting: Option<bool>, // todo: DEPRECATED. Remove in v0.19
     flatten: bool,
 ) -> PyResult<PyObject> {
-    let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
+    let options = get_to_cells_options(resolution, containment_mode, compact)?;
     let wkbarray = WKBArray::new(
         pyarray_to_native::<LargeBinaryArray>(array)?,
         Default::default(),
@@ -351,18 +339,17 @@ pub(crate) fn wkb_to_cells(
 }
 
 #[pyfunction]
-#[pyo3(signature = (obj, resolution, containment_mode = None, compact = false, all_intersecting = None))]
+#[pyo3(signature = (obj, resolution, containment_mode = None, compact = false))]
 pub(crate) fn geometry_to_cells(
     obj: py_geo_interface::Geometry,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
-    all_intersecting: Option<bool>,
 ) -> PyResult<PyObject> {
     if obj.0.is_empty() {
         return Python::with_gil(|py| h3array_to_pyarray(CellIndexArray::new_null(0), py));
     }
-    let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
+    let options = get_to_cells_options(resolution, containment_mode, compact)?;
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
     );

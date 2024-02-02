@@ -16,6 +16,8 @@ Unreleased
   with a few changes:
   - `directededges_to_wkb_lines` and `directededges_to_lines` have been removed. Use the linestring-versions instead.
   - Geometry collections are currently unsupported when working with WKB. This is still work-in-progress within geoarrow-rs.
+- Add support for the h3o containment mode "covers"
+- Finally removed the "all_intersecting" parameter in geometry to cells conversion as announced in v0.18
 
 0.19.2 - 2023-11-16
 -------------------
