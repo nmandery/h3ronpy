@@ -13,7 +13,7 @@ from h3ronpy.pandas.vector import (
 )
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, ContainmentMode
 import geopandas as gpd
-from .. import load_africa
+from .. import load_africa, TESTDATA_PATH
 
 
 def test_cells_to_points():
@@ -85,6 +85,7 @@ def test_geoseries_to_cells_flatten():
     assert cells.dtype == "uint64"
 
 
+@pytest.mark.skip(reason="GeometryCollections are unsupported until https://github.com/geoarrow/geoarrow-rs/blob/3a2aaa883126274037cabaf46b1f5f6459938297/src/io/wkb/reader/geometry_collection.rs#L23 is fixed")
 def test_empty_geometrycollection_omitted():
     gdf = gpd.GeoDataFrame(
         {

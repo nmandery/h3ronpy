@@ -1,11 +1,12 @@
-use geo::BoundingRect;
+use arrow::array::{Array, Float64Array, LargeBinaryArray, LargeListArray, UInt8Array};
+use arrow::buffer::NullBuffer;
+use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
+use geo::{BoundingRect, HasDimensions};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
-use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBLines, ToWKBPoints, ToWKBPolygons};
+use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
-use h3arrow::export::arrow2::array::{BinaryArray, Float64Array, ListArray, UInt8Array};
-use h3arrow::export::arrow2::bitmap::Bitmap;
-use h3arrow::export::geoarrow::{array::WKBArray, GeometryArrayTrait};
+use h3arrow::export::geoarrow::array::{WKBArray, WKBBuilder, WKBCapacity};
 use h3arrow::export::h3o::geom::{ContainmentMode, ToGeo};
 use h3arrow::export::h3o::Resolution;
 use h3arrow::h3o::geom::PolyfillConfig;
@@ -46,12 +47,16 @@ use crate::error::{warn_deprecated, IntoPyResult};
 ///         belong to two different polygons if they are adjacent/close enough. Some
 ///         cells may cover area outside of the polygon.
 ///
+/// * Covers: This mode behaves the same as IntersectsBoundary, but also handles the case where the geometry is
+///         being covered by a cell without intersecting with its boundaries. In such cases, the covering cell is returned.
+///
 #[pyclass(name = "ContainmentMode")]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum PyContainmentMode {
     ContainsCentroid,
     ContainsBoundary,
     IntersectsBoundary,
+    Covers,
 }
 
 impl PyContainmentMode {
@@ -60,6 +65,7 @@ impl PyContainmentMode {
             PyContainmentMode::ContainsCentroid => ContainmentMode::ContainsCentroid,
             PyContainmentMode::ContainsBoundary => ContainmentMode::ContainsBoundary,
             PyContainmentMode::IntersectsBoundary => ContainmentMode::IntersectsBoundary,
+            PyContainmentMode::Covers => ContainmentMode::Covers,
         }
     }
 }
@@ -113,38 +119,22 @@ pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
         }
     }
 
-    let validity_bm = Bitmap::from(validity_vec.as_slice());
+    let validity = NullBuffer::from(validity_vec);
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            native_to_pyarray(
-                Float64Array::from_vec(minx_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-                pyarrow,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(miny_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-                pyarrow,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(maxx_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-                pyarrow,
-            )?,
-            native_to_pyarray(
-                Float64Array::from_vec(maxy_vec)
-                    .with_validity(Some(validity_bm.clone()))
-                    .boxed(),
-                py,
-                pyarrow,
-            )?,
+            Float64Array::new(minx_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(miny_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(maxx_vec.into(), Some(validity.clone()))
+                .into_data()
+                .into_pyarrow(py)?,
+            Float64Array::new(maxy_vec.into(), Some(validity))
+                .into_data()
+                .into_pyarrow(py)?,
         ];
         let table = pyarrow
             .getattr("Table")?
@@ -167,8 +157,8 @@ pub(crate) fn cells_to_coordinates(cellarray: &PyAny, radians: bool) -> PyResult
 
     with_pyarrow(|py, pyarrow| {
         let arrays = [
-            native_to_pyarray(coordinate_arrays.lat.boxed(), py, pyarrow)?,
-            native_to_pyarray(coordinate_arrays.lng.boxed(), py, pyarrow)?,
+            coordinate_arrays.lat.into_data().into_pyarrow(py)?,
+            coordinate_arrays.lng.into_data().into_pyarrow(py)?,
         ];
         let table = pyarrow
             .getattr("Table")?
@@ -202,9 +192,9 @@ pub(crate) fn coordinates_to_cells(
             .map(|(lat, lng)| {
                 if let (Some(lat), Some(lng)) = (lat, lng) {
                     if radians {
-                        LatLng::from_radians(*lat, *lng).into_pyresult()
+                        LatLng::from_radians(lat, lng).into_pyresult()
                     } else {
-                        LatLng::new(*lat, *lng).into_pyresult()
+                        LatLng::new(lat, lng).into_pyresult()
                     }
                     .map(|ll| Some(ll.to_cell(resolution)))
                 } else {
@@ -226,9 +216,9 @@ pub(crate) fn coordinates_to_cells(
             .map(|(lat, lng, res)| {
                 if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
                     if radians {
-                        LatLng::from_radians(*lat, *lng).into_pyresult()
+                        LatLng::from_radians(lat, lng).into_pyresult()
                     } else {
-                        LatLng::new(*lat, *lng).into_pyresult()
+                        LatLng::new(lat, lng).into_pyresult()
                     }
                     .map(|ll| Some(ll.to_cell(res)))
                 } else {
@@ -238,7 +228,7 @@ pub(crate) fn coordinates_to_cells(
             .collect::<PyResult<CellIndexArray>>()?
     };
 
-    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
+    Python::with_gil(|py| h3array_to_pyarray(cells, py))
 }
 
 #[pyfunction]
@@ -251,69 +241,58 @@ pub(crate) fn cells_to_wkb_polygons(
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let use_degrees = !radians;
 
-    let cells = if link_cells {
-        WKBArray::from(
-            cellindexarray
-                .iter()
-                .flatten()
-                .to_geom(use_degrees)
-                .into_pyresult()?
-                .0
-                .into_iter()
-                .map(|poly| Some(geo_types::Geometry::from(poly)))
-                .collect::<Vec<_>>(),
-        )
+    let out: WKBArray<i64> = if link_cells {
+        let geoms = cellindexarray
+            .iter()
+            .flatten()
+            .to_geom(use_degrees)
+            .into_pyresult()?
+            .0
+            .into_iter()
+            .map(|poly| Some(geo_types::Geometry::from(poly)))
+            .collect::<Vec<_>>();
+        let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
+            geoms.iter().map(|v| v.as_ref()),
+        ));
+        builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
+        builder.finish()
     } else {
-        cellindexarray.to_wkb_polygons(use_degrees).unwrap()
-    }
-    .into_arrow()
-    .boxed();
+        cellindexarray
+            .to_wkb_polygons(use_degrees)
+            .expect("wkbarray")
+    };
 
-    with_pyarrow(|py, pyarrow| native_to_pyarray(cells, py, pyarrow))
+    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
 pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
-    let out = cellindexarray
-        .to_wkb_points(!radians)
-        .unwrap()
-        .into_arrow()
-        .boxed();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+    let out = pyarray_to_cellindexarray(cellarray)?
+        .to_wkb_points::<i64>(!radians)
+        .expect("wkbarray");
+
+    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
 
 #[pyfunction]
 #[pyo3(signature = (vertexarray, radians = false))]
 pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let vertexindexarray = pyarray_to_vertexindexarray(vertexarray)?;
-    let out = vertexindexarray
-        .to_wkb_points(!radians)
-        .unwrap()
-        .into_arrow()
-        .boxed();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
-}
+    let out = pyarray_to_vertexindexarray(vertexarray)?
+        .to_wkb_points::<i64>(!radians)
+        .expect("wkbarray");
 
-#[pyfunction]
-#[pyo3(signature = (array, radians = false))]
-pub(crate) fn directededges_to_wkb_lines(array: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let array = pyarray_to_directededgeindexarray(array)?;
-    let out = array.to_wkb_lines(!radians).unwrap().into_arrow().boxed();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
 
 #[pyfunction]
 #[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> PyResult<PyObject> {
-    let array = pyarray_to_directededgeindexarray(array)?;
-    let out = array
-        .to_wkb_linestrings(!radians)
-        .unwrap()
-        .into_arrow()
-        .boxed();
-    with_pyarrow(|py, pyarrow| native_to_pyarray(out, py, pyarrow))
+    let out = pyarray_to_directededgeindexarray(array)?
+        .to_wkb_linestrings::<i64>(!radians)
+        .expect("wkbarray");
+
+    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
 }
 
 fn get_containment_mode(
@@ -356,15 +335,18 @@ pub(crate) fn wkb_to_cells(
     flatten: bool,
 ) -> PyResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
-    let wkbarray = WKBArray::new(pyarray_to_native::<BinaryArray<i64>>(array)?);
+    let wkbarray = WKBArray::new(
+        pyarray_to_native::<LargeBinaryArray>(array)?,
+        Default::default(),
+    ); // TODO: handle BinaryArray i32
 
     if flatten {
         let cells = wkbarray.to_cellindexarray(&options).into_pyresult()?;
 
-        with_pyarrow(|py, pyarrow| h3array_to_pyarray(cells, py, pyarrow))
+        Python::with_gil(|py| h3array_to_pyarray(cells, py))
     } else {
-        let listarray: ListArray<_> = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
-        with_pyarrow(|py, pyarrow| native_to_pyarray(listarray.boxed(), py, pyarrow))
+        let listarray: LargeListArray = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
+        Python::with_gil(|py| listarray.into_data().to_pyarrow(py))
     }
 }
 
@@ -377,11 +359,14 @@ pub(crate) fn geometry_to_cells(
     compact: bool,
     all_intersecting: Option<bool>,
 ) -> PyResult<PyObject> {
+    if obj.0.is_empty() {
+        return Python::with_gil(|py| h3array_to_pyarray(CellIndexArray::new_null(0), py));
+    }
     let options = get_to_cells_options(resolution, containment_mode, all_intersecting, compact)?;
     let cellindexarray = CellIndexArray::from(
         h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
     );
-    with_pyarrow(|py, pyarrow| h3array_to_pyarray(cellindexarray, py, pyarrow))
+    Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
 }
 
 pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
@@ -392,7 +377,6 @@ pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cells_to_wkb_points, m)?)?;
     m.add_function(wrap_pyfunction!(vertexes_to_wkb_points, m)?)?;
     m.add_function(wrap_pyfunction!(directededges_to_wkb_linestrings, m)?)?;
-    m.add_function(wrap_pyfunction!(directededges_to_wkb_lines, m)?)?;
     m.add_function(wrap_pyfunction!(wkb_to_cells, m)?)?;
     m.add_function(wrap_pyfunction!(geometry_to_cells, m)?)?;
     m.add_function(wrap_pyfunction!(coordinates_to_cells, m)?)?;

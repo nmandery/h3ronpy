@@ -3,8 +3,12 @@ use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
 
+use arrow::array::{
+    Array, Float32Array, Float64Array, Int16Array, Int32Array, Int64Array, Int8Array, UInt16Array,
+    UInt32Array, UInt64Array, UInt8Array,
+};
+use arrow::pyarrow::IntoPyArrow;
 use h3arrow::array::CellIndexArray;
-use h3arrow::export::arrow2::array::PrimitiveArray;
 use h3arrow::export::h3o::{CellIndex, Resolution};
 use ndarray::ArrayView2;
 use numpy::PyReadonlyArray2;
@@ -12,7 +16,7 @@ use ordered_float::OrderedFloat;
 use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction, PyNativeType};
 
-use crate::arrow_interop::{h3array_to_pyarray, native_to_pyarray, with_pyarrow};
+use crate::arrow_interop::h3array_to_pyarray;
 use crate::error::IntoPyResult;
 use crate::transform::Transform;
 
@@ -134,7 +138,7 @@ where
 }
 
 macro_rules! make_raster_to_h3_variant {
-    ($name:ident, $dtype:ty) => {
+    ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
             np_array: PyReadonlyArray2<$dtype>,
@@ -154,11 +158,9 @@ macro_rules! make_raster_to_h3_variant {
                 compact,
             )?;
 
-            with_pyarrow(|py, pyarrow| {
-                let values = PrimitiveArray::from_vec(values);
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py, pyarrow)?;
-
-                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+            Python::with_gil(|py| {
+                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
+                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
                 Ok((values, cells))
             })
@@ -167,7 +169,7 @@ macro_rules! make_raster_to_h3_variant {
 }
 
 macro_rules! make_raster_to_h3_float_variant {
-    ($name:ident, $dtype:ty) => {
+    ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
             np_array: PyReadonlyArray2<$dtype>,
@@ -190,13 +192,10 @@ macro_rules! make_raster_to_h3_float_variant {
                 compact,
             )?;
 
-            with_pyarrow(|py, pyarrow| {
-                let values = PrimitiveArray::<$dtype>::from_vec(
-                    values.into_iter().map(|v| v.into_inner()).collect(),
-                );
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py, pyarrow)?;
-
-                let values = native_to_pyarray(values.boxed(), py, pyarrow)?;
+            Python::with_gil(|py| {
+                let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
+                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
+                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
                 Ok((values, cells))
             })
@@ -205,16 +204,16 @@ macro_rules! make_raster_to_h3_float_variant {
 }
 
 // generate some specialized variants of raster_to_h3 to expose to python
-make_raster_to_h3_variant!(raster_to_h3_u8, u8);
-make_raster_to_h3_variant!(raster_to_h3_i8, i8);
-make_raster_to_h3_variant!(raster_to_h3_u16, u16);
-make_raster_to_h3_variant!(raster_to_h3_i16, i16);
-make_raster_to_h3_variant!(raster_to_h3_u32, u32);
-make_raster_to_h3_variant!(raster_to_h3_i32, i32);
-make_raster_to_h3_variant!(raster_to_h3_u64, u64);
-make_raster_to_h3_variant!(raster_to_h3_i64, i64);
-make_raster_to_h3_float_variant!(raster_to_h3_f32, f32);
-make_raster_to_h3_float_variant!(raster_to_h3_f64, f64);
+make_raster_to_h3_variant!(raster_to_h3_u8, u8, UInt8Array);
+make_raster_to_h3_variant!(raster_to_h3_i8, i8, Int8Array);
+make_raster_to_h3_variant!(raster_to_h3_u16, u16, UInt16Array);
+make_raster_to_h3_variant!(raster_to_h3_i16, i16, Int16Array);
+make_raster_to_h3_variant!(raster_to_h3_u32, u32, UInt32Array);
+make_raster_to_h3_variant!(raster_to_h3_i32, i32, Int32Array);
+make_raster_to_h3_variant!(raster_to_h3_u64, u64, UInt64Array);
+make_raster_to_h3_variant!(raster_to_h3_i64, i64, Int64Array);
+make_raster_to_h3_float_variant!(raster_to_h3_f32, f32, Float32Array);
+make_raster_to_h3_float_variant!(raster_to_h3_f64, f64, Float64Array);
 
 pub fn init_raster_submodule(m: &PyModule) -> PyResult<()> {
     m.add("Transform", m.py().get_type::<Transform>())?;
