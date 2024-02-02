@@ -1,6 +1,9 @@
-use arrow::array::{Array, Float64Array, LargeBinaryArray, LargeListArray, UInt8Array};
+use arrow::array::{
+    make_array, Array, ArrayData, BinaryArray, Float64Array, GenericBinaryArray, GenericListArray,
+    LargeBinaryArray, OffsetSizeTrait, UInt8Array,
+};
 use arrow::buffer::NullBuffer;
-use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
+use arrow::pyarrow::{FromPyArrow, IntoPyArrow, ToPyArrow};
 use geo::{BoundingRect, HasDimensions};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
@@ -323,17 +326,33 @@ pub(crate) fn wkb_to_cells(
     flatten: bool,
 ) -> PyResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
-    let wkbarray = WKBArray::new(
-        pyarray_to_native::<LargeBinaryArray>(array)?,
-        Default::default(),
-    ); // TODO: handle BinaryArray i32
+    let array_ref = make_array(ArrayData::from_pyarrow(array)?);
+
+    if let Some(binarray) = array_ref.as_any().downcast_ref::<LargeBinaryArray>() {
+        generic_wkb_to_cells(binarray.clone(), flatten, &options)
+    } else if let Some(binarray) = array_ref.as_any().downcast_ref::<BinaryArray>() {
+        generic_wkb_to_cells(binarray.clone(), flatten, &options)
+    } else {
+        Err(PyValueError::new_err(
+            "unsupported array type for WKB input",
+        ))
+    }
+}
+
+fn generic_wkb_to_cells<O: OffsetSizeTrait>(
+    binarray: GenericBinaryArray<O>,
+    flatten: bool,
+    options: &ToCellsOptions,
+) -> PyResult<PyObject> {
+    let wkbarray = WKBArray::new(binarray, Default::default());
 
     if flatten {
-        let cells = wkbarray.to_cellindexarray(&options).into_pyresult()?;
+        let cells = wkbarray.to_cellindexarray(options).into_pyresult()?;
 
         Python::with_gil(|py| h3array_to_pyarray(cells, py))
     } else {
-        let listarray: LargeListArray = wkbarray.to_celllistarray(&options).into_pyresult()?.into();
+        let listarray: GenericListArray<O> =
+            wkbarray.to_celllistarray(options).into_pyresult()?.into();
         Python::with_gil(|py| listarray.into_data().to_pyarrow(py))
     }
 }
