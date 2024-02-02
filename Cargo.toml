@@ -17,10 +17,10 @@ crate-type = ["cdylib"]
 arrow = { version = "50.0.0", features = ["pyarrow"]}
 env_logger = "^0.11"
 geo-types = "^0.7"
-rasterh3 = "^0.6"
+rasterh3 = { version = "^0.6", features = ["rayon"] }
 #h3arrow = { version = "0.2.0", features = ["geoarrow", "rayon"] }
-#h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "ec8cf2fc4028016dc784a4e9d660af7222aff126", features = ["geoarrow", "rayon"] }
-h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
+h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "1491610246cf93f0c9e40974de857563451a2e03", features = ["geoarrow", "rayon"] }
+#h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
 ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.20"
 ordered-float = ">=2.0.1"
