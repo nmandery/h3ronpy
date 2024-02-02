@@ -142,10 +142,3 @@ def test_non_standard_geometry_column_name():
     df = geodataframe_to_cells(africa, 4)
     assert len(df) > len(africa)
     assert df.dtypes[DEFAULT_CELL_COLUMN_NAME] == "uint64"
-
-
-def test_issue43_r4():
-    gdf = gpd.read_file(TESTDATA_PATH / "issue-43.geojson")
-    #print(gdf)
-    df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.IntersectsBoundary, all_intersecting=True)
-    #print(df)
