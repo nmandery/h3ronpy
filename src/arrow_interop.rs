@@ -30,13 +30,8 @@ where
     pa.into_data().into_pyarrow(py)
 }
 
-#[inline]
-pub(crate) fn pyarray_to_boxed(obj: &PyAny) -> PyResult<ArrayData> {
-    ArrayData::from_pyarrow(obj)
-}
-
 pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {
-    let array = make_array(pyarray_to_boxed(obj)?);
+    let array = make_array(ArrayData::from_pyarrow(obj)?);
 
     let array = array
         .as_any()
