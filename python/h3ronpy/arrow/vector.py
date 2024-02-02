@@ -101,7 +101,6 @@ def wkb_to_cells(
     resolution: int,
     containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
-    all_intersecting: Optional[bool] = None,
     flatten: bool = False,
 ) -> Union[pa.Array, pa.ListArray]:
     """
@@ -116,8 +115,6 @@ def wkb_to_cells(
             See the ContainmentMode class.
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
-    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
-            (without intersecting with their centroid)).
     :param flatten: Return a non-nested cell array instead of a list array.
     """
     if _HAS_POLARS:
@@ -136,7 +133,6 @@ def wkb_to_cells(
         resolution,
         containment_mode=containment_mode,
         compact=compact,
-        all_intersecting=all_intersecting,
         flatten=flatten,
     )
 
@@ -146,7 +142,6 @@ def geometry_to_cells(
     resolution: int,
     containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
-    all_intersecting: Optional[bool] = None,
 ) -> pa.Array:
     """
     Convert a single object which supports the python `__geo_interface__` protocol to H3 cells
@@ -157,12 +152,8 @@ def geometry_to_cells(
             See the ContainmentMode class.
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
-    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
-            (without intersecting with their centroid)).
     """
-    return vector.geometry_to_cells(
-        geom, resolution, containment_mode=containment_mode, compact=compact, all_intersecting=all_intersecting
-    )
+    return vector.geometry_to_cells(geom, resolution, containment_mode=containment_mode, compact=compact)
 
 
 __all__ = [

@@ -85,7 +85,6 @@ def geodataframe_to_cells(
     containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
     cell_column_name: str = DEFAULT_CELL_COLUMN_NAME,
-    all_intersecting: Optional[bool] = None,
 ) -> pd.DataFrame:
     """
     Convert a `GeoDataFrame` to H3 cells while exploding all other columns according to the number of cells derived
@@ -103,8 +102,6 @@ def geodataframe_to_cells(
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
     :param cell_column_name:
-    :param all_intersecting: DEPRECATED. (Was: Also return cells which only overlap partially with the given geometry
-            (without intersecting with their centroid)).
     :return:
     """
     cells = _av.wkb_to_cells(
@@ -112,7 +109,6 @@ def geodataframe_to_cells(
         resolution,
         containment_mode=containment_mode,
         compact=compact,
-        all_intersecting=all_intersecting,
         flatten=False,
     )
     table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns=gdf.geometry.name))).append_column(

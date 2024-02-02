@@ -85,7 +85,9 @@ def test_geoseries_to_cells_flatten():
     assert cells.dtype == "uint64"
 
 
-@pytest.mark.skip(reason="GeometryCollections are unsupported until https://github.com/geoarrow/geoarrow-rs/blob/3a2aaa883126274037cabaf46b1f5f6459938297/src/io/wkb/reader/geometry_collection.rs#L23 is fixed")
+@pytest.mark.skip(
+    reason="GeometryCollections are unsupported until https://github.com/geoarrow/geoarrow-rs/blob/3a2aaa883126274037cabaf46b1f5f6459938297/src/io/wkb/reader/geometry_collection.rs#L23 is fixed"
+)
 def test_empty_geometrycollection_omitted():
     gdf = gpd.GeoDataFrame(
         {

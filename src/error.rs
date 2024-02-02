@@ -1,6 +1,6 @@
 use h3arrow::error::Error as A3Error;
 use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
-use pyo3::{PyErr, PyResult, Python};
+use pyo3::{PyErr, PyResult};
 use rasterh3::Error;
 
 pub trait IntoPyResult<T> {
@@ -91,16 +91,4 @@ where
     fn into_pyresult(self) -> PyResult<T> {
         self.map_err(IntoPyErr::into_pyerr)
     }
-}
-
-pub(crate) fn warn_deprecated(msg: &str) -> PyResult<()> {
-    Python::with_gil(|py| {
-        let mod_builtins = py.import("builtins")?;
-        let deprecation_warning = mod_builtins.getattr("DeprecationWarning")?;
-
-        let mod_warn = py.import("warnings")?;
-        let warn = mod_warn.getattr("warn")?;
-        warn.call((msg, deprecation_warning), None)?;
-        Ok(())
-    })
 }

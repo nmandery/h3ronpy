@@ -68,6 +68,9 @@ The `containment_mode` argument allow the control how polygons are filled. See :
 
     fill_namibia(containment_mode=ContainmentMode.IntersectsBoundary)
 
+.. jupyter-execute::
+
+    fill_namibia(containment_mode=ContainmentMode.Covers)
 
 Merging cells into larger polygons
 ----------------------------------
