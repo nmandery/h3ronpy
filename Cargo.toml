@@ -15,7 +15,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 arrow = { version = "50.0.0", features = ["pyarrow"]}
-env_logger = "^0.11"
+env_logger = "^0.10" # Stick env_logger with 0.10 to be able to build on readthedocs.org with rust 1.70
 geo-types = "^0.7"
 rasterh3 = { version = "^0.6", features = ["rayon"] }
 #h3arrow = { version = "0.2.0", features = ["geoarrow", "rayon"] }
