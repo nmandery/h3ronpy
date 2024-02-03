@@ -28,8 +28,8 @@ jobs:
       - cargofmt
       - black
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -43,7 +43,7 @@ jobs:
           args: --release --out dist
           manylinux: auto
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -61,8 +61,8 @@ jobs:
       - black
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -74,7 +74,7 @@ jobs:
           args: --release --out dist
           manylinux: auto
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -107,8 +107,8 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
@@ -123,7 +123,7 @@ jobs:
           target: x86_64
           args: --release --out dist -i python
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -141,10 +141,10 @@ jobs:
       - black
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Rust targets
         run: rustup target add aarch64-apple-darwin
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -156,7 +156,7 @@ jobs:
           target: aarch64-apple-darwin
           args: --release --out dist
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -168,14 +168,14 @@ jobs:
       - cargofmt
       - black
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
       - name: Upload sdist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -186,7 +186,7 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/v')"
     needs: [ linux-x86_64, linux-aarch64, win-macos, macos-aarch64, sdist ]
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: wheels
       - name: Publish to PyPI
@@ -202,7 +202,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
 #      - name: install rust
 #        uses: actions-rs/toolchain@v1
@@ -221,9 +221,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install black
