@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.20.1 - 2024-03-01
+-------------------
+
 - Upgrade h3o, rasterh3 and h3arrow dependencies. This includes a fix for converting datasets spanning the antimeridian
   by splitting and normalizing tiles before generating cells from them.
 
