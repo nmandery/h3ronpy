@@ -12,6 +12,11 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.20.2 - 2024-04-16
+-------------------
+
+- Loosen sanity-checks for wgs84 bounds. Fixes #48
+
 0.20.1 - 2024-03-01
 -------------------
 
