@@ -40,7 +40,7 @@ impl FromStr for AxisOrder {
     }
 }
 
-fn check_wgs84_bounds(
+fn sanitycheck_wgs84_bounds(
     transform: &rasterh3::Transform,
     axis_order: &rasterh3::AxisOrder,
     shape: &(usize, usize),
@@ -55,9 +55,9 @@ fn check_wgs84_bounds(
     // note: coordinates itself are not validated as multiple rotations around an axis are
     //       still perfectly valid.
 
-    if mx.x - mn.x > 360.0 || mx.y - mn.y > 180.0 {
+    if mx.x - mn.x > 361.0 || mx.y - mn.y > 181.0 {
         Err(PyValueError::new_err(
-            "Input array spans more than the bounds of WGS84 - input needs to be in WGS84 projection with lat/lon coordinates",
+            "Input array spans significantly more than the bounds of WGS84 - input needs to be in WGS84 projection with lat/lon coordinates",
         ))
     } else {
         Ok(())
@@ -94,7 +94,7 @@ pub fn nearest_h3_resolution(
     search_mode_str: &str,
 ) -> PyResult<u8> {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
-    check_wgs84_bounds(&transform.inner, &axis_order.inner, &(shape[0], shape[1]))?;
+    sanitycheck_wgs84_bounds(&transform.inner, &axis_order.inner, &(shape[0], shape[1]))?;
     let search_mode = ResolutionSearchMode::from_str(search_mode_str)?;
 
     search_mode
@@ -117,7 +117,7 @@ where
     T: PartialEq + Sized + Sync + Eq + Hash + Copy,
 {
     let axis_order = AxisOrder::from_str(axis_order_str)?;
-    check_wgs84_bounds(&transform.inner, &axis_order.inner, &arr.dim())?;
+    sanitycheck_wgs84_bounds(&transform.inner, &axis_order.inner, &arr.dim())?;
 
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
 
