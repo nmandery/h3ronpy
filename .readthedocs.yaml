@@ -11,6 +11,6 @@ build:
 
 python:
   install:
-    - requirements: docs/requirements.txt
+    - requirements: h3ronpy/docs/requirements.txt
     - method: pip
-      path: .
+      path: ./h3ronpy

@@ -7,6 +7,7 @@ API to use `h3ronpy` with the `pandas dataframe library <https://pandas.pydata.o
     packages need to be installed separately.
 
 """
+
 from .. import arrow as _arrow
 import pyarrow as pa
 from functools import wraps
