@@ -1,36 +1,16 @@
-[package]
-name = "h3ronpy"
-version = "0.20.2"
-authors = ["Nico Mandery <nico@nmandery.net>"]
-description = "Data science toolkit for the H3 geospatial grid"
-edition = "2021"
-license = "MIT"
-keywords = ["geo", "spatial", "h3", "arrow", "python"]
-homepage = "https://github.com/nmandery/h3ronpy"
-repository = "https://github.com/nmandery/h3ronpy"
+[workspace]
+resolver = "2"
 
-[lib]
-name = "h3ronpy"
-crate-type = ["cdylib"]
+members = [
+    "h3ronpy",
+    "crates/h3arrow"
+]
 
-[dependencies]
-arrow = { version = "50.0.0", features = ["pyarrow"]}
-env_logger = "^0.10" # Stick env_logger with 0.10 to be able to build on readthedocs.org with rust 1.70
-geo-types = "^0.7"
-rasterh3 = { version = "^0.7", features = ["rayon"] }
-h3arrow = { version = "^0.4", features = ["geoarrow", "rayon"] }
-#h3arrow = { git = "https://github.com/nmandery/h3arrow.git", rev = "1491610246cf93f0c9e40974de857563451a2e03", features = ["geoarrow", "rayon"] }
-#h3arrow = { path = "/home/nicodev/CLionProjects/h3arrow", features = ["geoarrow", "rayon"] }
-ndarray = { version = "0.15", features = ["rayon"] }
-numpy = "0.20"
-ordered-float = ">=2.0.1"
-py_geo_interface = { version = "0.7", features = ["f64", "wkb"] }
-pyo3 = { version = "0.20", features = ["extension-module", "abi3", "abi3-py38"] }
-rayon = "^1.5"
-hashbrown = "0.14"
+[workspace.dependencies]
 geo = "0.28"
-itertools = "0.12"
-
+geo-types = "0.7"
+h3o = { version = "0.6" }
+rayon = "^1"
 
 [profile.release]
 lto = "thin"

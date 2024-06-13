@@ -17,6 +17,7 @@ ignore = ["E501"]
 
 [project]
 name = "h3ronpy"
+readme = "../README.rst"
 
 dependencies = [
     "numpy",

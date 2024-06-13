@@ -27,6 +27,7 @@ Resolution search modes of `nearest_h3_resolution`:
 * "smaller_than_pixel":  chose the H3 resolution where the area of the h3index is smaller than the area of a pixel.
 
 """
+
 import shapely
 from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME

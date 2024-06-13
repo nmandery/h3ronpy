@@ -1,0 +1,32 @@
+[package]
+name = "h3arrow"
+version = "0.4.0"
+edition = "2021"
+authors = ["Nico Mandery <nico@nmandery.net>"]
+description = "Integration of the H3 geospatial grid with the arrow memory model"
+license = "MIT"
+keywords = ["geo", "spatial", "h3", "arrow"]
+readme = "README.md"
+homepage = "https://github.com/nmandery/h3arrow"
+repository = "https://github.com/nmandery/h3arrow"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+geoarrow = ["dep:geoarrow", "dep:geozero"]
+rayon = ["dep:rayon", "geoarrow/rayon"]
+spatial_index = ["dep:rstar"]
+
+[dependencies]
+ahash = "0.8"
+arrow = "50"
+geoarrow = { package = "geoarrow", version = "0.1.0", optional = true, features = ["geozero"] }
+geo-types = { workspace = true }
+geo = { workspace = true }
+geozero = { version = "0.12", default-features = false, features = ["with-geo", "with-wkb"], optional = true }
+h3o = { workspace = true, features = ["geo"] }
+nom = "7"
+rayon = { workspace = true, optional = true }
+rstar = { version = "0.12", optional = true }
+thiserror = "1"

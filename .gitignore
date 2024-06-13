@@ -13,7 +13,7 @@ flamegraph*.svg
 __pycache__
 .pytest_cache
 .ruff_cache
-/docs/build/
-/docs/source/generated/
-/docs/source/_build/
-/dist
+/h3ronpy/docs/build/
+/h3ronpy/docs/source/generated/
+/h3ronpy/docs/source/_build/
+/h3ronpy/dist
