@@ -12,6 +12,8 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- Restrict numpy version to <2 until incompatibilities of rust-numpy with version 2 are resolved
+
 0.20.2 - 2024-04-16
 -------------------
 
