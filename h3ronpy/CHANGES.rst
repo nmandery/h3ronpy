@@ -13,6 +13,7 @@ Unreleased
 ----------
 
 - Restrict numpy version to <2 until incompatibilities of rust-numpy with version 2 are resolved
+- Add `cells_to_localij` and `localij_to_cells` functions.
 
 0.20.2 - 2024-04-16
 -------------------

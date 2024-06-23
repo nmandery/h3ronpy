@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod compact;
+mod localij;
 mod measure;
 mod neighbor;
 mod resolution;
@@ -30,6 +31,8 @@ pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(measure::cells_area_m2, m)?)?;
     m.add_function(wrap_pyfunction!(measure::cells_area_km2, m)?)?;
     m.add_function(wrap_pyfunction!(measure::cells_area_rads2, m)?)?;
+    m.add_function(wrap_pyfunction!(localij::cells_to_localij, m)?)?;
+    m.add_function(wrap_pyfunction!(localij::localij_to_cells, m)?)?;
 
     Ok(())
 }

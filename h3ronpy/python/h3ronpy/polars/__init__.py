@@ -51,6 +51,8 @@ cells_area_rads2 = _wrap(_arrow.cells_area_rads2, ret_type=pl.Series)
 cells_to_string = _wrap(_arrow.cells_to_string, ret_type=pl.Series)
 vertexes_to_string = _wrap(_arrow.vertexes_to_string, ret_type=pl.Series)
 directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pl.Series)
+cells_to_localij = _wrap(_arrow.cells_to_localij, ret_type=pl.DataFrame)
+localij_to_cells = _wrap(_arrow.localij_to_cells, ret_type=pl.Series)
 
 
 @pl.api.register_expr_namespace("h3")
@@ -214,6 +216,8 @@ __all__ = [
     cells_to_string.__name__,
     vertexes_to_string.__name__,
     directededges_to_string.__name__,
+    cells_to_localij.__name__,
+    localij_to_cells.__name__,
     H3Expr.__name__,
     H3SeriesShortcuts.__name__,
 ]

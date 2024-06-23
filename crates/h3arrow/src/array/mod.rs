@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::mem::transmute;
 
-use arrow::array::{Array, ArrayIter, PrimitiveArray, UInt64Array};
+use arrow::array::{Array, ArrayIter, PrimitiveArray, UInt64Array, UInt64Builder};
 use h3o::{CellIndex, DirectedEdgeIndex, VertexIndex};
 
 #[allow(unused_imports)]
@@ -87,6 +87,10 @@ where
         }
     }
 
+    pub fn builder(capacity: usize) -> H3ArrayBuilder<IX> {
+        H3ArrayBuilder::with_capacity(capacity)
+    }
+
     pub fn primitive_array(&self) -> &UInt64Array {
         &self.primitive_array
     }
@@ -131,6 +135,48 @@ where
 pub type CellIndexArray = H3Array<CellIndex>;
 pub type VertexIndexArray = H3Array<VertexIndex>;
 pub type DirectedEdgeIndexArray = H3Array<DirectedEdgeIndex>;
+
+pub struct H3ArrayBuilder<IX> {
+    h3index_phantom: PhantomData<IX>,
+    builder: UInt64Builder,
+}
+
+impl<IX> H3ArrayBuilder<IX>
+where
+    IX: H3IndexArrayValue,
+{
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            h3index_phantom: Default::default(),
+            builder: UInt64Builder::with_capacity(capacity),
+        }
+    }
+
+    /// Returns the capacity of this builder measured in slots of type `T`
+    pub fn capacity(&self) -> usize {
+        self.builder.capacity()
+    }
+
+    /// Appends a value of type `T` into the builder
+    #[inline]
+    pub fn append_value(&mut self, v: IX) {
+        self.builder.append_value(v.into());
+    }
+
+    /// Appends a null slot into the builder
+    #[inline]
+    pub fn append_null(&mut self) {
+        self.builder.append_null();
+    }
+
+    /// Builds the [`H3Array`] and reset this builder.
+    pub fn finish(&mut self) -> H3Array<IX> {
+        H3Array {
+            h3index_phantom: Default::default(),
+            primitive_array: self.builder.finish(),
+        }
+    }
+}
 
 /// Conversion corresponding to `From` with the difference that the validity mask
 /// is set accordingly to the validity to the contained values.
