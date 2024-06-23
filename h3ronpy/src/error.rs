@@ -28,11 +28,13 @@ impl IntoPyErr for A3Error {
             A3Error::InvalidGeometry(e) => e.into_pyerr(),
             A3Error::CompactionError(e) => e.into_pyerr(),
             A3Error::OutlinerError(e) => e.into_pyerr(),
+            A3Error::LocalIJError(e) => e.into_pyerr(),
             A3Error::Arrow2(e) => e.into_pyerr(),
             A3Error::NotAUint64Array
             | A3Error::NonParsableCellIndex
             | A3Error::NonParsableDirectedEdgeIndex
             | A3Error::NonParsableVertexIndex
+            | A3Error::LengthMismatch
             | A3Error::InvalidWKB => PyValueError::new_err(self.to_string()),
             A3Error::IO(e) => e.into_pyerr(),
         }
@@ -62,6 +64,7 @@ impl_h3o_value_err!(
     h3arrow::export::h3o::error::InvalidResolution,
     h3arrow::export::h3o::error::InvalidVertexIndex,
     h3arrow::export::h3o::error::OutlinerError,
+    h3arrow::export::h3o::error::LocalIjError,
 );
 
 impl IntoPyErr for rasterh3::Error {

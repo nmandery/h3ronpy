@@ -197,6 +197,45 @@ def directededges_to_string(directededgearray) -> pa.Array:
     return op.directededges_to_string(_to_uint64_array(directededgearray))
 
 
+def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) -> pa.Table:
+    """
+    Produces IJ coordinates for an index anchored by an origin `anchor`.
+
+    The coordinate space used by this function may have deleted regions or warping due to pentagonal distortion.
+
+    Coordinates are only comparable if they come from the same origin index.
+
+    The parameter `anchor` can be a single cell or an array of cells which serve as anchor for the
+    cells of `cellarray`. In case it is an array, the length must match the length of the cell
+    array.
+
+    The default behavior is for this function to fail when a single transformation can not be completed
+    successfully. When `set_failing_to_invalid` is set to True, only the failing positions
+    of the output arrays will be set to null.
+    """
+    if type(anchor) is not int:
+        anchor = _to_uint64_array(anchor)
+    return op.cells_to_localij(_to_uint64_array(cellarray), anchor, set_failing_to_invalid=set_failing_to_invalid)
+
+
+def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> pa.Array:
+    """
+    Produces cells from `i` and `j` coordinates and an `anchor` cell.
+
+    The default behavior is for this function to fail when a single transformation can not be completed
+    successfully. When `set_failing_to_invalid` is set to True, only the failing positions
+    of the output arrays will be set to null.
+    """
+    if type(anchor) is not int:
+        anchor = _to_uint64_array(anchor)
+    return op.localij_to_cells(
+        anchor,
+        _to_arrow_array(i, pa.int32()),
+        _to_arrow_array(j, pa.int32()),
+        set_failing_to_invalid=set_failing_to_invalid,
+    )
+
+
 __all__ = [
     change_resolution.__name__,
     change_resolution_list.__name__,
@@ -220,4 +259,6 @@ __all__ = [
     cells_to_string.__name__,
     vertexes_to_string.__name__,
     directededges_to_string.__name__,
+    cells_to_localij.__name__,
+    localij_to_cells.__name__,
 ]

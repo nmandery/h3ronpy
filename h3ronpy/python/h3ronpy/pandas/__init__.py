@@ -54,7 +54,8 @@ cells_area_rads2 = _wrap(_arrow.cells_area_rads2, ret_type=pd.Series)
 cells_to_string = _wrap(_arrow.cells_to_string, ret_type=pd.Series)
 vertexes_to_string = _wrap(_arrow.vertexes_to_string, ret_type=pd.Series)
 directededges_to_string = _wrap(_arrow.directededges_to_string, ret_type=pd.Series)
-
+cells_to_localij = _wrap(_arrow.cells_to_localij, ret_type=pd.DataFrame)
+localij_to_cells = _wrap(_arrow.localij_to_cells, ret_type=pd.Series)
 
 __all__ = [
     change_resolution.__name__,
@@ -79,4 +80,6 @@ __all__ = [
     cells_to_string.__name__,
     vertexes_to_string.__name__,
     directededges_to_string.__name__,
+    cells_to_localij.__name__,
+    localij_to_cells.__name__,
 ]

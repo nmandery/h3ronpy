@@ -25,6 +25,9 @@ pub enum Error {
     OutlinerError(#[from] h3o::error::OutlinerError),
 
     #[error(transparent)]
+    LocalIJError(#[from] h3o::error::LocalIjError),
+
+    #[error(transparent)]
     Arrow2(#[from] arrow::error::ArrowError),
 
     #[error("not a UintArray")]
@@ -41,6 +44,9 @@ pub enum Error {
 
     #[error("Invalid WKB encountered")]
     InvalidWKB,
+
+    #[error("array length mismatch")]
+    LengthMismatch,
 
     #[error(transparent)]
     IO(#[from] std::io::Error),
