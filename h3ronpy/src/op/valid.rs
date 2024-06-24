@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 
 use crate::arrow_interop::*;
 
-fn h3index_valid<IX>(arr: &PyAny, booleanarray: bool) -> PyResult<PyObject>
+fn h3index_valid<IX>(arr: &Bound<PyAny>, booleanarray: bool) -> PyResult<PyObject>
 where
     IX: H3IndexArrayValue,
 {
@@ -35,7 +35,7 @@ macro_rules! impl_h3index_valid {
     ($name:ident, $arr_type:ty) => {
         #[pyfunction]
         #[pyo3(signature = (array, booleanarray = false))]
-        pub(crate) fn $name(array: &PyAny, booleanarray: bool) -> PyResult<PyObject> {
+        pub(crate) fn $name(array: &Bound<PyAny>, booleanarray: bool) -> PyResult<PyObject> {
             h3index_valid::<$arr_type>(array, booleanarray)
         }
     };

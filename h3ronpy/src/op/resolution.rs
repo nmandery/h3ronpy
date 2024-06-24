@@ -9,7 +9,7 @@ use crate::error::IntoPyResult;
 use crate::DEFAULT_CELL_COLUMN_NAME;
 
 #[pyfunction]
-pub(crate) fn change_resolution(cellarray: &PyAny, h3_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn change_resolution(cellarray: &Bound<PyAny>, h3_resolution: u8) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let out = cellindexarray
@@ -20,7 +20,10 @@ pub(crate) fn change_resolution(cellarray: &PyAny, h3_resolution: u8) -> PyResul
 }
 
 #[pyfunction]
-pub(crate) fn change_resolution_list(cellarray: &PyAny, h3_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn change_resolution_list(
+    cellarray: &Bound<PyAny>,
+    h3_resolution: u8,
+) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let listarray = cellindexarray
@@ -31,7 +34,10 @@ pub(crate) fn change_resolution_list(cellarray: &PyAny, h3_resolution: u8) -> Py
 }
 
 #[pyfunction]
-pub(crate) fn change_resolution_paired(cellarray: &PyAny, h3_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn change_resolution_paired(
+    cellarray: &Bound<PyAny>,
+    h3_resolution: u8,
+) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let pair = cellindexarray
@@ -58,7 +64,7 @@ pub(crate) fn change_resolution_paired(cellarray: &PyAny, h3_resolution: u8) -> 
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(cellarray: &PyAny) -> PyResult<PyObject> {
+pub(crate) fn cells_resolution(cellarray: &Bound<PyAny>) -> PyResult<PyObject> {
     let resarray = pyarray_to_cellindexarray(cellarray)?.resolution();
     Python::with_gil(|py| PrimitiveArray::from(resarray).into_data().into_pyarrow(py))
 }

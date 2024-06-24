@@ -81,12 +81,12 @@ impl PyContainmentMode {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds(cellarray: &PyAny) -> PyResult<Option<PyObject>> {
+pub(crate) fn cells_bounds(cellarray: &Bound<PyAny>) -> PyResult<Option<PyObject>> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     if let Some(rect) = cellindexarray.bounding_rect() {
         Python::with_gil(|py| {
             Ok(Some(
-                PyTuple::new(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
+                PyTuple::new_bound(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
                     .to_object(py),
             ))
         })
@@ -97,7 +97,7 @@ pub(crate) fn cells_bounds(cellarray: &PyAny) -> PyResult<Option<PyObject>> {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
+pub(crate) fn cells_bounds_arrays(cellarray: &Bound<PyAny>) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let mut minx_vec = vec![0.0f64; cellindexarray.len()];
     let mut miny_vec = vec![0.0f64; cellindexarray.len()];
@@ -154,7 +154,7 @@ pub(crate) fn cells_bounds_arrays(cellarray: &PyAny) -> PyResult<PyObject> {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
-pub(crate) fn cells_to_coordinates(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+pub(crate) fn cells_to_coordinates(cellarray: &Bound<PyAny>, radians: bool) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
 
     let coordinate_arrays = if radians {
@@ -179,9 +179,9 @@ pub(crate) fn cells_to_coordinates(cellarray: &PyAny, radians: bool) -> PyResult
 #[pyfunction]
 #[pyo3(signature = (latarray, lngarray, resolution, radians = false))]
 pub(crate) fn coordinates_to_cells(
-    latarray: &PyAny,
-    lngarray: &PyAny,
-    resolution: &PyAny,
+    latarray: &Bound<PyAny>,
+    lngarray: &Bound<PyAny>,
+    resolution: &Bound<PyAny>,
     radians: bool,
 ) -> PyResult<PyObject> {
     let latarray: Float64Array = pyarray_to_native(latarray)?;
@@ -243,7 +243,7 @@ pub(crate) fn coordinates_to_cells(
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false, link_cells = false))]
 pub(crate) fn cells_to_wkb_polygons(
-    cellarray: &PyAny,
+    cellarray: &Bound<PyAny>,
     radians: bool,
     link_cells: bool,
 ) -> PyResult<PyObject> {
@@ -276,7 +276,7 @@ pub(crate) fn cells_to_wkb_polygons(
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
-pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+pub(crate) fn cells_to_wkb_points(cellarray: &Bound<PyAny>, radians: bool) -> PyResult<PyObject> {
     let out = pyarray_to_cellindexarray(cellarray)?
         .to_wkb_points::<i64>(!radians)
         .expect("wkbarray");
@@ -286,7 +286,10 @@ pub(crate) fn cells_to_wkb_points(cellarray: &PyAny, radians: bool) -> PyResult<
 
 #[pyfunction]
 #[pyo3(signature = (vertexarray, radians = false))]
-pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyResult<PyObject> {
+pub(crate) fn vertexes_to_wkb_points(
+    vertexarray: &Bound<PyAny>,
+    radians: bool,
+) -> PyResult<PyObject> {
     let out = pyarray_to_vertexindexarray(vertexarray)?
         .to_wkb_points::<i64>(!radians)
         .expect("wkbarray");
@@ -296,7 +299,10 @@ pub(crate) fn vertexes_to_wkb_points(vertexarray: &PyAny, radians: bool) -> PyRe
 
 #[pyfunction]
 #[pyo3(signature = (array, radians = false))]
-pub(crate) fn directededges_to_wkb_linestrings(array: &PyAny, radians: bool) -> PyResult<PyObject> {
+pub(crate) fn directededges_to_wkb_linestrings(
+    array: &Bound<PyAny>,
+    radians: bool,
+) -> PyResult<PyObject> {
     let out = pyarray_to_directededgeindexarray(array)?
         .to_wkb_linestrings::<i64>(!radians)
         .expect("wkbarray");
@@ -319,14 +325,14 @@ fn get_to_cells_options(
 #[pyfunction]
 #[pyo3(signature = (array, resolution, containment_mode = None, compact = false, flatten = false))]
 pub(crate) fn wkb_to_cells(
-    array: &PyAny,
+    array: &Bound<PyAny>,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
     flatten: bool,
 ) -> PyResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
-    let array_ref = make_array(ArrayData::from_pyarrow(array)?);
+    let array_ref = make_array(ArrayData::from_pyarrow_bound(array)?);
 
     if let Some(binarray) = array_ref.as_any().downcast_ref::<LargeBinaryArray>() {
         generic_wkb_to_cells(binarray.clone(), flatten, &options)
@@ -375,7 +381,7 @@ pub(crate) fn geometry_to_cells(
     Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
 }
 
-pub fn init_vector_submodule(m: &PyModule) -> PyResult<()> {
+pub fn init_vector_submodule(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cells_to_coordinates, m)?)?;
     m.add_function(wrap_pyfunction!(cells_bounds, m)?)?;
     m.add_function(wrap_pyfunction!(cells_bounds_arrays, m)?)?;

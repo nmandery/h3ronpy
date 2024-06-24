@@ -12,7 +12,7 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, flatten = false))]
-pub(crate) fn grid_disk(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<PyObject> {
+pub(crate) fn grid_disk(cellarray: &Bound<PyAny>, k: u32, flatten: bool) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let listarray = cellindexarray.grid_disk(k).into_pyresult()?;
     if flatten {
@@ -25,7 +25,11 @@ pub(crate) fn grid_disk(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<Py
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, flatten = false))]
-pub(crate) fn grid_disk_distances(cellarray: &PyAny, k: u32, flatten: bool) -> PyResult<PyObject> {
+pub(crate) fn grid_disk_distances(
+    cellarray: &Bound<PyAny>,
+    k: u32,
+    flatten: bool,
+) -> PyResult<PyObject> {
     let griddiskdistances = pyarray_to_cellindexarray(cellarray)?
         .grid_disk_distances(k)
         .into_pyresult()?;
@@ -36,7 +40,7 @@ pub(crate) fn grid_disk_distances(cellarray: &PyAny, k: u32, flatten: bool) -> P
 #[pyfunction]
 #[pyo3(signature = (cellarray, k_min, k_max, flatten = false))]
 pub(crate) fn grid_ring_distances(
-    cellarray: &PyAny,
+    cellarray: &Bound<PyAny>,
     k_min: u32,
     k_max: u32,
     flatten: bool,
@@ -100,7 +104,7 @@ impl FromStr for KAggregationMethodWrapper {
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, aggregation_method))]
 pub(crate) fn grid_disk_aggregate_k(
-    cellarray: &PyAny,
+    cellarray: &Bound<PyAny>,
     k: u32,
     aggregation_method: &str,
 ) -> PyResult<PyObject> {
