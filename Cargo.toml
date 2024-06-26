@@ -11,6 +11,7 @@ geo = "0.28"
 geo-types = "0.7"
 h3o = { version = "0.6" }
 rayon = "^1"
+arrow = { version = "52" }
 
 [profile.release]
 lto = "thin"

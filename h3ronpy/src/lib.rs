@@ -40,24 +40,24 @@ fn is_release_build() -> bool {
 }
 
 #[pymodule]
-fn h3ronpyrs(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn h3ronpyrs(py: Python<'_>, m: &Bound<PyModule>) -> PyResult<()> {
     env_logger::init(); // run with the environment variable RUST_LOG set to "debug" for log output
 
     m.add_class::<PyContainmentMode>()?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
     m.add_function(wrap_pyfunction!(is_release_build, m)?)?;
 
-    let raster_submod = PyModule::new(py, "raster")?;
-    init_raster_submodule(raster_submod)?;
-    m.add_submodule(raster_submod)?;
+    let raster_submod = PyModule::new_bound(py, "raster")?;
+    init_raster_submodule(&raster_submod)?;
+    m.add_submodule(&raster_submod)?;
 
-    let op_submod = PyModule::new(py, "op")?;
-    init_op_submodule(op_submod)?;
-    m.add_submodule(op_submod)?;
+    let op_submod = PyModule::new_bound(py, "op")?;
+    init_op_submodule(&op_submod)?;
+    m.add_submodule(&op_submod)?;
 
-    let vector_submod = PyModule::new(py, "vector")?;
-    init_vector_submodule(vector_submod)?;
-    m.add_submodule(vector_submod)?;
+    let vector_submod = PyModule::new_bound(py, "vector")?;
+    init_vector_submodule(&vector_submod)?;
+    m.add_submodule(&vector_submod)?;
 
     m.add("DEFAULT_CELL_COLUMN_NAME", DEFAULT_CELL_COLUMN_NAME)?;
 

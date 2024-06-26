@@ -14,7 +14,7 @@ use ndarray::ArrayView2;
 use numpy::PyReadonlyArray2;
 use ordered_float::OrderedFloat;
 use pyo3::exceptions::PyValueError;
-use pyo3::{prelude::*, wrap_pyfunction, PyNativeType};
+use pyo3::{prelude::*, wrap_pyfunction};
 
 use crate::arrow_interop::h3array_to_pyarray;
 use crate::error::IntoPyResult;
@@ -215,8 +215,8 @@ make_raster_to_h3_variant!(raster_to_h3_i64, i64, Int64Array);
 make_raster_to_h3_float_variant!(raster_to_h3_f32, f32, Float32Array);
 make_raster_to_h3_float_variant!(raster_to_h3_f64, f64, Float64Array);
 
-pub fn init_raster_submodule(m: &PyModule) -> PyResult<()> {
-    m.add("Transform", m.py().get_type::<Transform>())?;
+pub fn init_raster_submodule(m: &Bound<PyModule>) -> PyResult<()> {
+    m.add("Transform", m.py().get_type_bound::<Transform>())?;
 
     m.add_function(wrap_pyfunction!(nearest_h3_resolution, m)?)?;
     m.add_function(wrap_pyfunction!(raster_to_h3_u8, m)?)?;

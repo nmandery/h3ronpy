@@ -7,7 +7,7 @@ use crate::error::IntoPyResult;
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, mixed_resolutions = false))]
-pub(crate) fn compact(cellarray: &PyAny, mixed_resolutions: bool) -> PyResult<PyObject> {
+pub(crate) fn compact(cellarray: &Bound<PyAny>, mixed_resolutions: bool) -> PyResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let compacted = if mixed_resolutions {
         cellindexarray.compact_mixed_resolutions()
@@ -21,7 +21,7 @@ pub(crate) fn compact(cellarray: &PyAny, mixed_resolutions: bool) -> PyResult<Py
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, target_resolution))]
-pub(crate) fn uncompact(cellarray: &PyAny, target_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn uncompact(cellarray: &Bound<PyAny>, target_resolution: u8) -> PyResult<PyObject> {
     let target_resolution = Resolution::try_from(target_resolution).into_pyresult()?;
     let out = pyarray_to_cellindexarray(cellarray)?.uncompact(target_resolution);
     Python::with_gil(|py| h3array_to_pyarray(out, py))

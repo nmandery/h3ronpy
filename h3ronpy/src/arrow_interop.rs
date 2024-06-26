@@ -13,10 +13,10 @@ use crate::error::{IntoPyErr, IntoPyResult};
 
 pub(crate) fn with_pyarrow<F, O>(f: F) -> PyResult<O>
 where
-    F: FnOnce(Python, &PyModule) -> PyResult<O>,
+    F: FnOnce(Python, Bound<PyModule>) -> PyResult<O>,
 {
     Python::with_gil(|py| {
-        let pyarrow = py.import("pyarrow")?;
+        let pyarrow = py.import_bound("pyarrow")?;
         f(py, pyarrow)
     })
 }
@@ -30,8 +30,8 @@ where
     pa.into_data().into_pyarrow(py)
 }
 
-pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult<T> {
-    let array = make_array(ArrayData::from_pyarrow(obj)?);
+pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &Bound<PyAny>) -> PyResult<T> {
+    let array = make_array(ArrayData::from_pyarrow_bound(obj)?);
 
     let array = array
         .as_any()
@@ -49,24 +49,26 @@ pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &PyAny) -> PyResult
     Ok(array)
 }
 
-pub(crate) fn pyarray_to_cellindexarray(obj: &PyAny) -> PyResult<CellIndexArray> {
+pub(crate) fn pyarray_to_cellindexarray(obj: &Bound<PyAny>) -> PyResult<CellIndexArray> {
     pyarray_to_h3array::<CellIndexArray>(obj)
 }
 
-pub(crate) fn pyarray_to_vertexindexarray(obj: &PyAny) -> PyResult<VertexIndexArray> {
+pub(crate) fn pyarray_to_vertexindexarray(obj: &Bound<PyAny>) -> PyResult<VertexIndexArray> {
     pyarray_to_h3array::<VertexIndexArray>(obj)
 }
 
-pub(crate) fn pyarray_to_directededgeindexarray(obj: &PyAny) -> PyResult<DirectedEdgeIndexArray> {
+pub(crate) fn pyarray_to_directededgeindexarray(
+    obj: &Bound<PyAny>,
+) -> PyResult<DirectedEdgeIndexArray> {
     pyarray_to_h3array::<DirectedEdgeIndexArray>(obj)
 }
 
-pub(crate) fn pyarray_to_uint64array(obj: &PyAny) -> PyResult<UInt64Array> {
+pub(crate) fn pyarray_to_uint64array(obj: &Bound<PyAny>) -> PyResult<UInt64Array> {
     pyarray_to_native::<UInt64Array>(obj)
 }
 
 #[inline]
-fn pyarray_to_h3array<T>(obj: &PyAny) -> PyResult<T>
+fn pyarray_to_h3array<T>(obj: &Bound<PyAny>) -> PyResult<T>
 where
     T: TryFrom<UInt64Array>,
     <T as TryFrom<UInt64Array>>::Error: IntoPyErr,

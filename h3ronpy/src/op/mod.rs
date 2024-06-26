@@ -8,7 +8,7 @@ mod resolution;
 mod string;
 mod valid;
 
-pub fn init_op_submodule(m: &PyModule) -> PyResult<()> {
+pub fn init_op_submodule(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(resolution::change_resolution, m)?)?;
     m.add_function(wrap_pyfunction!(resolution::change_resolution_list, m)?)?;
     m.add_function(wrap_pyfunction!(resolution::change_resolution_paired, m)?)?;
