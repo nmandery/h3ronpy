@@ -1,12 +1,14 @@
+use geo::AffineTransform;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::PyNotImplementedError;
 use pyo3::prelude::*;
+use rasterh3::transform::{from_gdal, from_rasterio};
 
 /// affine geotransform
 #[pyclass]
 #[derive(Clone)]
 pub struct Transform {
-    pub(crate) inner: rasterh3::Transform,
+    pub(crate) inner: AffineTransform<f64>,
 }
 
 #[pymethods]
@@ -15,7 +17,7 @@ impl Transform {
     #[new]
     pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
         Self {
-            inner: rasterh3::Transform::new(a, b, c, d, e, f),
+            inner: AffineTransform::new(a, b, c, d, e, f),
         }
     }
 
@@ -23,7 +25,7 @@ impl Transform {
     #[staticmethod]
     pub fn from_gdal(gdal_transform: [f64; 6]) -> Self {
         Transform {
-            inner: rasterh3::Transform::from_gdal(&gdal_transform),
+            inner: from_gdal(&gdal_transform),
         }
     }
 
@@ -31,7 +33,7 @@ impl Transform {
     #[staticmethod]
     pub fn from_rasterio(rio_transform: [f64; 6]) -> Self {
         Transform {
-            inner: rasterh3::Transform::from_rasterio(&rio_transform),
+            inner: from_rasterio(&rio_transform),
         }
     }
 
