@@ -1,4 +1,4 @@
-use geo_types::Coord;
+use geo_types::Point;
 use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
@@ -8,6 +8,7 @@ use arrow::array::{
     UInt32Array, UInt64Array, UInt8Array,
 };
 use arrow::pyarrow::IntoPyArrow;
+use geo::{AffineOps, AffineTransform};
 use h3arrow::array::CellIndexArray;
 use h3arrow::export::h3o::{CellIndex, Resolution};
 use ndarray::ArrayView2;
@@ -41,21 +42,21 @@ impl FromStr for AxisOrder {
 }
 
 fn sanitycheck_wgs84_bounds(
-    transform: &rasterh3::Transform,
+    transform: &AffineTransform<f64>,
     axis_order: &rasterh3::AxisOrder,
     shape: &(usize, usize),
 ) -> PyResult<()> {
-    let mn = transform * Coord::from((0.0, 0.0));
-    let mx = transform
-        * match axis_order {
-            rasterh3::AxisOrder::XY => Coord::from((shape.0 as f64, shape.1 as f64)),
-            rasterh3::AxisOrder::YX => Coord::from((shape.1 as f64, shape.0 as f64)),
-        };
+    let mn = Point::from((0.0, 0.0)).affine_transform(transform);
+    let mx = match axis_order {
+        rasterh3::AxisOrder::XY => Point::from((shape.0 as f64, shape.1 as f64)),
+        rasterh3::AxisOrder::YX => Point::from((shape.1 as f64, shape.0 as f64)),
+    }
+    .affine_transform(transform);
 
     // note: coordinates itself are not validated as multiple rotations around an axis are
     //       still perfectly valid.
 
-    if mx.x - mn.x > 361.0 || mx.y - mn.y > 181.0 {
+    if mx.x() - mn.x() > 361.0 || mx.y() - mn.y() > 181.0 {
         Err(PyValueError::new_err(
             "Input array spans significantly more than the bounds of WGS84 - input needs to be in WGS84 projection with lat/lon coordinates",
         ))
