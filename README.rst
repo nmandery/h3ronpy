@@ -11,10 +11,6 @@ A data science toolkit for the `H3 geospatial grid <https://h3geo.org/>`_.
     :alt: ReadTheDocs
     :target: https://h3ronpy.readthedocs.io/
 
-.. image:: https://zenodo.org/badge/402118389.svg
-    :alt: DOI
-    :target: https://zenodo.org/badge/latestdoi/402118389
-
 
 This library is not a substitute for the official `python h3 library <https://github.com/uber/h3-py>`_ - instead it provides more
 high-level functions on top of H3 and integrations into common dataframe libraries.
