@@ -9,6 +9,7 @@ perf.data.old
 flamegraph*.svg
 *.so
 .ipynb_checkpoints
+.benchmarks
 /venv
 __pycache__
 .pytest_cache

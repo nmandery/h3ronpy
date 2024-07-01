@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.21.0 - 2024-07-01
+-------------------
+
 - Restrict numpy version to <2 until incompatibilities of rust-numpy with version 2 are resolved
 - Add `cells_to_localij` and `localij_to_cells` functions.
 
