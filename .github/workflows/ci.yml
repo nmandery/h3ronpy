@@ -194,32 +194,32 @@ jobs:
           name: wheels-macos-aarch64
           path: dist
 
-  sdist:
-    runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/v')"
-    needs:
-      - rusttest
-      - black
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build sdist
-        uses: PyO3/maturin-action@v1
-        with:
-          command: sdist
-          args: >
-            --manifest-path h3ronpy/Cargo.toml
-            --out dist
-      - name: Upload sdist
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist
+#  sdist:
+#    runs-on: ubuntu-latest
+#    if: "startsWith(github.ref, 'refs/tags/v')"
+#    needs:
+#      - rusttest
+#      - black
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Build sdist
+#        uses: PyO3/maturin-action@v1
+#        with:
+#          command: sdist
+#          args: >
+#            --manifest-path h3ronpy/Cargo.toml
+#            --out dist
+#      - name: Upload sdist
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: sdist
+#          path: dist
 
   release:
     name: Release
     runs-on: ubuntu-latest
     if: "startsWith(github.ref, 'refs/tags/v')"
-    needs: [ linux-x86_64, linux-aarch64, windows-x86_64, macos-x86_64, macos-aarch64, sdist ]
+    needs: [ linux-x86_64, linux-aarch64, windows-x86_64, macos-x86_64, macos-aarch64 ]
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -236,9 +236,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: wheels-macos-x86_64
-      - uses: actions/download-artifact@v4
-        with:
-          name: sdist
+      #- uses: actions/download-artifact@v4
+      #  with:
+      #    name: sdist
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         env:
