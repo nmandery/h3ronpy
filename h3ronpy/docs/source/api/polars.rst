@@ -44,7 +44,7 @@ Example:
             pl.col("value")
         ])
 
-        .groupby("value")
+        .group_by("value")
         .agg([
             pl.col("disk")
                 .explode()

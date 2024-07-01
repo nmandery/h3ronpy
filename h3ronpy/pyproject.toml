@@ -33,7 +33,7 @@ classifiers = [
 
 [project.optional-dependencies]
 polars = [
-    "polars"
+    "polars>=1.0"
 ]
 pandas = [
     "geopandas>=0.10",

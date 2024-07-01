@@ -9,6 +9,7 @@ API to use `h3ronpy` with the `polars dataframe library <https://www.pola.rs/>`_
 """
 
 from functools import wraps
+import typing
 import polars as pl
 import pyarrow as pa
 from .. import arrow as _arrow
@@ -67,63 +68,71 @@ class H3Expr:
     def __init__(self, expr: pl.Expr):
         self._expr = expr
 
+    def __expr_map_series(self, func: typing.Callable[[pl.Series], pl.Series]) -> pl.Expr:
+        if hasattr(self._expr, "map"):
+            # polars < 1.0
+            return self._expr.map(func)
+        return self._expr.map_batches(func)
+
     def cells_resolution(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_resolution(s)).alias("resolution")
+        return self.__expr_map_series(lambda s: cells_resolution(s)).alias("resolution")
 
     def change_resolution(self, resolution: int) -> pl.Expr:
-        return self._expr.map(lambda s: change_resolution(s, resolution))
+        return self.__expr_map_series(lambda s: change_resolution(s, resolution))
 
     def change_resolution_list(self, resolution: int) -> pl.Expr:
-        return self._expr.map(lambda s: change_resolution_list(s, resolution))
+        return self.__expr_map_series(lambda s: change_resolution_list(s, resolution))
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
-        return self._expr.map(lambda s: cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias("cell")
+        return self.__expr_map_series(lambda s: cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
+            "cell"
+        )
 
     def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
-        return self._expr.map(lambda s: vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
+        return self.__expr_map_series(lambda s: vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
             "vertex"
         )
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
-        return self._expr.map(lambda s: directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)).alias(
-            "directededge"
-        )
+        return self.__expr_map_series(
+            lambda s: directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)
+        ).alias("directededge")
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
-        return self._expr.map(lambda s: grid_disk(s, k, flatten=flatten))
+        return self.__expr_map_series(lambda s: grid_disk(s, k, flatten=flatten))
 
     def compact(self, mixed_resolutions: bool = False) -> pl.Expr:
-        return self._expr.map(lambda s: compact(s, mixed_resolutions=mixed_resolutions))
+        return self.__expr_map_series(lambda s: compact(s, mixed_resolutions=mixed_resolutions))
 
     def uncompact(self, target_resolution: int) -> pl.Expr:
-        return self._expr.map(lambda s: uncompact(s, target_resolution))
+        return self.__expr_map_series(lambda s: uncompact(s, target_resolution))
 
     def cells_area_m2(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_area_m2(s)).alias("area_m2")
+        return self.__expr_map_series(lambda s: cells_area_m2(s)).alias("area_m2")
 
     def cells_area_km2(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_area_km2(s)).alias("area_km2")
+        return self.__expr_map_series(lambda s: cells_area_km2(s)).alias("area_km2")
 
     def cells_area_rads2(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_area_rads2(s)).alias("area_rads2")
+        return self.__expr_map_series(lambda s: cells_area_rads2(s)).alias("area_rads2")
 
     def cells_valid(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_valid(s)).alias("cells_valid")
+        return self.__expr_map_series(lambda s: cells_valid(s)).alias("cells_valid")
 
     def vertexes_valid(self) -> pl.Expr:
-        return self._expr.map(lambda s: vertexes_valid(s)).alias("vertexes_valid")
+        return self.__expr_map_series(lambda s: vertexes_valid(s)).alias("vertexes_valid")
 
     def directededges_valid(self) -> pl.Expr:
-        return self._expr.map(lambda s: directededges_valid(s)).alias("directededges_valid")
+        return self.__expr_map_series(lambda s: directededges_valid(s)).alias("directededges_valid")
 
     def cells_to_string(self) -> pl.Expr:
-        return self._expr.map(lambda s: cells_to_string(s))
+        return self.__expr_map_series(lambda s: cells_to_string(s))
 
     def vertexes_to_string(self) -> pl.Expr:
-        return self._expr.map(lambda s: vertexes_to_string(s))
+        return self.__expr_map_series(lambda s: vertexes_to_string(s))
 
     def directededges_to_string(self) -> pl.Expr:
-        return self._expr.map(lambda s: directededges_to_string(s))
+        return self.__expr_map_series(lambda s: directededges_to_string(s))
 
 
 @pl.api.register_series_namespace("h3")
