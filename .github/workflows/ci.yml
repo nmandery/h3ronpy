@@ -55,7 +55,7 @@ jobs:
         run: |
           set -e
           pip install --force-reinstall dist/*.whl
-          pytest -s h3ronpy/tests
+          python -m pytest -s h3ronpy/tests
 
   linux-aarch64:
     runs-on: ubuntu-latest
@@ -120,7 +120,7 @@ jobs:
         run: |
           set -e
           pip install --force-reinstall dist/*.whl
-          pytest h3ronpy/tests
+          python -m pytest h3ronpy/tests
 
   macos-x86_64:
     needs:
@@ -162,7 +162,7 @@ jobs:
       #  run: |
       #    set -e
       #    pip install --force-reinstall --verbose dist/*.whl
-      #    pytest h3ronpy/tests
+      #    python -m pytest h3ronpy/tests
 
   macos-aarch64:
     runs-on: macos-latest
