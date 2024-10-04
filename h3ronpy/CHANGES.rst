@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+0.21.1 - 2024-10-04
+-------------------
+
 - Fixed coordinate messup when converting H3 entities to points (issue #58).
 
 0.21.0 - 2024-07-01
