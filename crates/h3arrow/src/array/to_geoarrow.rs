@@ -3,6 +3,7 @@ use crate::array::to_geo::{
 };
 use crate::array::{H3Array, H3IndexArrayValue};
 use arrow::array::{Array, OffsetSizeTrait};
+use geo::point;
 use geo_types::LineString;
 use geoarrow::array::{
     LineStringArray, PointArray, PolygonArray, WKBArray, WKBBuilder, WKBCapacity,
@@ -13,7 +14,7 @@ pub trait ToGeoArrowPolygons {
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<O>, Self::Error>;
+    ) -> Result<PolygonArray<O, 2>, Self::Error>;
 }
 
 impl<T> ToGeoArrowPolygons for T
@@ -25,14 +26,14 @@ where
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<O>, Self::Error> {
+    ) -> Result<PolygonArray<O, 2>, Self::Error> {
         Ok(self.to_polygons(use_degrees)?.into())
     }
 }
 
 pub trait ToGeoArrowPoints {
     type Error;
-    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray, Self::Error>;
+    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray<2>, Self::Error>;
 }
 
 impl<T> ToGeoArrowPoints for T
@@ -40,7 +41,7 @@ where
     T: ToPoints,
 {
     type Error = T::Error;
-    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray, Self::Error> {
+    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray<2>, Self::Error> {
         Ok(self.to_points(use_degrees)?.into())
     }
 }
@@ -50,7 +51,7 @@ pub trait ToGeoArrowLineStrings {
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<O>, Self::Error>;
+    ) -> Result<LineStringArray<O, 2>, Self::Error>;
 }
 
 impl<T> ToGeoArrowLineStrings for T
@@ -61,7 +62,7 @@ where
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<O>, Self::Error> {
+    ) -> Result<LineStringArray<O, 2>, Self::Error> {
         Ok(self.to_linestrings(use_degrees)?.into())
     }
 }
@@ -197,7 +198,8 @@ where
             .is_some()
         {
             let mut cap = WKBCapacity::new_empty();
-            cap.add_point(true);
+            let point = point! {x:0.0f64, y:0.0f64};
+            cap.add_point(Some(&point));
             cap.buffer_capacity()
         } else {
             0

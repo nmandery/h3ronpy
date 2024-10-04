@@ -25,6 +25,6 @@ ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.21"
 ordered-float = ">=2.0.1"
 py_geo_interface = { version = "0.8", features = ["f64", "wkb"] }
-pyo3 = { version = "0.21", features = ["extension-module", "abi3", "abi3-py39"] }
+pyo3 = { version = "^0.21", features = ["extension-module", "abi3", "abi3-py39"] }
 rasterh3 = { version = "^0.8", features = ["rayon"] }
 rayon = { workspace = true }
