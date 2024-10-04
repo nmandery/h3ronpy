@@ -37,6 +37,7 @@ polars = [
 ]
 pandas = [
     "geopandas>=0.10",
+    "fiona<1.10"
 ]
 test = [
     "rasterio",

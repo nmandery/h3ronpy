@@ -81,7 +81,7 @@ macro_rules! impl_iter_points {
                                 let pt: Point = if use_degrees {
                                     Coord {
                                         x: ll.lng(),
-                                        y: ll.lng(),
+                                        y: ll.lat(),
                                     }
                                     .into()
                                 } else {
