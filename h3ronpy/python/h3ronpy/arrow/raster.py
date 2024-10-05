@@ -28,7 +28,6 @@ Resolution search modes of `nearest_h3_resolution`:
 
 """
 
-import shapely
 from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME
 from . import _to_uint64_array, _to_arrow_array
@@ -136,7 +135,7 @@ def rasterize_cells(
     """
     Generate a raster numpy array from arrays of cells and values.
 
-    This function requires the ``rasterio`` library.
+    This function requires the ``rasterio`` and `shapely` libraries to be installed.
 
     :param cells: array with H3 cells
     :param values: array with the values which shall be written into the raster
@@ -148,6 +147,7 @@ def rasterize_cells(
     """
     from rasterio.transform import from_bounds
     from rasterio.features import rasterize
+    import shapely
 
     cells = _to_uint64_array(cells)
     values = _to_arrow_array(values, None)
