@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "maturin==1.2",
+    "maturin>=1.7",
 ]
 build-backend = "maturin"
 
@@ -21,8 +21,7 @@ readme = "../README.rst"
 
 dependencies = [
     "numpy<2",
-    "pyarrow>=10.0",
-    "Shapely>=1.7",
+    "pyarrow>=17.0"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -33,14 +32,14 @@ classifiers = [
 
 [project.optional-dependencies]
 polars = [
-    "polars>=1.0"
+    "polars>=1"
 ]
 pandas = [
-    "geopandas>=0.10",
-    "fiona<1.10"
+    "geopandas>=1"
 ]
 test = [
     "rasterio",
+    "Shapely>=1.7",
     "pytest>=6",
     "h3>=3.7",
     "pytest-benchmark"
