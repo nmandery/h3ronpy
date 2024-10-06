@@ -6,11 +6,26 @@ sphinx:
 build:
   os: "ubuntu-22.04"
   tools:
-    python: "3.9"
-    rust: "latest"
+    python: "3.10"
+    # rust: "latest"
 
-python:
-  install:
-    - requirements: h3ronpy/docs/requirements.txt
-    - method: pip
-      path: ./h3ronpy
+  commands:
+    # install rust manually. https://github.com/readthedocs/readthedocs.org/issues/11488
+    - asdf install rust 1.81.0
+    - asdf global rust 1.81.0
+
+    # readthedocs commands from the last non-commands controlled build (based on the commented out
+    # "python" section of this file)
+    - python -mvirtualenv $READTHEDOCS_VIRTUALENV_PATH
+    - python -m pip install --upgrade --no-cache-dir pip setuptools
+    - python -m pip install --upgrade --no-cache-dir sphinx readthedocs-sphinx-ext
+    - python -m pip install --exists-action=w --no-cache-dir -r h3ronpy/docs/requirements.txt
+    - python -m pip install --upgrade --upgrade-strategy only-if-needed --no-cache-dir ./h3ronpy
+    - cat h3ronpy/docs/source/conf.py
+    - python -m sphinx -T -b html -d _build/doctrees -D language=en . $READTHEDOCS_OUTPUT/html 
+
+#python:
+#  install:
+#    - requirements: h3ronpy/docs/requirements.txt
+#    - method: pip
+#      path: ./h3ronpy
