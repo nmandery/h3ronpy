@@ -11,17 +11,23 @@ API to use `h3ronpy` with the `pandas dataframe library <https://pandas.pydata.o
 from .. import arrow as _arrow
 import pyarrow as pa
 from functools import wraps
+from arro3.core import Array, Table
 import pandas as pd
+import pyarrow as pa
 
 
 def _wrap(func, ret_type=None):
     @wraps(func)
     def wrapper(*args, **kw):
         result = func(*args, **kw)
-        if isinstance(result, pa.Table):
-            return result.to_pandas(split_blocks=True, self_destruct=True)
-        elif isinstance(result, pa.Array):
-            return result.to_pandas()
+        if isinstance(result, Array):
+            return pa.array(result).to_pandas()
+        elif isinstance(result, Table):
+            return pa.table(result).to_pandas(split_blocks=True, self_destruct=True)
+        #elif isinstance(result, pa.Table):
+        #    return result.to_pandas(split_blocks=True, self_destruct=True)
+        #elif isinstance(result, pa.Array):
+        #    return result.to_pandas()
         return result
 
     if ret_type:

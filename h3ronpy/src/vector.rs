@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use arrow::array::{
-    make_array, Array, ArrayData, BinaryArray, Float64Array, GenericBinaryArray, GenericListArray,
-    LargeBinaryArray, OffsetSizeTrait, UInt8Array,
+    Array, ArrayRef, BinaryArray, Float64Array, GenericBinaryArray, GenericListArray,
+    LargeBinaryArray, OffsetSizeTrait, PrimitiveArray, RecordBatch, UInt8Array,
 };
 use arrow::buffer::NullBuffer;
-use arrow::pyarrow::{FromPyArrow, IntoPyArrow, ToPyArrow};
+use arrow::datatypes::{Field, Schema};
 use geo::{BoundingRect, HasDimensions};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
@@ -18,9 +20,13 @@ use itertools::multizip;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+use pyo3_arrow::error::PyArrowResult;
+use pyo3_arrow::{PyArray, PyTable};
 
-use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
+use crate::{arrow_interop::*, DEFAULT_CELL_COLUMN_NAME};
+
+const WKB_NAME: &str = "wkb";
 
 /// Containment mode used to decide if a cell is contained in a polygon or not.
 ///
@@ -81,7 +87,7 @@ impl PyContainmentMode {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds(cellarray: &Bound<PyAny>) -> PyResult<Option<PyObject>> {
+pub(crate) fn cells_bounds(cellarray: PyArray) -> PyResult<Option<PyObject>> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     if let Some(rect) = cellindexarray.bounding_rect() {
         Python::with_gil(|py| {
@@ -97,217 +103,253 @@ pub(crate) fn cells_bounds(cellarray: &Bound<PyAny>) -> PyResult<Option<PyObject
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds_arrays(cellarray: &Bound<PyAny>) -> PyResult<PyObject> {
+pub(crate) fn cells_bounds_arrays(py: Python<'_>, cellarray: PyArray) -> PyArrowResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
-    let mut minx_vec = vec![0.0f64; cellindexarray.len()];
-    let mut miny_vec = vec![0.0f64; cellindexarray.len()];
-    let mut maxx_vec = vec![0.0f64; cellindexarray.len()];
-    let mut maxy_vec = vec![0.0f64; cellindexarray.len()];
-    let mut validity_vec = vec![false; cellindexarray.len()];
 
-    for (cell, minx, miny, maxx, maxy, validity) in multizip((
-        cellindexarray.iter(),
-        minx_vec.iter_mut(),
-        miny_vec.iter_mut(),
-        maxx_vec.iter_mut(),
-        maxy_vec.iter_mut(),
-        validity_vec.iter_mut(),
-    )) {
-        if let Some(cell) = cell {
-            if let Some(rect) = cell
-                .to_geom(true)
-                .ok()
-                .and_then(|poly| poly.bounding_rect())
-            {
-                *validity = true;
-                *minx = rect.min().x;
-                *miny = rect.min().y;
-                *maxx = rect.max().x;
-                *maxy = rect.max().y;
-            };
+    let outarrays = py.allow_threads(|| {
+        let mut minx_vec = vec![0.0f64; cellindexarray.len()];
+        let mut miny_vec = vec![0.0f64; cellindexarray.len()];
+        let mut maxx_vec = vec![0.0f64; cellindexarray.len()];
+        let mut maxy_vec = vec![0.0f64; cellindexarray.len()];
+        let mut validity_vec = vec![false; cellindexarray.len()];
+
+        for (cell, minx, miny, maxx, maxy, validity) in multizip((
+            cellindexarray.iter(),
+            minx_vec.iter_mut(),
+            miny_vec.iter_mut(),
+            maxx_vec.iter_mut(),
+            maxy_vec.iter_mut(),
+            validity_vec.iter_mut(),
+        )) {
+            if let Some(cell) = cell {
+                if let Some(rect) = cell
+                    .to_geom(true)
+                    .ok()
+                    .and_then(|poly| poly.bounding_rect())
+                {
+                    *validity = true;
+                    *minx = rect.min().x;
+                    *miny = rect.min().y;
+                    *maxx = rect.max().x;
+                    *maxy = rect.max().y;
+                };
+            }
         }
-    }
 
-    let validity = NullBuffer::from(validity_vec);
+        let validity = NullBuffer::from(validity_vec);
 
-    with_pyarrow(|py, pyarrow| {
-        let arrays = [
-            Float64Array::new(minx_vec.into(), Some(validity.clone()))
-                .into_data()
-                .into_pyarrow(py)?,
-            Float64Array::new(miny_vec.into(), Some(validity.clone()))
-                .into_data()
-                .into_pyarrow(py)?,
-            Float64Array::new(maxx_vec.into(), Some(validity.clone()))
-                .into_data()
-                .into_pyarrow(py)?,
-            Float64Array::new(maxy_vec.into(), Some(validity))
-                .into_data()
-                .into_pyarrow(py)?,
-        ];
-        let table = pyarrow
-            .getattr("Table")?
-            .call_method1("from_arrays", (arrays, ["minx", "miny", "maxx", "maxy"]))?;
-        Ok(table.to_object(py))
-    })
+        vec![
+            Arc::new(Float64Array::new(minx_vec.into(), Some(validity.clone()))) as ArrayRef,
+            Arc::new(Float64Array::new(miny_vec.into(), Some(validity.clone()))),
+            Arc::new(Float64Array::new(maxx_vec.into(), Some(validity.clone()))),
+            Arc::new(Float64Array::new(maxy_vec.into(), Some(validity))),
+        ]
+    });
+
+    let schema = Arc::new(Schema::new(vec![
+        Field::new("minx", outarrays[0].data_type().clone(), true),
+        Field::new("miny", outarrays[1].data_type().clone(), true),
+        Field::new("maxx", outarrays[2].data_type().clone(), true),
+        Field::new("maxy", outarrays[3].data_type().clone(), true),
+    ]));
+
+    let rb = RecordBatch::try_new(schema.clone(), outarrays).into_pyresult()?;
+
+    Ok(PyTable::try_new(vec![rb], schema)?.to_arro3(py)?)
 }
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
-pub(crate) fn cells_to_coordinates(cellarray: &Bound<PyAny>, radians: bool) -> PyResult<PyObject> {
+pub(crate) fn cells_to_coordinates(
+    py: Python<'_>,
+    cellarray: PyArray,
+    radians: bool,
+) -> PyArrowResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
 
-    let coordinate_arrays = if radians {
-        cellindexarray.to_coordinates_radians()
-    } else {
-        cellindexarray.to_coordinates()
-    }
-    .into_pyresult()?;
+    let coordinate_arrays = py
+        .allow_threads(|| {
+            if radians {
+                cellindexarray.to_coordinates_radians()
+            } else {
+                cellindexarray.to_coordinates()
+            }
+        })
+        .into_pyresult()?;
 
-    with_pyarrow(|py, pyarrow| {
-        let arrays = [
-            coordinate_arrays.lat.into_data().into_pyarrow(py)?,
-            coordinate_arrays.lng.into_data().into_pyarrow(py)?,
-        ];
-        let table = pyarrow
-            .getattr("Table")?
-            .call_method1("from_arrays", (arrays, ["lat", "lng"]))?;
-        Ok(table.to_object(py))
-    })
+    let outarrays: Vec<ArrayRef> = vec![
+        Arc::new(coordinate_arrays.lat) as ArrayRef,
+        Arc::new(coordinate_arrays.lng),
+    ];
+
+    let schema = Arc::new(Schema::new(vec![
+        Field::new("lat", outarrays[0].data_type().clone(), true),
+        Field::new("lng", outarrays[1].data_type().clone(), true),
+    ]));
+
+    let rb = RecordBatch::try_new(schema.clone(), outarrays).into_pyresult()?;
+    Ok(PyTable::try_new(vec![rb], schema)?.to_arro3(py)?)
 }
 
 #[pyfunction]
 #[pyo3(signature = (latarray, lngarray, resolution, radians = false))]
 pub(crate) fn coordinates_to_cells(
-    latarray: &Bound<PyAny>,
-    lngarray: &Bound<PyAny>,
+    py: Python<'_>,
+    latarray: PyArray,
+    lngarray: PyArray,
     resolution: &Bound<PyAny>,
     radians: bool,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let latarray: Float64Array = pyarray_to_native(latarray)?;
     let lngarray: Float64Array = pyarray_to_native(lngarray)?;
     if lngarray.len() != latarray.len() {
-        return Err(PyValueError::new_err(
-            "latarray and lngarray must be of the same length",
-        ));
+        return Err(
+            PyValueError::new_err("latarray and lngarray must be of the same length").into(),
+        );
     }
 
     let cells = if let Ok(resolution) = resolution.extract::<u8>() {
         let resolution = Resolution::try_from(resolution).into_pyresult()?;
 
-        latarray
-            .iter()
-            .zip(lngarray.iter())
-            .map(|(lat, lng)| {
-                if let (Some(lat), Some(lng)) = (lat, lng) {
-                    if radians {
-                        LatLng::from_radians(lat, lng).into_pyresult()
+        py.allow_threads(|| {
+            latarray
+                .iter()
+                .zip(lngarray.iter())
+                .map(|(lat, lng)| {
+                    if let (Some(lat), Some(lng)) = (lat, lng) {
+                        if radians {
+                            LatLng::from_radians(lat, lng).into_pyresult()
+                        } else {
+                            LatLng::new(lat, lng).into_pyresult()
+                        }
+                        .map(|ll| Some(ll.to_cell(resolution)))
                     } else {
-                        LatLng::new(lat, lng).into_pyresult()
+                        Ok(None)
                     }
-                    .map(|ll| Some(ll.to_cell(resolution)))
-                } else {
-                    Ok(None)
-                }
-            })
-            .collect::<PyResult<CellIndexArray>>()?
+                })
+                .collect::<PyResult<CellIndexArray>>()
+        })?
     } else {
-        let resarray = ResolutionArray::try_from(pyarray_to_native::<UInt8Array>(resolution)?)
+        let resarray = resolution.extract::<PyArray>()?;
+        let resarray = ResolutionArray::try_from(pyarray_to_native::<UInt8Array>(resarray)?)
             .into_pyresult()?;
 
         if resarray.len() != latarray.len() {
             return Err(PyValueError::new_err(
                 "resarray must be of the same length as the coordinate arrays",
-            ));
+            )
+            .into());
         }
 
-        multizip((latarray.iter(), lngarray.iter(), resarray.iter()))
-            .map(|(lat, lng, res)| {
-                if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
-                    if radians {
-                        LatLng::from_radians(lat, lng).into_pyresult()
+        py.allow_threads(|| {
+            multizip((latarray.iter(), lngarray.iter(), resarray.iter()))
+                .map(|(lat, lng, res)| {
+                    if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
+                        if radians {
+                            LatLng::from_radians(lat, lng).into_pyresult()
+                        } else {
+                            LatLng::new(lat, lng).into_pyresult()
+                        }
+                        .map(|ll| Some(ll.to_cell(res)))
                     } else {
-                        LatLng::new(lat, lng).into_pyresult()
+                        Ok(None)
                     }
-                    .map(|ll| Some(ll.to_cell(res)))
-                } else {
-                    Ok(None)
-                }
-            })
-            .collect::<PyResult<CellIndexArray>>()?
+                })
+                .collect::<PyResult<CellIndexArray>>()
+        })?
     };
 
-    Python::with_gil(|py| h3array_to_pyarray(cells, py))
+    array_to_arro3(
+        py,
+        PrimitiveArray::from(cells),
+        DEFAULT_CELL_COLUMN_NAME,
+        true,
+    )
 }
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false, link_cells = false))]
 pub(crate) fn cells_to_wkb_polygons(
-    cellarray: &Bound<PyAny>,
+    py: Python<'_>,
+    cellarray: PyArray,
     radians: bool,
     link_cells: bool,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let use_degrees = !radians;
 
     let out: WKBArray<i64> = if link_cells {
-        let geoms = cellindexarray
-            .iter()
-            .flatten()
-            .to_geom(use_degrees)
-            .into_pyresult()?
-            .0
-            .into_iter()
-            .map(|poly| Some(geo_types::Geometry::from(poly)))
-            .collect::<Vec<_>>();
-        let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
-            geoms.iter().map(|v| v.as_ref()),
-        ));
-        builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
-        builder.finish()
+        let out: Result<WKBArray<i64>, PyErr> = py.allow_threads(|| {
+            let geoms = cellindexarray
+                .iter()
+                .flatten()
+                .to_geom(use_degrees)
+                .into_pyresult()?
+                .0
+                .into_iter()
+                .map(|poly| Some(geo_types::Geometry::from(poly)))
+                .collect::<Vec<_>>();
+            let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
+                geoms.iter().map(|v| v.as_ref()),
+            ));
+            builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
+            Ok(builder.finish())
+        });
+        out?
     } else {
-        cellindexarray
-            .to_wkb_polygons(use_degrees)
-            .expect("wkbarray")
+        py.allow_threads(|| {
+            cellindexarray
+                .to_wkb_polygons(use_degrees)
+                .expect("wkbarray")
+        })
     };
 
-    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
+    array_to_arro3(py, out.into_inner(), WKB_NAME, true)
 }
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, radians = false))]
-pub(crate) fn cells_to_wkb_points(cellarray: &Bound<PyAny>, radians: bool) -> PyResult<PyObject> {
-    let out = pyarray_to_cellindexarray(cellarray)?
-        .to_wkb_points::<i64>(!radians)
+pub(crate) fn cells_to_wkb_points(
+    py: Python<'_>,
+    cellarray: PyArray,
+    radians: bool,
+) -> PyArrowResult<PyObject> {
+    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let out = py
+        .allow_threads(|| cellindexarray.to_wkb_points::<i64>(!radians))
         .expect("wkbarray");
 
-    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
+    array_to_arro3(py, out.into_inner(), WKB_NAME, true)
 }
 
 #[pyfunction]
 #[pyo3(signature = (vertexarray, radians = false))]
 pub(crate) fn vertexes_to_wkb_points(
-    vertexarray: &Bound<PyAny>,
+    py: Python<'_>,
+    vertexarray: PyArray,
     radians: bool,
-) -> PyResult<PyObject> {
-    let out = pyarray_to_vertexindexarray(vertexarray)?
-        .to_wkb_points::<i64>(!radians)
+) -> PyArrowResult<PyObject> {
+    let vertexindexarray = pyarray_to_vertexindexarray(vertexarray)?;
+    let out = py
+        .allow_threads(|| vertexindexarray.to_wkb_points::<i64>(!radians))
         .expect("wkbarray");
 
-    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
+    array_to_arro3(py, out.into_inner(), WKB_NAME, true)
 }
 
 #[pyfunction]
 #[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(
-    array: &Bound<PyAny>,
+    py: Python<'_>,
+    array: PyArray,
     radians: bool,
-) -> PyResult<PyObject> {
-    let out = pyarray_to_directededgeindexarray(array)?
-        .to_wkb_linestrings::<i64>(!radians)
+) -> PyArrowResult<PyObject> {
+    let directededgesindexarray = pyarray_to_directededgeindexarray(array)?;
+    let out = py
+        .allow_threads(|| directededgesindexarray.to_wkb_linestrings::<i64>(!radians))
         .expect("wkbarray");
 
-    Python::with_gil(|py| out.into_inner().into_data().into_pyarrow(py))
+    array_to_arro3(py, out.into_inner(), WKB_NAME, true)
 }
 
 fn get_to_cells_options(
@@ -325,60 +367,76 @@ fn get_to_cells_options(
 #[pyfunction]
 #[pyo3(signature = (array, resolution, containment_mode = None, compact = false, flatten = false))]
 pub(crate) fn wkb_to_cells(
-    array: &Bound<PyAny>,
+    py: Python<'_>,
+    array: PyArray,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
     flatten: bool,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
-    let array_ref = make_array(ArrayData::from_pyarrow_bound(array)?);
 
-    if let Some(binarray) = array_ref.as_any().downcast_ref::<LargeBinaryArray>() {
-        generic_wkb_to_cells(binarray.clone(), flatten, &options)
-    } else if let Some(binarray) = array_ref.as_any().downcast_ref::<BinaryArray>() {
-        generic_wkb_to_cells(binarray.clone(), flatten, &options)
+    if let Some(binarray) = array.array().as_any().downcast_ref::<LargeBinaryArray>() {
+        generic_wkb_to_cells(py, binarray.clone(), flatten, &options)
+    } else if let Some(binarray) = array.array().as_any().downcast_ref::<BinaryArray>() {
+        generic_wkb_to_cells(py, binarray.clone(), flatten, &options)
     } else {
-        Err(PyValueError::new_err(
-            "unsupported array type for WKB input",
-        ))
+        Err(PyValueError::new_err("unsupported array type for WKB input").into())
     }
 }
 
 fn generic_wkb_to_cells<O: OffsetSizeTrait>(
+    py: Python<'_>,
     binarray: GenericBinaryArray<O>,
     flatten: bool,
     options: &ToCellsOptions,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let wkbarray = WKBArray::new(binarray, Default::default());
 
     if flatten {
-        let cells = wkbarray.to_cellindexarray(options).into_pyresult()?;
+        let cells = py
+            .allow_threads(|| wkbarray.to_cellindexarray(options))
+            .into_pyresult()?;
 
-        Python::with_gil(|py| h3array_to_pyarray(cells, py))
+        array_to_arro3(
+            py,
+            PrimitiveArray::from(cells),
+            DEFAULT_CELL_COLUMN_NAME,
+            true,
+        )
     } else {
-        let listarray: GenericListArray<O> =
-            wkbarray.to_celllistarray(options).into_pyresult()?.into();
-        Python::with_gil(|py| listarray.into_data().to_pyarrow(py))
+        let listarray: GenericListArray<O> = py
+            .allow_threads(|| wkbarray.to_celllistarray(options))
+            .into_pyresult()?
+            .into();
+        array_to_arro3(py, listarray, DEFAULT_CELL_COLUMN_NAME, true)
     }
 }
 
 #[pyfunction]
 #[pyo3(signature = (obj, resolution, containment_mode = None, compact = false))]
 pub(crate) fn geometry_to_cells(
+    py: Python<'_>,
     obj: py_geo_interface::Geometry,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
-) -> PyResult<PyObject> {
-    if obj.0.is_empty() {
-        return Python::with_gil(|py| h3array_to_pyarray(CellIndexArray::new_null(0), py));
-    }
-    let options = get_to_cells_options(resolution, containment_mode, compact)?;
-    let cellindexarray = CellIndexArray::from(
-        h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
-    );
-    Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
+) -> PyArrowResult<PyObject> {
+    let cellindexarray = if obj.0.is_empty() {
+        CellIndexArray::new_null(0)
+    } else {
+        let options = get_to_cells_options(resolution, containment_mode, compact)?;
+        CellIndexArray::from(
+            py.allow_threads(|| h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options))
+                .into_pyresult()?,
+        )
+    };
+    array_to_arro3(
+        py,
+        PrimitiveArray::from(cellindexarray),
+        DEFAULT_CELL_COLUMN_NAME,
+        true,
+    )
 }
 
 pub fn init_vector_submodule(m: &Bound<PyModule>) -> PyResult<()> {

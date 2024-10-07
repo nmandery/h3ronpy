@@ -13,6 +13,7 @@ Unreleased
 ----------
 
 - The minimum supported python version is now 3.9.
+- Migrate to the Arrow PyCapsule Interface, supported by pyarrow, polars (v1.2+), pandas (v2.2+), nanoarrow, ...
 
 0.21.1 - 2024-10-04
 -------------------

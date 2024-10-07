@@ -1,6 +1,7 @@
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import typing
 
 from ..arrow import raster as arrow_raster
@@ -39,9 +40,9 @@ def raster_to_dataframe(
     :return: pandas `DataFrame` or `GeoDataFrame`
     """
 
-    df = arrow_raster.raster_to_dataframe(
+    df = pa.table(arrow_raster.raster_to_dataframe(
         in_raster, transform, h3_resolution, nodata_value=nodata_value, axis_order=axis_order, compact=compact
-    ).to_pandas()
+    )).to_pandas()
 
     if geo:
         return cells_dataframe_to_geodataframe(df)

@@ -1,70 +1,95 @@
-use arrow::array::{Array, LargeListArray, PrimitiveArray};
-use arrow::pyarrow::{IntoPyArrow, ToPyArrow};
+use std::sync::Arc;
+
+use arrow::array::{Array, ArrayRef, LargeListArray, PrimitiveArray, RecordBatch};
+use arrow::datatypes::{Field, Schema};
 use h3arrow::algorithm::ChangeResolutionOp;
 use h3arrow::export::h3o::Resolution;
 use pyo3::prelude::*;
+use pyo3_arrow::error::PyArrowResult;
+use pyo3_arrow::{PyArray, PyTable};
 
 use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
 use crate::DEFAULT_CELL_COLUMN_NAME;
 
+const RESOLUTION_NAME: &str = "resolution";
+
 #[pyfunction]
-pub(crate) fn change_resolution(cellarray: &Bound<PyAny>, h3_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn change_resolution(
+    py: Python<'_>,
+    cellarray: PyArray,
+    h3_resolution: u8,
+) -> PyArrowResult<PyObject> {
+    let field = cellarray.field().clone();
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
-    let out = cellindexarray
-        .change_resolution(h3_resolution)
+    let out = py
+        .allow_threads(|| cellindexarray.change_resolution(h3_resolution))
         .into_pyresult()?;
 
-    Python::with_gil(|py| h3array_to_pyarray(out, py))
+    array_to_arro3(py, PrimitiveArray::from(out), field.name(), true)
 }
 
 #[pyfunction]
 pub(crate) fn change_resolution_list(
-    cellarray: &Bound<PyAny>,
+    py: Python<'_>,
+    cellarray: PyArray,
     h3_resolution: u8,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
-    let listarray = cellindexarray
-        .change_resolution_list(h3_resolution)
-        .into_pyresult()?;
+    let listarray = py.allow_threads(|| {
+        cellindexarray
+            .change_resolution_list(h3_resolution)
+            .into_pyresult()
+    })?;
 
-    Python::with_gil(|py| LargeListArray::from(listarray).into_data().to_pyarrow(py))
+    array_to_arro3(py, LargeListArray::from(listarray), RESOLUTION_NAME, true)
 }
 
 #[pyfunction]
 pub(crate) fn change_resolution_paired(
-    cellarray: &Bound<PyAny>,
+    py: Python<'_>,
+    cellarray: PyArray,
     h3_resolution: u8,
-) -> PyResult<PyObject> {
+) -> PyArrowResult<PyObject> {
     let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
-    let pair = cellindexarray
-        .change_resolution_paired(h3_resolution)
-        .into_pyresult()?;
+    let pair = py.allow_threads(|| {
+        cellindexarray
+            .change_resolution_paired(h3_resolution)
+            .into_pyresult()
+    })?;
 
-    with_pyarrow(|py, pyarrow| {
-        let arrays = [
-            h3array_to_pyarray(pair.before, py)?,
-            h3array_to_pyarray(pair.after, py)?,
-        ];
-        let table = pyarrow.getattr("Table")?.call_method1(
-            "from_arrays",
-            (
-                arrays,
-                [
-                    format!("{}_before", DEFAULT_CELL_COLUMN_NAME),
-                    format!("{}_after", DEFAULT_CELL_COLUMN_NAME),
-                ],
-            ),
-        )?;
-        Ok(table.to_object(py))
-    })
+    let outarrays: Vec<ArrayRef> = vec![
+        Arc::new(PrimitiveArray::from(pair.before)),
+        Arc::new(PrimitiveArray::from(pair.after)),
+    ];
+
+    let schema = Arc::new(Schema::new(vec![
+        Field::new(
+            format!("{}_before", DEFAULT_CELL_COLUMN_NAME),
+            outarrays[0].data_type().clone(),
+            true,
+        ),
+        Field::new(
+            format!("{}_after", DEFAULT_CELL_COLUMN_NAME),
+            outarrays[1].data_type().clone(),
+            true,
+        ),
+    ]));
+
+    let rb = RecordBatch::try_new(schema.clone(), outarrays).into_pyresult()?;
+
+    Ok(PyTable::try_new(vec![rb], schema)?.to_arro3(py)?)
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(cellarray: &Bound<PyAny>) -> PyResult<PyObject> {
-    let resarray = pyarray_to_cellindexarray(cellarray)?.resolution();
-    Python::with_gil(|py| PrimitiveArray::from(resarray).into_data().into_pyarrow(py))
+pub(crate) fn cells_resolution(py: Python<'_>, cellarray: PyArray) -> PyArrowResult<PyObject> {
+    let resarray =
+        PrimitiveArray::from(py.allow_threads(|| {
+            pyarray_to_cellindexarray(cellarray).map(|cells| cells.resolution())
+        })?);
+
+    array_to_arro3(py, resarray, RESOLUTION_NAME, true)
 }

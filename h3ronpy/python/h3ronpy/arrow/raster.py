@@ -95,7 +95,7 @@ def raster_to_dataframe(
     :param h3_resolution: Target h3 resolution
     :param compact: Return compacted h3 indexes (see H3 docs). This results in mixed H3 resolutions, but also can
             reduce the amount of required memory.
-    :return: Tuple of arrow arrays
+    :return: arrow table
     """
 
     dtype = in_raster.dtype
@@ -123,10 +123,7 @@ def raster_to_dataframe(
     else:
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
-    return pa.Table.from_arrays(
-        arrays=func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value),
-        names=["value", DEFAULT_CELL_COLUMN_NAME],
-    )
+    return func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value)
 
 
 def rasterize_cells(
@@ -190,7 +187,7 @@ def rasterize_cells(
 
         # linking cells should speed up rendering in case of large homogenous areas
         polygons = cells_to_wkb_polygons(cells, link_cells=True)
-        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
+        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons if polygon]
 
         # draw
         rasterize(
