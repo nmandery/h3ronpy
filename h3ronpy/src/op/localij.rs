@@ -1,6 +1,6 @@
-use crate::arrow_interop::{array_to_arro3, pyarray_to_cellindexarray, pyarray_to_native};
+use crate::arrow_interop::{array_to_arro3, PyConcatedArray};
 use crate::error::IntoPyResult;
-use arrow::array::{Array, ArrayRef, Int32Array, PrimitiveArray, RecordBatch};
+use arrow::array::{Array, ArrayRef, PrimitiveArray, RecordBatch};
 use arrow::datatypes::{Field, Schema};
 use h3arrow::algorithm::localij::{LocalIJArrays, ToLocalIJOp};
 use h3arrow::array::CellIndexArray;
@@ -9,7 +9,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyAnyMethods;
 use pyo3::{pyfunction, Bound, PyAny, PyObject, PyResult, Python};
 use pyo3_arrow::error::PyArrowResult;
-use pyo3_arrow::{PyArray, PyTable};
+use pyo3_arrow::PyTable;
 use std::iter::repeat;
 use std::sync::Arc;
 
@@ -17,11 +17,11 @@ use std::sync::Arc;
 #[pyo3(signature = (cellarray, anchor, set_failing_to_invalid = false))]
 pub(crate) fn cells_to_localij(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     anchor: &Bound<PyAny>,
     set_failing_to_invalid: bool,
 ) -> PyResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let anchorarray = get_anchor_array(anchor, cellindexarray.len())?;
 
     let localij_arrays = cellindexarray
@@ -50,12 +50,12 @@ pub(crate) fn cells_to_localij(
 pub(crate) fn localij_to_cells(
     py: Python<'_>,
     anchor: &Bound<PyAny>,
-    i_array: PyArray,
-    j_array: PyArray,
+    i_array: PyConcatedArray,
+    j_array: PyConcatedArray,
     set_failing_to_invalid: bool,
 ) -> PyArrowResult<PyObject> {
-    let i_array = pyarray_to_native::<Int32Array>(i_array)?;
-    let j_array = pyarray_to_native::<Int32Array>(j_array)?;
+    let i_array = i_array.into_int32array()?;
+    let j_array = j_array.into_int32array()?;
     let anchorarray = get_anchor_array(anchor, i_array.len())?;
 
     let localij_arrays = LocalIJArrays::try_new(anchorarray, i_array, j_array).into_pyresult()?;
@@ -76,8 +76,8 @@ fn get_anchor_array(anchor: &Bound<PyAny>, len: usize) -> PyResult<CellIndexArra
         let anchor_cell = CellIndex::try_from(anchor).into_pyresult()?;
         Ok(CellIndexArray::from_iter(repeat(anchor_cell).take(len)))
     } else if let Ok(anchorarray) = anchor
-        .extract::<PyArray>()
-        .and_then(pyarray_to_cellindexarray)
+        .extract::<PyConcatedArray>()
+        .and_then(|ca| ca.into_cellindexarray())
     {
         Ok(anchorarray)
     } else {

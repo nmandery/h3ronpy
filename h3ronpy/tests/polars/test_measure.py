@@ -5,14 +5,14 @@ import polars as pl
 
 
 def test_cells_area_km2():
-    cells = np.array(
+    cells = pl.Series(np.array(
         [
             h3.geo_to_h3(10.3, 45.1, 8),
             h3.geo_to_h3(10.3, 45.1, 5),
             h3.geo_to_h3(10.3, 45.1, 3),
         ],
         dtype=np.uint64,
-    )
+    ))
     areas = cells_area_km2(cells)
     assert isinstance(areas, pl.Series)
     assert len(areas) == 3

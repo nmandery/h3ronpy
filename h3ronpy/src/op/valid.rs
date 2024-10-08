@@ -41,10 +41,10 @@ macro_rules! impl_h3index_valid {
         #[pyo3(signature = (array, booleanarray = false))]
         pub(crate) fn $name(
             py: Python<'_>,
-            array: PyArray,
+            array: PyConcatedArray,
             booleanarray: bool,
         ) -> PyArrowResult<PyObject> {
-            h3index_valid::<$arr_type>(py, array, booleanarray)
+            h3index_valid::<$arr_type>(py, array.into(), booleanarray)
         }
     };
 }

@@ -6,7 +6,7 @@ use h3arrow::algorithm::ChangeResolutionOp;
 use h3arrow::export::h3o::Resolution;
 use pyo3::prelude::*;
 use pyo3_arrow::error::PyArrowResult;
-use pyo3_arrow::{PyArray, PyTable};
+use pyo3_arrow::PyTable;
 
 use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
@@ -17,11 +17,11 @@ const RESOLUTION_NAME: &str = "resolution";
 #[pyfunction]
 pub(crate) fn change_resolution(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     h3_resolution: u8,
 ) -> PyArrowResult<PyObject> {
     let field = cellarray.field().clone();
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let out = py
         .allow_threads(|| cellindexarray.change_resolution(h3_resolution))
@@ -33,10 +33,10 @@ pub(crate) fn change_resolution(
 #[pyfunction]
 pub(crate) fn change_resolution_list(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     h3_resolution: u8,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let listarray = py.allow_threads(|| {
         cellindexarray
@@ -50,10 +50,10 @@ pub(crate) fn change_resolution_list(
 #[pyfunction]
 pub(crate) fn change_resolution_paired(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     h3_resolution: u8,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let pair = py.allow_threads(|| {
         cellindexarray
@@ -85,11 +85,12 @@ pub(crate) fn change_resolution_paired(
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(py: Python<'_>, cellarray: PyArray) -> PyArrowResult<PyObject> {
-    let resarray =
-        PrimitiveArray::from(py.allow_threads(|| {
-            pyarray_to_cellindexarray(cellarray).map(|cells| cells.resolution())
-        })?);
+pub(crate) fn cells_resolution(
+    py: Python<'_>,
+    cellarray: PyConcatedArray,
+) -> PyArrowResult<PyObject> {
+    let cellindexarray = cellarray.into_cellindexarray()?;
+    let resarray = PrimitiveArray::from(py.allow_threads(|| cellindexarray.resolution()));
 
     array_to_arro3(py, resarray, RESOLUTION_NAME, true)
 }

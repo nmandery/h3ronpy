@@ -9,7 +9,7 @@ use pyo3_arrow::PyArray;
 use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
 
-fn parse<O>(py: Python<'_>, stringarray: &PyArray, set_failing_to_invalid: bool) -> PyResult<O>
+fn parse<O>(py: Python<'_>, stringarray: PyArray, set_failing_to_invalid: bool) -> PyResult<O>
 where
     O: ParseGenericStringArray + Send,
 {
@@ -33,48 +33,36 @@ where
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn cells_parse(
     py: Python<'_>,
-    stringarray: PyArray, //TODO
+    stringarray: PyConcatedArray,
     set_failing_to_invalid: bool,
 ) -> PyArrowResult<PyObject> {
-    let cells: CellIndexArray = parse(py, &stringarray, set_failing_to_invalid)?;
-    array_to_arro3(
-        py,
-        PrimitiveArray::from(cells),
-        stringarray.field().name(),
-        true,
-    )
+    let name = stringarray.field().name().to_string();
+    let cells: CellIndexArray = parse(py, stringarray.into(), set_failing_to_invalid)?;
+    array_to_arro3(py, PrimitiveArray::from(cells), name, true)
 }
 
 #[pyfunction]
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn vertexes_parse(
     py: Python<'_>,
-    stringarray: PyArray,
+    stringarray: PyConcatedArray,
     set_failing_to_invalid: bool,
 ) -> PyArrowResult<PyObject> {
-    let vertexes: VertexIndexArray = parse(py, &stringarray, set_failing_to_invalid)?;
-    array_to_arro3(
-        py,
-        PrimitiveArray::from(vertexes),
-        stringarray.field().name(),
-        true,
-    )
+    let name = stringarray.field().name().to_string();
+    let vertexes: VertexIndexArray = parse(py, stringarray.into(), set_failing_to_invalid)?;
+    array_to_arro3(py, PrimitiveArray::from(vertexes), name, true)
 }
 
 #[pyfunction]
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn directededges_parse(
     py: Python<'_>,
-    stringarray: PyArray,
+    stringarray: PyConcatedArray,
     set_failing_to_invalid: bool,
 ) -> PyArrowResult<PyObject> {
-    let edges: DirectedEdgeIndexArray = parse(py, &stringarray, set_failing_to_invalid)?;
-    array_to_arro3(
-        py,
-        PrimitiveArray::from(edges),
-        stringarray.field().name(),
-        true,
-    )
+    let name = stringarray.field().name().to_string();
+    let edges: DirectedEdgeIndexArray = parse(py, stringarray.into(), set_failing_to_invalid)?;
+    array_to_arro3(py, PrimitiveArray::from(edges), name, true)
 }
 
 fn to_string<A: ToGenericStringArray<i64> + Send + Sync, S: Into<String>>(
@@ -89,21 +77,27 @@ fn to_string<A: ToGenericStringArray<i64> + Send + Sync, S: Into<String>>(
 
 #[pyfunction]
 #[pyo3(signature = (cellarray))]
-pub(crate) fn cells_to_string(py: Python<'_>, cellarray: PyArray) -> PyArrowResult<PyObject> {
+pub(crate) fn cells_to_string(
+    py: Python<'_>,
+    cellarray: PyConcatedArray,
+) -> PyArrowResult<PyObject> {
     to_string(
         py,
         cellarray.field().name().clone(),
-        pyarray_to_cellindexarray(cellarray)?,
+        cellarray.into_cellindexarray()?,
     )
 }
 
 #[pyfunction]
 #[pyo3(signature = (vertexarray))]
-pub(crate) fn vertexes_to_string(py: Python<'_>, vertexarray: PyArray) -> PyArrowResult<PyObject> {
+pub(crate) fn vertexes_to_string(
+    py: Python<'_>,
+    vertexarray: PyConcatedArray,
+) -> PyArrowResult<PyObject> {
     to_string(
         py,
         vertexarray.field().name().clone(),
-        pyarray_to_vertexindexarray(vertexarray)?,
+        vertexarray.into_vertexindexarray()?,
     )
 }
 
@@ -111,11 +105,11 @@ pub(crate) fn vertexes_to_string(py: Python<'_>, vertexarray: PyArray) -> PyArro
 #[pyo3(signature = (directededgearray))]
 pub(crate) fn directededges_to_string(
     py: Python<'_>,
-    directededgearray: PyArray,
+    directededgearray: PyConcatedArray,
 ) -> PyArrowResult<PyObject> {
     to_string(
         py,
         directededgearray.field().name().clone(),
-        pyarray_to_directededgeindexarray(directededgearray)?,
+        directededgearray.into_directededgeindexarray()?,
     )
 }

@@ -30,7 +30,7 @@ Resolution search modes of `nearest_h3_resolution`:
 
 from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME
-from . import _to_uint64_array, _to_arrow_array
+from . import _to_arrow_array
 from .vector import cells_to_wkb_polygons, cells_bounds
 import numpy as np
 import pyarrow as pa
@@ -146,7 +146,6 @@ def rasterize_cells(
     from rasterio.features import rasterize
     import shapely
 
-    cells = _to_uint64_array(cells)
     values = _to_arrow_array(values, None)
 
     if len(cells) != len(values):

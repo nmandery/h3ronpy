@@ -20,7 +20,7 @@ def test_cells_parse_largeutf8():
 
 
 def test_parse_cell_fail():
-    strings = np.array(
+    strings = pl.Series(
         [
             "invalid",
         ]
@@ -30,7 +30,7 @@ def test_parse_cell_fail():
 
 
 def test_parse_cell_set_invalid():
-    strings = np.array(
+    strings = pl.Series(
         [
             "invalid",
         ]
@@ -41,9 +41,9 @@ def test_parse_cell_set_invalid():
 
 
 def test_cells_valid():
-    input = np.array(
+    input = pl.Series(
         [45, h3.geo_to_h3(45.5, 10.2, 5)],
-        dtype=np.uint64,
+        dtype=pl.datatypes.UInt64(),
     )
     cells = cells_valid(input, booleanarray=False)
     assert len(cells) == 2
@@ -61,7 +61,7 @@ def test_cells_valid():
 
 
 def test_cells_to_string():
-    cells = np.array(
+    cells = pl.Series(
         [
             h3.geo_to_h3(45.5, 10.2, 5),
         ]

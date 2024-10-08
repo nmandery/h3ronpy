@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use arrow::array::{
     Array, ArrayRef, BinaryArray, Float64Array, GenericBinaryArray, GenericListArray,
-    LargeBinaryArray, OffsetSizeTrait, PrimitiveArray, RecordBatch, UInt8Array,
+    LargeBinaryArray, OffsetSizeTrait, PrimitiveArray, RecordBatch,
 };
 use arrow::buffer::NullBuffer;
 use arrow::datatypes::{Field, Schema};
@@ -10,7 +10,7 @@ use geo::{BoundingRect, HasDimensions};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
-use h3arrow::array::{CellIndexArray, ResolutionArray};
+use h3arrow::array::CellIndexArray;
 use h3arrow::export::geoarrow::array::{WKBArray, WKBBuilder, WKBCapacity};
 use h3arrow::export::h3o::geom::{ContainmentMode, ToGeo};
 use h3arrow::export::h3o::Resolution;
@@ -87,8 +87,8 @@ impl PyContainmentMode {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds(cellarray: PyArray) -> PyResult<Option<PyObject>> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+pub(crate) fn cells_bounds(cellarray: PyConcatedArray) -> PyResult<Option<PyObject>> {
+    let cellindexarray = cellarray.into_cellindexarray()?;
     if let Some(rect) = cellindexarray.bounding_rect() {
         Python::with_gil(|py| {
             Ok(Some(
@@ -103,8 +103,11 @@ pub(crate) fn cells_bounds(cellarray: PyArray) -> PyResult<Option<PyObject>> {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds_arrays(py: Python<'_>, cellarray: PyArray) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+pub(crate) fn cells_bounds_arrays(
+    py: Python<'_>,
+    cellarray: PyConcatedArray,
+) -> PyArrowResult<PyObject> {
+    let cellindexarray = cellarray.into_cellindexarray()?;
 
     let outarrays = py.allow_threads(|| {
         let mut minx_vec = vec![0.0f64; cellindexarray.len()];
@@ -162,10 +165,10 @@ pub(crate) fn cells_bounds_arrays(py: Python<'_>, cellarray: PyArray) -> PyArrow
 #[pyo3(signature = (cellarray, radians = false))]
 pub(crate) fn cells_to_coordinates(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     radians: bool,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
 
     let coordinate_arrays = py
         .allow_threads(|| {
@@ -195,13 +198,13 @@ pub(crate) fn cells_to_coordinates(
 #[pyo3(signature = (latarray, lngarray, resolution, radians = false))]
 pub(crate) fn coordinates_to_cells(
     py: Python<'_>,
-    latarray: PyArray,
-    lngarray: PyArray,
+    latarray: PyConcatedArray,
+    lngarray: PyConcatedArray,
     resolution: &Bound<PyAny>,
     radians: bool,
 ) -> PyArrowResult<PyObject> {
-    let latarray: Float64Array = pyarray_to_native(latarray)?;
-    let lngarray: Float64Array = pyarray_to_native(lngarray)?;
+    let latarray: Float64Array = latarray.into_float64array()?;
+    let lngarray: Float64Array = lngarray.into_float64array()?;
     if lngarray.len() != latarray.len() {
         return Err(
             PyValueError::new_err("latarray and lngarray must be of the same length").into(),
@@ -230,9 +233,9 @@ pub(crate) fn coordinates_to_cells(
                 .collect::<PyResult<CellIndexArray>>()
         })?
     } else {
-        let resarray = resolution.extract::<PyArray>()?;
-        let resarray = ResolutionArray::try_from(pyarray_to_native::<UInt8Array>(resarray)?)
-            .into_pyresult()?;
+        let resarray = resolution
+            .extract::<PyConcatedArray>()?
+            .into_resolutionarray()?;
 
         if resarray.len() != latarray.len() {
             return Err(PyValueError::new_err(
@@ -271,11 +274,11 @@ pub(crate) fn coordinates_to_cells(
 #[pyo3(signature = (cellarray, radians = false, link_cells = false))]
 pub(crate) fn cells_to_wkb_polygons(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     radians: bool,
     link_cells: bool,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let use_degrees = !radians;
 
     let out: WKBArray<i64> = if link_cells {
@@ -311,10 +314,10 @@ pub(crate) fn cells_to_wkb_polygons(
 #[pyo3(signature = (cellarray, radians = false))]
 pub(crate) fn cells_to_wkb_points(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     radians: bool,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let out = py
         .allow_threads(|| cellindexarray.to_wkb_points::<i64>(!radians))
         .expect("wkbarray");
@@ -326,10 +329,10 @@ pub(crate) fn cells_to_wkb_points(
 #[pyo3(signature = (vertexarray, radians = false))]
 pub(crate) fn vertexes_to_wkb_points(
     py: Python<'_>,
-    vertexarray: PyArray,
+    vertexarray: PyConcatedArray,
     radians: bool,
 ) -> PyArrowResult<PyObject> {
-    let vertexindexarray = pyarray_to_vertexindexarray(vertexarray)?;
+    let vertexindexarray = vertexarray.into_vertexindexarray()?;
     let out = py
         .allow_threads(|| vertexindexarray.to_wkb_points::<i64>(!radians))
         .expect("wkbarray");
@@ -341,10 +344,10 @@ pub(crate) fn vertexes_to_wkb_points(
 #[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(
     py: Python<'_>,
-    array: PyArray,
+    array: PyConcatedArray,
     radians: bool,
 ) -> PyArrowResult<PyObject> {
-    let directededgesindexarray = pyarray_to_directededgeindexarray(array)?;
+    let directededgesindexarray = array.into_directededgeindexarray()?;
     let out = py
         .allow_threads(|| directededgesindexarray.to_wkb_linestrings::<i64>(!radians))
         .expect("wkbarray");
@@ -368,7 +371,7 @@ fn get_to_cells_options(
 #[pyo3(signature = (array, resolution, containment_mode = None, compact = false, flatten = false))]
 pub(crate) fn wkb_to_cells(
     py: Python<'_>,
-    array: PyArray,
+    array: PyConcatedArray,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
@@ -376,6 +379,7 @@ pub(crate) fn wkb_to_cells(
 ) -> PyArrowResult<PyObject> {
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
 
+    let array: PyArray = array.into();
     if let Some(binarray) = array.array().as_any().downcast_ref::<LargeBinaryArray>() {
         generic_wkb_to_cells(py, binarray.clone(), flatten, &options)
     } else if let Some(binarray) = array.array().as_any().downcast_ref::<BinaryArray>() {

@@ -1,12 +1,13 @@
 import numpy as np
 import math
 import h3.api.numpy_int as h3
+from arro3.core import Array
 
 from h3ronpy.pandas import change_resolution, change_resolution_paired, cells_resolution
 
 
 def test_change_resolution_up():
-    h3indexes = np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = Array.from_numpy(np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64))
     out_res = 9
     changed = change_resolution(h3indexes, out_res)
     assert changed.shape[0] == (int(math.pow(7, 4)) + 7)
@@ -15,12 +16,12 @@ def test_change_resolution_up():
 
 
 def test_change_resolution_paired_up():
-    h3indexes = np.array(
+    h3indexes = Array.from_numpy(np.array(
         [
             h3.geo_to_h3(10.3, 45.1, 8),
         ],
         dtype=np.uint64,
-    )
+    ))
     out_res = 9
     changed_df = change_resolution_paired(h3indexes, out_res)
     assert len(changed_df) == 7
@@ -30,7 +31,7 @@ def test_change_resolution_paired_up():
 
 
 def test_change_resolution_down():
-    h3indexes = np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = Array.from_numpy(np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64))
     out_res = 4
     changed = change_resolution(h3indexes, out_res)
     assert changed.shape[0] == 2
@@ -39,7 +40,7 @@ def test_change_resolution_down():
 
 
 def test_cells_resolution():
-    h3indexes = np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = Array.from_numpy(np.array([h3.geo_to_h3(10.2, 45.5, 5), h3.geo_to_h3(10.3, 45.1, 8)], dtype=np.uint64))
     res = cells_resolution(h3indexes)
     assert len(res) == 2
     assert res[0] == 5

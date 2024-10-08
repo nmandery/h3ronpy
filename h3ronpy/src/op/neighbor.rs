@@ -6,7 +6,7 @@ use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::PyObject;
 use pyo3_arrow::error::PyArrowResult;
-use pyo3_arrow::{PyArray, PyTable};
+use pyo3_arrow::PyTable;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -21,11 +21,11 @@ const DISK_NAME: &str = "disk";
 #[pyo3(signature = (cellarray, k, flatten = false))]
 pub(crate) fn grid_disk(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     k: u32,
     flatten: bool,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let listarray = py
         .allow_threads(|| cellindexarray.grid_disk(k))
         .into_pyresult()?;
@@ -43,11 +43,11 @@ pub(crate) fn grid_disk(
 #[pyo3(signature = (cellarray, k, flatten = false))]
 pub(crate) fn grid_disk_distances(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     k: u32,
     flatten: bool,
 ) -> PyArrowResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let griddiskdistances = py
         .allow_threads(|| cellindexarray.grid_disk_distances(k))
         .into_pyresult()?;
@@ -59,7 +59,7 @@ pub(crate) fn grid_disk_distances(
 #[pyo3(signature = (cellarray, k_min, k_max, flatten = false))]
 pub(crate) fn grid_ring_distances(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     k_min: u32,
     k_max: u32,
     flatten: bool,
@@ -67,7 +67,7 @@ pub(crate) fn grid_ring_distances(
     if k_min >= k_max {
         return Err(PyValueError::new_err("k_min must be less than k_max").into());
     }
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
     let griddiskdistances = py
         .allow_threads(|| cellindexarray.grid_ring_distances(k_min, k_max))
         .into_pyresult()?;
@@ -135,12 +135,12 @@ impl FromStr for KAggregationMethodWrapper {
 #[pyo3(signature = (cellarray, k, aggregation_method))]
 pub(crate) fn grid_disk_aggregate_k(
     py: Python<'_>,
-    cellarray: PyArray,
+    cellarray: PyConcatedArray,
     k: u32,
     aggregation_method: &str,
 ) -> PyArrowResult<PyObject> {
     let aggregation_method = KAggregationMethodWrapper::from_str(aggregation_method)?;
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+    let cellindexarray = cellarray.into_cellindexarray()?;
 
     let griddiskaggk = py
         .allow_threads(|| cellindexarray.grid_disk_aggregate_k(k, aggregation_method.0))
