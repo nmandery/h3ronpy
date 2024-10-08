@@ -1,13 +1,16 @@
+use arrow::datatypes::{Field, Schema};
 use geo_types::Point;
+use pyo3_arrow::PyTable;
 use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
+use std::sync::Arc;
 
 use arrow::array::{
-    Array, Float32Array, Float64Array, Int16Array, Int32Array, Int64Array, Int8Array, UInt16Array,
-    UInt32Array, UInt64Array, UInt8Array,
+    Array, ArrayRef, ArrowPrimitiveType, Float32Array, Float64Array, Int16Array, Int32Array,
+    Int64Array, Int8Array, PrimitiveArray, RecordBatch, UInt16Array, UInt32Array, UInt64Array,
+    UInt8Array,
 };
-use arrow::pyarrow::IntoPyArrow;
 use geo::{AffineOps, AffineTransform};
 use h3arrow::array::CellIndexArray;
 use h3arrow::export::h3o::{CellIndex, Resolution};
@@ -16,10 +19,11 @@ use numpy::PyReadonlyArray2;
 use ordered_float::OrderedFloat;
 use pyo3::exceptions::PyValueError;
 use pyo3::{prelude::*, wrap_pyfunction};
+use pyo3_arrow::error::PyArrowResult;
 
-use crate::arrow_interop::h3array_to_pyarray;
 use crate::error::IntoPyResult;
 use crate::transform::Transform;
+use crate::DEFAULT_CELL_COLUMN_NAME;
 
 pub struct AxisOrder {
     pub inner: rasterh3::AxisOrder,
@@ -142,29 +146,31 @@ macro_rules! make_raster_to_h3_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
+            py: Python<'_>,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
             compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(PyObject, PyObject)> {
+        ) -> PyArrowResult<PyObject> {
             let arr = np_array.as_array();
-            let (values, cells) = raster_to_h3(
-                &arr,
-                transform,
-                &nodata_value,
-                h3_resolution,
-                axis_order_str,
-                compact,
-            )?;
+            let (values, cells) = py.allow_threads(|| {
+                raster_to_h3(
+                    &arr,
+                    transform,
+                    &nodata_value,
+                    h3_resolution,
+                    axis_order_str,
+                    compact,
+                )
+            })?;
 
-            Python::with_gil(|py| {
-                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
-
-                Ok((values, cells))
-            })
+            return_table(
+                py,
+                CellIndexArray::from(cells),
+                <$array_dtype>::from(values),
+            )
         }
     };
 }
@@ -173,35 +179,57 @@ macro_rules! make_raster_to_h3_float_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
+            py: Python<'_>,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
             compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(PyObject, PyObject)> {
+        ) -> PyArrowResult<PyObject> {
             let arr = np_array.as_array();
             // create a copy with the values wrapped in ordered floats to
             // support the internal hashing
             let of_arr = arr.map(|v| OrderedFloat::from(*v));
-            let (values, cells) = raster_to_h3(
-                &of_arr.view(),
-                transform,
-                &nodata_value.map(OrderedFloat::from),
-                h3_resolution,
-                axis_order_str,
-                compact,
-            )?;
+            let (values, cells) = py.allow_threads(|| {
+                raster_to_h3(
+                    &of_arr.view(),
+                    transform,
+                    &nodata_value.map(OrderedFloat::from),
+                    h3_resolution,
+                    axis_order_str,
+                    compact,
+                )
+            })?;
 
-            Python::with_gil(|py| {
-                let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
-                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
-
-                Ok((values, cells))
-            })
+            let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
+            return_table(
+                py,
+                CellIndexArray::from(cells),
+                <$array_dtype>::from(values),
+            )
         }
     };
+}
+
+fn return_table<T: ArrowPrimitiveType>(
+    py: Python<'_>,
+    cells: CellIndexArray,
+    values: PrimitiveArray<T>,
+) -> PyArrowResult<PyObject> {
+    let outarrays: Vec<ArrayRef> = vec![Arc::new(PrimitiveArray::from(cells)), Arc::new(values)];
+
+    let schema = Arc::new(Schema::new(vec![
+        Field::new(
+            DEFAULT_CELL_COLUMN_NAME,
+            outarrays[0].data_type().clone(),
+            true,
+        ),
+        Field::new("value", outarrays[1].data_type().clone(), true),
+    ]));
+
+    let rb = RecordBatch::try_new(schema.clone(), outarrays).into_pyresult()?;
+    Ok(PyTable::try_new(vec![rb], schema)?.to_arro3(py)?)
 }
 
 // generate some specialized variants of raster_to_h3 to expose to python

@@ -2,15 +2,16 @@ from h3ronpy.arrow.vector import geometry_to_cells, ContainmentMode, cells_to_wk
 import pyarrow as pa
 import shapely
 from shapely.geometry import Point
-from shapely import wkb
+from shapely import from_wkb
 import h3.api.numpy_int as h3
+from arro3.core import Array, DataType
 
 
 def test_geometry_to_cells():
     geom = shapely.Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)))
     cells = geometry_to_cells(geom, 5, containment_mode=ContainmentMode.IntersectsBoundary)
-    assert isinstance(cells, pa.Array)
-    assert cells.type == pa.uint64()
+    assert isinstance(cells, Array)
+    assert cells.type == DataType.uint64()
     assert len(cells) > 10
 
 
@@ -39,7 +40,6 @@ def test_coordinate_values_are_not_equal_issue_58():
 
     # Step 4: Decode the WKB point to a Shapely geometry
     for wkb_point in wkb_points:
-        assert isinstance(wkb_point, pa.Scalar)  # Ensure it's a pyarrow Scalar
-        shapely_point = wkb.loads(wkb_point.as_buffer().to_pybytes())
+        shapely_point = shapely.from_wkb(wkb_point.as_py())
         assert int(lat) == int(shapely_point.y)
         assert int(lon) == int(shapely_point.x)

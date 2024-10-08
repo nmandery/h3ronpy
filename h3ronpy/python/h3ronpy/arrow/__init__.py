@@ -25,9 +25,6 @@ def _to_arrow_array(arr, dtype) -> pa.Array:
     return converted
 
 
-def _to_uint64_array(arr) -> pa.Array:
-    return _to_arrow_array(arr, pa.uint64())
-
 
 def change_resolution(arr, resolution: int) -> pa.Array:
     """
@@ -38,7 +35,7 @@ def change_resolution(arr, resolution: int) -> pa.Array:
 
     Invalid/empty values are omitted.
     """
-    return op.change_resolution(_to_uint64_array(arr), resolution)
+    return op.change_resolution(arr, resolution)
 
 
 def change_resolution_list(arr, resolution: int) -> pa.Array:
@@ -50,7 +47,7 @@ def change_resolution_list(arr, resolution: int) -> pa.Array:
 
     Invalid/empty values are preserved as such.
     """
-    return op.change_resolution_list(_to_uint64_array(arr), resolution)
+    return op.change_resolution_list(arr, resolution)
 
 
 def change_resolution_paired(arr, resolution: int) -> pa.Table:
@@ -61,7 +58,7 @@ def change_resolution_paired(arr, resolution: int) -> pa.Table:
     This can be helpful when joining data in different resolutions via
     dataframe libraries
     """
-    return op.change_resolution_paired(_to_uint64_array(arr), resolution)
+    return op.change_resolution_paired(arr, resolution)
 
 
 def cells_resolution(arr) -> pa.Array:
@@ -72,7 +69,7 @@ def cells_resolution(arr) -> pa.Array:
     :param arr:
     :return:
     """
-    return op.cells_resolution(_to_uint64_array(arr))
+    return op.cells_resolution(arr)
 
 
 def cells_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
@@ -121,7 +118,7 @@ def compact(arr, mixed_resolutions: bool = False) -> pa.Array:
     The cells are expected to be of the same resolution, otherwise this operation will fail unless
     `mixed_resolutions` is set to True. Setting this may lead to slight slow-downs.
     """
-    return op.compact(_to_uint64_array(arr), mixed_resolutions=mixed_resolutions)
+    return op.compact(arr, mixed_resolutions=mixed_resolutions)
 
 
 def uncompact(arr, target_resolution: int) -> pa.Array:
@@ -131,12 +128,12 @@ def uncompact(arr, target_resolution: int) -> pa.Array:
     All higher resolution cells contained in the input array than the given `target_resolution` will
     be omitted from the output.
     """
-    return op.uncompact(_to_uint64_array(arr), target_resolution)
+    return op.uncompact(arr, target_resolution)
 
 
 def _make_h3index_valid_wrapper(fn, h3index_name, wrapper_name):
     def valid_wrapper(arr, booleanarray: bool = False) -> pa.Array:
-        return fn(_to_uint64_array(arr), booleanarray=booleanarray)
+        return fn(arr, booleanarray=booleanarray)
 
     valid_wrapper.__doc__ = f"""
     Validate an array of potentially invalid {h3index_name} values by returning a new
@@ -155,46 +152,46 @@ directededges_valid = _make_h3index_valid_wrapper(op.cells_valid, "directed edge
 
 
 def grid_disk(cellarray, k: int, flatten: bool = False) -> Union[pa.ListArray, pa.Array]:
-    return op.grid_disk(_to_uint64_array(cellarray), k, flatten=flatten)
+    return op.grid_disk(cellarray, k, flatten=flatten)
 
 
 def grid_disk_distances(cellarray, k: int, flatten: bool = False) -> pa.Table:
-    return op.grid_disk_distances(_to_uint64_array(cellarray), k, flatten=flatten)
+    return op.grid_disk_distances(cellarray, k, flatten=flatten)
 
 
 def grid_disk_aggregate_k(cellarray, k: int, aggregation_method: str) -> pa.Table:
     """
     Valid values for `aggregation_method` are `"min"` and `"max"`.
     """
-    return op.grid_disk_aggregate_k(_to_uint64_array(cellarray), k, aggregation_method)
+    return op.grid_disk_aggregate_k(cellarray, k, aggregation_method)
 
 
 def grid_ring_distances(cellarray, k_min: int, k_max: int, flatten: bool = False) -> pa.Table:
-    return op.grid_ring_distances(_to_uint64_array(cellarray), k_min, k_max, flatten=flatten)
+    return op.grid_ring_distances(cellarray, k_min, k_max, flatten=flatten)
 
 
 def cells_area_m2(cellarray) -> pa.Array:
-    return op.cells_area_m2(_to_uint64_array(cellarray))
+    return op.cells_area_m2(cellarray)
 
 
 def cells_area_km2(cellarray) -> pa.Array:
-    return op.cells_area_km2(_to_uint64_array(cellarray))
+    return op.cells_area_km2(cellarray)
 
 
 def cells_area_rads2(cellarray) -> pa.Array:
-    return op.cells_area_rads2(_to_uint64_array(cellarray))
+    return op.cells_area_rads2(cellarray)
 
 
 def cells_to_string(cellarray) -> pa.Array:
-    return op.cells_to_string(_to_uint64_array(cellarray))
+    return op.cells_to_string(cellarray)
 
 
 def vertexes_to_string(vertexesarray) -> pa.Array:
-    return op.vertexes_to_string(_to_uint64_array(vertexesarray))
+    return op.vertexes_to_string(vertexesarray)
 
 
 def directededges_to_string(directededgearray) -> pa.Array:
-    return op.directededges_to_string(_to_uint64_array(directededgearray))
+    return op.directededges_to_string(directededgearray)
 
 
 def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) -> pa.Table:
@@ -213,9 +210,7 @@ def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) ->
     successfully. When `set_failing_to_invalid` is set to True, only the failing positions
     of the output arrays will be set to null.
     """
-    if type(anchor) is not int:
-        anchor = _to_uint64_array(anchor)
-    return op.cells_to_localij(_to_uint64_array(cellarray), anchor, set_failing_to_invalid=set_failing_to_invalid)
+    return op.cells_to_localij(cellarray, anchor, set_failing_to_invalid=set_failing_to_invalid)
 
 
 def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> pa.Array:
@@ -226,8 +221,6 @@ def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> pa.A
     successfully. When `set_failing_to_invalid` is set to True, only the failing positions
     of the output arrays will be set to null.
     """
-    if type(anchor) is not int:
-        anchor = _to_uint64_array(anchor)
     return op.localij_to_cells(
         anchor,
         _to_arrow_array(i, pa.int32()),

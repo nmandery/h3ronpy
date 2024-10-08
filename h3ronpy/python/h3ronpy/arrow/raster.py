@@ -30,7 +30,7 @@ Resolution search modes of `nearest_h3_resolution`:
 
 from h3ronpy.h3ronpyrs import raster
 from .. import DEFAULT_CELL_COLUMN_NAME
-from . import _to_uint64_array, _to_arrow_array
+from . import _to_arrow_array
 from .vector import cells_to_wkb_polygons, cells_bounds
 import numpy as np
 import pyarrow as pa
@@ -95,7 +95,7 @@ def raster_to_dataframe(
     :param h3_resolution: Target h3 resolution
     :param compact: Return compacted h3 indexes (see H3 docs). This results in mixed H3 resolutions, but also can
             reduce the amount of required memory.
-    :return: Tuple of arrow arrays
+    :return: arrow table
     """
 
     dtype = in_raster.dtype
@@ -123,10 +123,7 @@ def raster_to_dataframe(
     else:
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
-    return pa.Table.from_arrays(
-        arrays=func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value),
-        names=["value", DEFAULT_CELL_COLUMN_NAME],
-    )
+    return func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value)
 
 
 def rasterize_cells(
@@ -149,7 +146,6 @@ def rasterize_cells(
     from rasterio.features import rasterize
     import shapely
 
-    cells = _to_uint64_array(cells)
     values = _to_arrow_array(values, None)
 
     if len(cells) != len(values):
@@ -190,7 +186,7 @@ def rasterize_cells(
 
         # linking cells should speed up rendering in case of large homogenous areas
         polygons = cells_to_wkb_polygons(cells, link_cells=True)
-        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
+        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons if polygon]
 
         # draw
         rasterize(

@@ -21,7 +21,7 @@ readme = "../README.rst"
 
 dependencies = [
     "numpy<2",
-    "pyarrow>=17.0"
+    "arro3-core"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -32,10 +32,14 @@ classifiers = [
 
 [project.optional-dependencies]
 polars = [
-    "polars>=1"
+    "polars>=1.2"
 ]
 pandas = [
+    "pyarrow>=17.0",
     "geopandas>=1"
+]
+pyarrow = [
+    "pyarrow>=17.0"
 ]
 test = [
     "rasterio",

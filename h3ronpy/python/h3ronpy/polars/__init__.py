@@ -11,7 +11,7 @@ API to use `h3ronpy` with the `polars dataframe library <https://www.pola.rs/>`_
 from functools import wraps
 import typing
 import polars as pl
-import pyarrow as pa
+from arro3.core import Array, Table
 from .. import arrow as _arrow
 
 
@@ -19,8 +19,10 @@ def _wrap(func, ret_type=None):
     @wraps(func, updated=())
     def wrapper(*args, **kw):
         result = func(*args, **kw)
-        if isinstance(result, pa.Table) or isinstance(result, pa.Array):
-            return pl.from_arrow(result)
+        if isinstance(result, Array):
+            return pl.Series(result)
+        elif isinstance(result, Table):
+            return pl.DataFrame(result)
         return result
 
     if ret_type:

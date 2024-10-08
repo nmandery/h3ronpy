@@ -17,11 +17,11 @@ from .. import load_africa, TESTDATA_PATH
 
 
 def test_cells_to_points():
-    gs = cells_to_points(
+    gs = cells_to_points(pd.Series(
         [
             0x8009FFFFFFFFFFF,
         ]
-    )
+    ))
     assert isinstance(gs, gpd.GeoSeries)
     assert gs.geom_type[0] == "Point"
 

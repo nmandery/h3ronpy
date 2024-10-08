@@ -1,6 +1,6 @@
 from h3ronpy.h3ronpyrs import vector
 from .. import ContainmentMode
-from . import _to_uint64_array, _HAS_POLARS, _to_arrow_array
+from . import _HAS_POLARS, _to_arrow_array
 from typing import Optional, Tuple, Union
 import pyarrow as pa
 
@@ -9,7 +9,7 @@ def cells_to_coordinates(arr, radians: bool = False) -> pa.Table:
     """
     convert to point coordinates in degrees
     """
-    return vector.cells_to_coordinates(_to_uint64_array(arr), radians=radians)
+    return vector.cells_to_coordinates(arr, radians=radians)
 
 
 def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) -> pa.Array:
@@ -35,7 +35,7 @@ def cells_bounds(arr) -> Optional[Tuple]:
     """
     Bounds of the complete array as a tuple `(minx, miny, maxx, maxy)`.
     """
-    return vector.cells_bounds(_to_uint64_array(arr))
+    return vector.cells_bounds(arr)
 
 
 def cells_bounds_arrays(arr) -> pa.Table:
@@ -43,7 +43,7 @@ def cells_bounds_arrays(arr) -> pa.Table:
     Build a table/dataframe with the columns `minx`, `miny`, `maxx` and `maxy` containing the bounds of the individual
     cells from the input array.
     """
-    return vector.cells_bounds_arrays(_to_uint64_array(arr))
+    return vector.cells_bounds_arrays(arr)
 
 
 def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) -> pa.Array:
@@ -57,7 +57,7 @@ def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) 
     :param radians: Generate geometries using radians instead of degrees
     :param link_cells: Combine neighboring cells into a single polygon geometry.
     """
-    return vector.cells_to_wkb_polygons(_to_uint64_array(arr), radians=radians, link_cells=link_cells)
+    return vector.cells_to_wkb_polygons(arr, radians=radians, link_cells=link_cells)
 
 
 def cells_to_wkb_points(arr, radians: bool = False) -> pa.Array:
@@ -69,7 +69,7 @@ def cells_to_wkb_points(arr, radians: bool = False) -> pa.Array:
     :param: arr: The cell array
     :param radians: Generate geometries using radians instead of degrees
     """
-    return vector.cells_to_wkb_points(_to_uint64_array(arr), radians=radians)
+    return vector.cells_to_wkb_points(arr, radians=radians)
 
 
 def vertexes_to_wkb_points(arr, radians: bool = False) -> pa.Array:
@@ -81,7 +81,7 @@ def vertexes_to_wkb_points(arr, radians: bool = False) -> pa.Array:
     :param: arr: The vertex array
     :param radians: Generate geometries using radians instead of degrees
     """
-    return vector.vertexes_to_wkb_points(_to_uint64_array(arr), radians=radians)
+    return vector.vertexes_to_wkb_points(arr, radians=radians)
 
 
 def directededges_to_wkb_linestrings(arr, radians: bool = False) -> pa.Array:
@@ -93,7 +93,7 @@ def directededges_to_wkb_linestrings(arr, radians: bool = False) -> pa.Array:
     :param: arr: The directed edge array
     :param radians: Generate geometries using radians instead of degrees
     """
-    return vector.directededges_to_wkb_linestrings(_to_uint64_array(arr), radians=radians)
+    return vector.directededges_to_wkb_linestrings(arr, radians=radians)
 
 
 def wkb_to_cells(

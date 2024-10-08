@@ -60,7 +60,7 @@ geometry_to_cells = _wrap(_av.geometry_to_cells, ret_type=pd.Series)
 
 @wraps(wkb_to_cells)
 def geoseries_to_cells(geoseries: gpd.GeoSeries, *args, **kw):
-    return _av.wkb_to_cells(geoseries.to_wkb(), *args, **kw).to_pandas()
+    return pa.array(_av.wkb_to_cells(geoseries.to_wkb(), *args, **kw)).to_pandas()
 
 
 geoseries_to_cells.__name__ = "geoseries_to_cells"
