@@ -14,10 +14,12 @@ use crate::op::init_op_submodule;
 use crate::raster::init_raster_submodule;
 use crate::vector::{init_vector_submodule, PyContainmentMode};
 
+mod array;
 mod arrow_interop;
 mod error;
 mod op;
 mod raster;
+mod resolution;
 mod transform;
 mod vector;
 

@@ -14,7 +14,7 @@ name = "h3ronpy"
 crate-type = ["cdylib"]
 
 [dependencies]
-arrow = { workspace = true, features = ["pyarrow"] }
+arrow = { workspace = true }
 env_logger = "^0.11"
 geo-types = { workspace = true }
 geo = { workspace = true }
@@ -25,6 +25,12 @@ ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.21"
 ordered-float = ">=2.0.1"
 py_geo_interface = { version = "0.8", features = ["f64", "wkb"] }
-pyo3 = { version = "^0.21", features = ["extension-module", "abi3", "abi3-py39"] }
+pyo3 = { version = "^0.21", features = [
+    "extension-module",
+    # "abi3",
+    # "abi3-py39",
+] }
+# Note(kyle) I have a bug with setting default-features = false, so we keep default-features on and turn off abi3
+pyo3-arrow = { version = "0.4.0", default-features = true }
 rasterh3 = { version = "^0.8", features = ["rayon"] }
 rayon = { workspace = true }

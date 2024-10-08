@@ -246,15 +246,13 @@ mod test {
 
     #[test]
     fn parse_utf8_array_cells_invalid_fail() {
-        let stringarray =
-            GenericStringArray::<i32>::from_iter(vec![Some("invalid".to_string())].into_iter());
+        let stringarray = GenericStringArray::<i32>::from_iter(vec![Some("invalid".to_string())]);
         assert!(CellIndexArray::parse_genericstringarray(&stringarray, false).is_err());
     }
 
     #[test]
     fn parse_utf8_array_cells_invalid_to_invalid() {
-        let utf8_array =
-            GenericStringArray::<i32>::from_iter(vec![Some("invalid".to_string())].into_iter());
+        let utf8_array = GenericStringArray::<i32>::from_iter(vec![Some("invalid".to_string())]);
         let cell_array = CellIndexArray::parse_genericstringarray(&utf8_array, true).unwrap();
         assert_eq!(1, cell_array.len());
         assert!(cell_array.iter().all(|v| v.is_none()))
@@ -268,9 +266,9 @@ mod test {
         let stringarray: GenericStringArray<i64> = cellindexarray.to_genericstringarray().unwrap();
 
         assert_eq!(cellindexarray.len(), stringarray.len());
-        assert_eq!(stringarray.is_valid(0), true);
+        assert!(stringarray.is_valid(0));
         assert_eq!(stringarray.value(0), "89283080ddbffff");
-        assert_eq!(stringarray.is_valid(1), false);
+        assert!(!stringarray.is_valid(1));
     }
 
     #[test]
