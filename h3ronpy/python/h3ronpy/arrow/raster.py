@@ -183,6 +183,7 @@ def rasterize_cells(
     del values
 
     values_array = grouped["values"].to_numpy()
+    size = size[::-1]
     rasterized = np.full(size, nodata_value, dtype=values_array.dtype)
 
     for cells, value in zip(grouped["cells_distinct"], grouped["values"]):
