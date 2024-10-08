@@ -3,6 +3,7 @@ use arrow::array::UInt64Array;
 /// Conversion corresponding to `From` with the difference that the validity mask
 /// is set accordingly to the validity to the contained values.
 pub trait FromWithValidity<T> {
+    #[allow(dead_code)]
     fn from_with_validity(value: T) -> Self;
 }
 

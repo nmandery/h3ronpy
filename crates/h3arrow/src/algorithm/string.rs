@@ -266,9 +266,9 @@ mod test {
         let stringarray: GenericStringArray<i64> = cellindexarray.to_genericstringarray().unwrap();
 
         assert_eq!(cellindexarray.len(), stringarray.len());
-        assert_eq!(stringarray.is_valid(0), true);
+        assert!(stringarray.is_valid(0));
         assert_eq!(stringarray.value(0), "89283080ddbffff");
-        assert_eq!(stringarray.is_valid(1), false);
+        assert!(!stringarray.is_valid(1));
     }
 
     #[test]

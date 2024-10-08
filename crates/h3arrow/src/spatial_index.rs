@@ -212,13 +212,13 @@ mod tests {
         assert_eq!(mask.len(), 4);
 
         assert!(mask.is_valid(0));
-        assert_eq!(mask.value(0), false);
+        assert!(!mask.value(0));
 
         assert!(mask.is_valid(1));
-        assert_eq!(mask.value(1), true);
+        assert!(mask.value(1));
 
         assert!(mask.is_valid(2));
-        assert_eq!(mask.value(2), false);
+        assert!(!mask.value(2));
 
         assert!(!mask.is_valid(3));
     }
@@ -237,13 +237,13 @@ mod tests {
         assert_eq!(mask.len(), 4);
 
         assert!(mask.is_valid(0));
-        assert_eq!(mask.value(0), true);
+        assert!(mask.value(0));
 
         assert!(mask.is_valid(1));
-        assert_eq!(mask.value(1), false);
+        assert!(!mask.value(1));
 
         assert!(mask.is_valid(2));
-        assert_eq!(mask.value(2), false);
+        assert!(!mask.value(2));
 
         assert!(!mask.is_valid(3));
     }
