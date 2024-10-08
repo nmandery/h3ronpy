@@ -1,46 +1,50 @@
-use crate::arrow_interop::{
-    h3array_to_pyarray, pyarray_to_cellindexarray, pyarray_to_native, with_pyarrow,
-};
+use crate::array::PyCellArray;
+use crate::arrow_interop::{h3array_to_pyarray, pyarray_to_cellindexarray, pyarray_to_native};
 use crate::error::IntoPyResult;
-use arrow::array::{Array, Int32Array};
-use arrow::pyarrow::ToPyArrow;
+use arrow::array::{Array, ArrayRef, Int32Array, RecordBatch};
+use arrow::datatypes::{Field, Schema};
 use h3arrow::algorithm::localij::{LocalIJArrays, ToLocalIJOp};
 use h3arrow::array::CellIndexArray;
 use h3arrow::h3o::CellIndex;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::{pyfunction, Bound, PyAny, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{pyfunction, Bound, PyAny, PyObject, PyResult, Python};
+use pyo3_arrow::error::PyArrowResult;
+use pyo3_arrow::PyRecordBatch;
 use std::iter::repeat;
+use std::sync::Arc;
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, anchor, set_failing_to_invalid = false))]
 pub(crate) fn cells_to_localij(
-    cellarray: &Bound<PyAny>,
+    py: Python,
+    cellarray: PyCellArray,
     anchor: &Bound<PyAny>,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
-    let cellindexarray = pyarray_to_cellindexarray(cellarray)?;
+) -> PyArrowResult<PyObject> {
+    let cellindexarray = cellarray.into_inner();
     let anchorarray = get_anchor_array(anchor, cellindexarray.len())?;
 
     let localij_arrays = cellindexarray
         .to_local_ij_array(anchorarray, set_failing_to_invalid)
         .into_pyresult()?;
 
-    with_pyarrow(|py, pyarrow| {
-        let arrays = [
-            localij_arrays.i.into_data().to_pyarrow(py)?,
-            localij_arrays.j.into_data().to_pyarrow(py)?,
-            localij_arrays
-                .anchors
-                .primitive_array()
-                .into_data()
-                .to_pyarrow(py)?,
-        ];
-        let table = pyarrow
-            .getattr("Table")?
-            .call_method1("from_arrays", (arrays, ["i", "j", "anchor"]))?;
-        Ok(table.to_object(py))
-    })
+    let i = localij_arrays.i.clone();
+    let j = localij_arrays.j.clone();
+    let anchor = localij_arrays.anchors.primitive_array().clone();
+
+    let schema = Schema::new(vec![
+        Field::new("i", i.data_type().clone(), true),
+        Field::new("j", j.data_type().clone(), true),
+        Field::new("anchor", anchor.data_type().clone(), true),
+    ]);
+    let columns: Vec<ArrayRef> = vec![
+        Arc::new(localij_arrays.i),
+        Arc::new(localij_arrays.j),
+        Arc::new(anchor),
+    ];
+    let batch = RecordBatch::try_new(Arc::new(schema), columns)?;
+    Ok(PyRecordBatch::new(batch).to_arro3(py)?)
 }
 
 #[pyfunction]

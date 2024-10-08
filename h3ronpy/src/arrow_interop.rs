@@ -1,6 +1,7 @@
-use arrow::array::{make_array, Array, ArrayData, UInt64Array};
-use arrow::pyarrow::{FromPyArrow, IntoPyArrow};
+use arrow::array::{Array, UInt64Array};
+use pyo3_arrow::PyArray;
 use std::any::{type_name, Any};
+use std::sync::Arc;
 
 use h3arrow::array::{
     CellIndexArray, DirectedEdgeIndexArray, H3Array, H3IndexArrayValue, VertexIndexArray,
@@ -11,27 +12,18 @@ use pyo3::Python;
 
 use crate::error::{IntoPyErr, IntoPyResult};
 
-pub(crate) fn with_pyarrow<F, O>(f: F) -> PyResult<O>
-where
-    F: FnOnce(Python, Bound<PyModule>) -> PyResult<O>,
-{
-    Python::with_gil(|py| {
-        let pyarrow = py.import_bound("pyarrow")?;
-        f(py, pyarrow)
-    })
-}
-
 #[inline]
 pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python) -> PyResult<PyObject>
 where
     IX: H3IndexArrayValue,
 {
     let pa: UInt64Array = h3array.into();
-    pa.into_data().into_pyarrow(py)
+    PyArray::from_array_ref(Arc::new(pa)).to_arro3(py)
 }
 
 pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &Bound<PyAny>) -> PyResult<T> {
-    let array = make_array(ArrayData::from_pyarrow_bound(obj)?);
+    let array = obj.extract::<PyArray>()?;
+    let (array, _field) = array.into_inner();
 
     let array = array
         .as_any()

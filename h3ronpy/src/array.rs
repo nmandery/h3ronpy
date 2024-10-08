@@ -6,8 +6,17 @@ use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyTuple};
 use pyo3_arrow::ffi::to_array_pycapsules;
 
+use crate::arrow_interop::pyarray_to_cellindexarray;
+use crate::resolution::PyResolution;
+
 #[pyclass(name = "CellArray")]
 pub struct PyCellArray(CellIndexArray);
+
+impl PyCellArray {
+    pub fn into_inner(self) -> CellIndexArray {
+        self.0
+    }
+}
 
 #[pymethods]
 impl PyCellArray {
@@ -25,8 +34,24 @@ impl PyCellArray {
         self.0.len()
     }
 
+    fn parent(&self, resolution: PyResolution) -> Self {
+        Self(self.0.parent(resolution.into()))
+    }
+
     fn slice(&self, offset: usize, length: usize) -> Self {
         Self(self.0.slice(offset, length))
+    }
+}
+
+impl AsRef<CellIndexArray> for PyCellArray {
+    fn as_ref(&self) -> &CellIndexArray {
+        &self.0
+    }
+}
+
+impl<'py> FromPyObject<'py> for PyCellArray {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(pyarray_to_cellindexarray(ob)?))
     }
 }
 

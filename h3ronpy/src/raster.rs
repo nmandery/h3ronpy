@@ -1,13 +1,14 @@
 use geo_types::Point;
+use pyo3_arrow::PyArray;
 use std::hash::Hash;
 use std::iter::repeat;
 use std::str::FromStr;
+use std::sync::Arc;
 
 use arrow::array::{
-    Array, Float32Array, Float64Array, Int16Array, Int32Array, Int64Array, Int8Array, UInt16Array,
+    Float32Array, Float64Array, Int16Array, Int32Array, Int64Array, Int8Array, UInt16Array,
     UInt32Array, UInt64Array, UInt8Array,
 };
-use arrow::pyarrow::IntoPyArrow;
 use geo::{AffineOps, AffineTransform};
 use h3arrow::array::CellIndexArray;
 use h3arrow::export::h3o::{CellIndex, Resolution};
@@ -142,6 +143,7 @@ macro_rules! make_raster_to_h3_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
+            py: Python,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
@@ -159,12 +161,11 @@ macro_rules! make_raster_to_h3_variant {
                 compact,
             )?;
 
-            Python::with_gil(|py| {
-                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
+            let values = <$array_dtype>::from(values);
+            let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
+            let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
-                Ok((values, cells))
-            })
+            Ok((values, cells))
         }
     };
 }
@@ -173,6 +174,7 @@ macro_rules! make_raster_to_h3_float_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         fn $name(
+            py: Python,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
@@ -193,13 +195,12 @@ macro_rules! make_raster_to_h3_float_variant {
                 compact,
             )?;
 
-            Python::with_gil(|py| {
-                let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
-                let values = <$array_dtype>::from(values).into_data().into_pyarrow(py)?;
-                let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
+            let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
+            let values = <$array_dtype>::from(values);
+            let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
+            let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
-                Ok((values, cells))
-            })
+            Ok((values, cells))
         }
     };
 }
