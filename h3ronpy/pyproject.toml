@@ -1,15 +1,11 @@
 [build-system]
-requires = [
-    "maturin>=1.7",
-]
+requires = ["maturin>=1.7"]
 build-backend = "maturin"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--doctest-modules -v -s"
-testpaths = [
-    "tests"
-]
+testpaths = ["tests"]
 
 [tool.ruff]
 # Never enforce `E501` (line length violations).
@@ -19,10 +15,7 @@ ignore = ["E501"]
 name = "h3ronpy"
 readme = "../README.rst"
 
-dependencies = [
-    "numpy<2",
-    "pyarrow>=17.0"
-]
+dependencies = ["numpy<2", "arro3-core>=0.4.1"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: GIS",
@@ -31,19 +24,9 @@ classifiers = [
 
 
 [project.optional-dependencies]
-polars = [
-    "polars>=1"
-]
-pandas = [
-    "geopandas>=1"
-]
-test = [
-    "rasterio",
-    "Shapely>=1.7",
-    "pytest>=6",
-    "h3>=3.7",
-    "pytest-benchmark"
-]
+polars = ["polars>=1"]
+pandas = ["geopandas>=1"]
+test = ["rasterio", "Shapely>=1.7", "pytest>=6", "h3>=3.7", "pytest-benchmark"]
 
 [tool.maturin]
 python-source = "python"

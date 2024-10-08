@@ -1,17 +1,14 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "h3ronpy",
-    "crates/h3arrow"
-]
+members = ["h3ronpy", "crates/h3arrow"]
 
 [workspace.dependencies]
 geo = "0.28"
 geo-types = "0.7"
 h3o = { version = "0.6" }
 rayon = "^1"
-arrow = { version = "52" }
+arrow = { version = "53" }
 
 [profile.release]
 lto = "thin"
