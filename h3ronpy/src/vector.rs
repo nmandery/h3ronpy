@@ -59,7 +59,7 @@ use crate::error::IntoPyResult;
 /// * Covers: This mode behaves the same as IntersectsBoundary, but also handles the case where the geometry is
 ///         being covered by a cell without intersecting with its boundaries. In such cases, the covering cell is returned.
 ///
-#[pyclass(name = "ContainmentMode")]
+#[pyclass(name = "ContainmentMode", eq, eq_int)]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum PyContainmentMode {
     ContainsCentroid,
