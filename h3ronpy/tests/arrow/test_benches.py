@@ -1,7 +1,7 @@
-import numpy as np
 import h3.api.numpy_int as h3
-from h3ronpy.polars import cells_to_string
+import numpy as np
 import polars as pl
+from h3ronpy.arrow import cells_to_string
 
 
 def some_cells() -> np.ndarray:

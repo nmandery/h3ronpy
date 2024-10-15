@@ -1,12 +1,12 @@
-from h3ronpy.polars.vector import (
-    cells_to_coordinates,
+import h3.api.numpy_int as h3
+import numpy as np
+from arro3.core import RecordBatch
+from h3ronpy.arrow.vector import (
     cells_bounds,
     cells_bounds_arrays,
+    cells_to_coordinates,
     coordinates_to_cells,
 )
-import polars as pl
-import numpy as np
-import h3.api.numpy_int as h3
 
 
 def test_cells_to_coordinates():
@@ -17,9 +17,9 @@ def test_cells_to_coordinates():
         dtype=np.uint64,
     )
     coords = cells_to_coordinates(h3indexes)
-    assert len(coords) == 1
-    assert 10.0 < coords["lat"][0] < 11.0
-    assert 45.0 < coords["lng"][0] < 46.0
+    assert coords.num_rows == 1
+    assert 10.0 < coords["lat"][0].as_py() < 11.0
+    assert 45.0 < coords["lng"][0].as_py() < 46.0
 
 
 def test_coordinates_to_cells():
@@ -67,13 +67,13 @@ def test_cells_bounds_arrays():
     )
     bounds_df = cells_bounds_arrays(h3indexes)
     assert bounds_df is not None
-    assert isinstance(bounds_df, pl.DataFrame)
-    assert len(bounds_df) == 2
-    assert "minx" in bounds_df
-    assert "maxx" in bounds_df
-    assert "miny" in bounds_df
-    assert "maxy" in bounds_df
-    assert bounds_df["minx"][0] < 45.1
-    assert bounds_df["maxx"][0] > 45.1
-    assert bounds_df["miny"][0] < 10.3
-    assert bounds_df["maxy"][0] > 10.3
+    assert isinstance(bounds_df, RecordBatch)
+    assert bounds_df.num_rows == 2
+    assert "minx" in bounds_df.schema.names
+    assert "maxx" in bounds_df.schema.names
+    assert "miny" in bounds_df.schema.names
+    assert "maxy" in bounds_df.schema.names
+    assert bounds_df["minx"][0].as_py() < 45.1
+    assert bounds_df["maxx"][0].as_py() > 45.1
+    assert bounds_df["miny"][0].as_py() < 10.3
+    assert bounds_df["maxy"][0].as_py() > 10.3

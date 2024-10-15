@@ -1,7 +1,8 @@
 from typing import Optional, Tuple
 
-from h3ronpy.h3ronpyrs import vector
 from arro3.core import Array, DataType, RecordBatch
+
+from h3ronpy.h3ronpyrs import vector
 
 from .. import ContainmentMode
 from . import _to_arrow_array, _to_uint64_array

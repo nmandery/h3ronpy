@@ -1,5 +1,5 @@
-import pyarrow.compute as pc
 import pyarrow as pa
+import pyarrow.compute as pc
 
 
 # from https://issues.apache.org/jira/browse/ARROW-12099

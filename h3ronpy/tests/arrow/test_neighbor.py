@@ -1,12 +1,14 @@
-from h3ronpy.polars import (
+import h3.api.numpy_int as h3
+import numpy as np
+import polars as pl
+import pyarrow as pa
+from arro3.core import RecordBatch
+from h3ronpy.arrow import (
     grid_disk,
+    grid_disk_aggregate_k,
     grid_disk_distances,
     grid_ring_distances,
-    grid_disk_aggregate_k,
 )
-import numpy as np
-import h3.api.numpy_int as h3
-import polars as pl
 
 
 def test_grid_disk():
@@ -19,11 +21,12 @@ def test_grid_disk():
     )
     disks = grid_disk(h3indexes, 2)
     assert len(disks) == 2
-    assert disks.dtype == pl.List(pl.UInt64())
+    # Arro3 has some bugs to fix around data type equality for nested types
+    assert pa.field(disks.type).type == pa.large_list(pa.uint64())
 
     disks_flat = grid_disk(h3indexes, 2, flatten=True)
     assert len(disks_flat) > 20
-    assert disks_flat.dtype == pl.UInt64()
+    assert disks_flat.type == pa.uint64()
 
 
 def test_grid_disk_distances():
@@ -35,16 +38,15 @@ def test_grid_disk_distances():
         dtype=np.uint64,
     )
     disks = grid_disk_distances(h3indexes, 2)
-    assert type(disks) == pl.DataFrame
-    assert len(disks) == len(h3indexes)
-    assert disks["cell"].dtype == pl.List(pl.UInt64())
-    assert disks["k"].dtype == pl.List(pl.UInt32())
+    assert type(disks) == RecordBatch
+    assert disks.num_rows == len(h3indexes)
 
-    centers = (
-        grid_disk_distances(h3indexes, 2, flatten=True)
-        .lazy()
-        .filter(pl.col("cell").is_in(pl.Series(h3indexes)))
-        .collect()
+    # Arro3 has some bugs to fix around data type equality for nested types
+    assert pa.field(disks["cell"].type).type == pa.large_list(pa.uint64())
+    assert pa.field(disks["k"].type).type == pa.large_list(pa.uint32())
+
+    centers = pl.DataFrame(grid_disk_distances(h3indexes, 2, flatten=True)).filter(
+        pl.col("cell").is_in(pl.Series(h3indexes))
     )
     assert len(centers) == len(h3indexes)
     assert len(centers["k"].unique()) == 1
@@ -62,16 +64,15 @@ def test_grid_ring_distances():
         dtype=np.uint64,
     )
     disks = grid_ring_distances(h3indexes, 1, 2)
-    assert type(disks) == pl.DataFrame
-    assert len(disks) == len(h3indexes)
-    assert disks["cell"].dtype == pl.List(pl.UInt64())
-    assert disks["k"].dtype == pl.List(pl.UInt32())
+    assert type(disks) == RecordBatch
+    assert disks.num_rows == len(h3indexes)
 
-    centers = (
-        grid_ring_distances(h3indexes, 1, 2, flatten=True)
-        .lazy()
-        .filter(pl.col("cell").is_in(pl.Series(h3indexes)))
-        .collect()
+    # Arro3 has some bugs to fix around data type equality for nested types
+    assert pa.field(disks["cell"].type).type == pa.large_list(pa.uint64())
+    assert pa.field(disks["k"].type).type == pa.large_list(pa.uint32())
+
+    centers = pl.DataFrame(grid_ring_distances(h3indexes, 1, 2, flatten=True)).filter(
+        pl.col("cell").is_in(pl.Series(h3indexes))
     )
     assert len(centers) == 0
 
@@ -87,8 +88,8 @@ def test_grid_disk_aggregate_k():
         dtype=np.uint64,
     )
     disks = grid_disk_aggregate_k(h3indexes, 2, "max")
-    assert type(disks) == pl.DataFrame
-    assert disks["cell"].dtype == pl.UInt64()
-    assert disks["k"].dtype == pl.UInt32()
+    assert type(disks) == RecordBatch
+    assert disks["cell"].type == pa.uint64()
+    assert disks["k"].type == pa.uint32()
 
     # TODO: check values
