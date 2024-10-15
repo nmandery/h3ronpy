@@ -13,7 +13,7 @@ rasterize_cells = arrow_raster.rasterize_cells
 
 
 def raster_to_dataframe(
-    in_raster: np.array,
+    in_raster: np.ndarray,
     transform,
     h3_resolution: int,
     nodata_value=None,
@@ -40,7 +40,12 @@ def raster_to_dataframe(
     """
 
     df = arrow_raster.raster_to_dataframe(
-        in_raster, transform, h3_resolution, nodata_value=nodata_value, axis_order=axis_order, compact=compact
+        in_raster,
+        transform,
+        h3_resolution,
+        nodata_value=nodata_value,
+        axis_order=axis_order,
+        compact=compact,
     ).to_pandas()
 
     if geo:

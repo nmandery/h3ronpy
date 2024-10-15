@@ -8,7 +8,10 @@ H3_CRS = "EPSG:4326"
 if not _native.is_release_build():
     import warnings
 
-    warnings.warn("h3ronpy has not been compiled in release mode. Performance will be degraded.", RuntimeWarning)
+    warnings.warn(
+        "h3ronpy has not been compiled in release mode. Performance will be degraded.",
+        RuntimeWarning,
+    )
 
 
 __all__ = [

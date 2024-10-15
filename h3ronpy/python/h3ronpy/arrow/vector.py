@@ -27,7 +27,10 @@ def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) ->
     else:
         res = _to_arrow_array(resarray, pa.uint8())
     return vector.coordinates_to_cells(
-        _to_arrow_array(latarray, pa.float64()), _to_arrow_array(lngarray, pa.float64()), res, radians=radians
+        _to_arrow_array(latarray, pa.float64()),
+        _to_arrow_array(lngarray, pa.float64()),
+        res,
+        radians=radians,
     )
 
 

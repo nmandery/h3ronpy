@@ -74,7 +74,7 @@ def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_di
 
 
 def raster_to_dataframe(
-    in_raster: np.array,
+    in_raster: np.ndarray,
     transform,
     h3_resolution: int,
     nodata_value=None,
@@ -131,7 +131,7 @@ def raster_to_dataframe(
 
 def rasterize_cells(
     cells, values, size: typing.Union[int, typing.Tuple[int, int]], nodata_value=0
-) -> (np.ndarray, typing.Tuple[float, float, float, float, float, float]):
+) -> typing.Tuple[np.ndarray, typing.Tuple[float, float, float, float, float, float]]:
     """
     Generate a raster numpy array from arrays of cells and values.
 

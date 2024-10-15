@@ -1,4 +1,9 @@
-from h3ronpy.polars.vector import cells_to_coordinates, cells_bounds, cells_bounds_arrays, coordinates_to_cells
+from h3ronpy.polars.vector import (
+    cells_to_coordinates,
+    cells_bounds,
+    cells_bounds_arrays,
+    coordinates_to_cells,
+)
 import polars as pl
 import numpy as np
 import h3.api.numpy_int as h3
