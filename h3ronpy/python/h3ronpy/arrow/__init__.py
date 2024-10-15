@@ -1,35 +1,52 @@
-from typing import Union
+from __future__ import annotations
 
-import pyarrow as pa
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
+
+from arro3.core import Array, ChunkedArray, DataType, RecordBatch
+from arro3.core.types import (
+    ArrowArrayExportable,
+    ArrowSchemaExportable,
+    ArrowStreamExportable,
+)
+
 from h3ronpy.h3ronpyrs import op
 
-try:
+if TYPE_CHECKING:
     import polars as pl
 
-    _HAS_POLARS = True
-except ImportError:
-    _HAS_POLARS = False
+
+def _to_arrow_array(
+    arr: Union[ArrowArrayExportable, ArrowStreamExportable, pl.Series, Sequence[Any]],
+    dtype: Optional[ArrowSchemaExportable],
+) -> Array:
+    if hasattr(arr, "__arrow_c_array__"):
+        array = Array.from_arrow(cast(ArrowArrayExportable, arr))
+    elif hasattr(arr, "__arrow_c_stream__"):
+        ca = ChunkedArray.from_arrow(cast(ArrowStreamExportable, arr))
+        array = ca.combine_chunks()
+    elif hasattr(arr, "to_arrow"):
+        ca = ChunkedArray.from_arrow(arr.to_arrow())  # type: ignore
+        array = ca.combine_chunks()
+    elif dtype is not None:
+        # From arbitrary non-arrow input
+        array = Array(cast(Sequence[Any], arr), type=dtype)
+    else:
+        raise ValueError(
+            "Unsupported input to _to_arrow_array. Expected array-like or series-like."
+        )
+
+    # Cast if dtype was provided
+    if dtype is not None:
+        array = array.cast(dtype)
+
+    return array
 
 
-def _to_arrow_array(arr, dtype) -> pa.Array:
-    converted = None
-    if _HAS_POLARS:
-        if isinstance(arr, pl.Series):
-            converted = arr.to_arrow()
-
-    if converted is None:
-        converted = pa.array(arr, type=dtype)
-
-    if isinstance(arr, pa.ChunkedArray):
-        converted = converted.combine_chunks()
-    return converted
+def _to_uint64_array(arr) -> Array:
+    return _to_arrow_array(arr, DataType.uint64())
 
 
-def _to_uint64_array(arr) -> pa.Array:
-    return _to_arrow_array(arr, pa.uint64())
-
-
-def change_resolution(arr, resolution: int) -> pa.Array:
+def change_resolution(arr, resolution: int) -> Array:
     """
     Change the H3 resolutions of all contained values to `resolution`.
 
@@ -41,7 +58,7 @@ def change_resolution(arr, resolution: int) -> pa.Array:
     return op.change_resolution(_to_uint64_array(arr), resolution)
 
 
-def change_resolution_list(arr, resolution: int) -> pa.Array:
+def change_resolution_list(arr, resolution: int) -> Array:
     """
     Change the H3 resolutions of all contained values to `resolution`.
 
@@ -53,7 +70,7 @@ def change_resolution_list(arr, resolution: int) -> pa.Array:
     return op.change_resolution_list(_to_uint64_array(arr), resolution)
 
 
-def change_resolution_paired(arr, resolution: int) -> pa.Table:
+def change_resolution_paired(arr, resolution: int) -> RecordBatch:
     """
     Returns a table/dataframe with two columns: `cell_before` and `cell_after`
     with the cells h3index before and after the resolution change.
@@ -64,7 +81,7 @@ def change_resolution_paired(arr, resolution: int) -> pa.Table:
     return op.change_resolution_paired(_to_uint64_array(arr), resolution)
 
 
-def cells_resolution(arr) -> pa.Array:
+def cells_resolution(arr) -> Array:
     """
     Generates a new array containing the resolution of each cell of the
     input array.
@@ -75,7 +92,7 @@ def cells_resolution(arr) -> pa.Array:
     return op.cells_resolution(_to_uint64_array(arr))
 
 
-def cells_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
+def cells_parse(arr, set_failing_to_invalid: bool = False) -> Array:
     """
     Parse H3 cells from string arrays.
 
@@ -89,10 +106,13 @@ def cells_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
         * numeric integer strings (Example: ``600436454824345599``)
         * strings like ``[x], [y], [resolution]`` or  ``[x]; [y]; [resolution]``. (Example: ``10.2,45.5,5``)
     """
-    return op.cells_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
+    return op.cells_parse(
+        _to_arrow_array(arr, DataType.utf8()),
+        set_failing_to_invalid=set_failing_to_invalid,
+    )
 
 
-def vertexes_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
+def vertexes_parse(arr, set_failing_to_invalid: bool = False) -> Array:
     """
     Parse H3 vertexes from string arrays.
 
@@ -100,10 +120,13 @@ def vertexes_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
     the successful parsing of an individual element. Having this set to false will cause the
     method to fail upon encountering the first unparsable value.
     """
-    return op.vertexes_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
+    return op.vertexes_parse(
+        _to_arrow_array(arr, DataType.utf8()),
+        set_failing_to_invalid=set_failing_to_invalid,
+    )
 
 
-def directededges_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
+def directededges_parse(arr, set_failing_to_invalid: bool = False) -> Array:
     """
     Parse H3 directed edges from string arrays.
 
@@ -111,10 +134,13 @@ def directededges_parse(arr, set_failing_to_invalid: bool = False) -> pa.Array:
     the successful parsing of an individual element. Having this set to false will cause the
     method to fail upon encountering the first unparsable value.
     """
-    return op.directededges_parse(_to_arrow_array(arr, pa.utf8()), set_failing_to_invalid=set_failing_to_invalid)
+    return op.directededges_parse(
+        _to_arrow_array(arr, DataType.utf8()),
+        set_failing_to_invalid=set_failing_to_invalid,
+    )
 
 
-def compact(arr, mixed_resolutions: bool = False) -> pa.Array:
+def compact(arr, mixed_resolutions: bool = False) -> Array:
     """
     Compact the given cells
 
@@ -124,7 +150,7 @@ def compact(arr, mixed_resolutions: bool = False) -> pa.Array:
     return op.compact(_to_uint64_array(arr), mixed_resolutions=mixed_resolutions)
 
 
-def uncompact(arr, target_resolution: int) -> pa.Array:
+def uncompact(arr, target_resolution: int) -> Array:
     """
     Uncompact the given cells to the resolution `target_resolution`.
 
@@ -135,13 +161,13 @@ def uncompact(arr, target_resolution: int) -> pa.Array:
 
 
 def _make_h3index_valid_wrapper(fn, h3index_name, wrapper_name):
-    def valid_wrapper(arr, booleanarray: bool = False) -> pa.Array:
+    def valid_wrapper(arr, booleanarray: bool = False) -> Array:
         return fn(_to_uint64_array(arr), booleanarray=booleanarray)
 
     valid_wrapper.__doc__ = f"""
     Validate an array of potentially invalid {h3index_name} values by returning a new
     UInt64 array with the validity mask set accordingly.
-    
+
     If `booleanarray` is set to True, a boolean array describing the validity will be
     returned instead.
     """
@@ -151,53 +177,61 @@ def _make_h3index_valid_wrapper(fn, h3index_name, wrapper_name):
 
 cells_valid = _make_h3index_valid_wrapper(op.cells_valid, "cell", "cells_valid")
 vertexes_valid = _make_h3index_valid_wrapper(op.cells_valid, "vertex", "vertexes_valid")
-directededges_valid = _make_h3index_valid_wrapper(op.cells_valid, "directed edge", "directededges_valid")
+directededges_valid = _make_h3index_valid_wrapper(
+    op.cells_valid, "directed edge", "directededges_valid"
+)
 
 
-def grid_disk(cellarray, k: int, flatten: bool = False) -> Union[pa.ListArray, pa.Array]:
+def grid_disk(cellarray, k: int, flatten: bool = False) -> Array:
     return op.grid_disk(_to_uint64_array(cellarray), k, flatten=flatten)
 
 
-def grid_disk_distances(cellarray, k: int, flatten: bool = False) -> pa.Table:
+def grid_disk_distances(cellarray, k: int, flatten: bool = False) -> RecordBatch:
     return op.grid_disk_distances(_to_uint64_array(cellarray), k, flatten=flatten)
 
 
-def grid_disk_aggregate_k(cellarray, k: int, aggregation_method: str) -> pa.Table:
+def grid_disk_aggregate_k(cellarray, k: int, aggregation_method: str) -> RecordBatch:
     """
     Valid values for `aggregation_method` are `"min"` and `"max"`.
     """
     return op.grid_disk_aggregate_k(_to_uint64_array(cellarray), k, aggregation_method)
 
 
-def grid_ring_distances(cellarray, k_min: int, k_max: int, flatten: bool = False) -> pa.Table:
-    return op.grid_ring_distances(_to_uint64_array(cellarray), k_min, k_max, flatten=flatten)
+def grid_ring_distances(
+    cellarray, k_min: int, k_max: int, flatten: bool = False
+) -> RecordBatch:
+    return op.grid_ring_distances(
+        _to_uint64_array(cellarray), k_min, k_max, flatten=flatten
+    )
 
 
-def cells_area_m2(cellarray) -> pa.Array:
+def cells_area_m2(cellarray) -> Array:
     return op.cells_area_m2(_to_uint64_array(cellarray))
 
 
-def cells_area_km2(cellarray) -> pa.Array:
+def cells_area_km2(cellarray) -> Array:
     return op.cells_area_km2(_to_uint64_array(cellarray))
 
 
-def cells_area_rads2(cellarray) -> pa.Array:
+def cells_area_rads2(cellarray) -> Array:
     return op.cells_area_rads2(_to_uint64_array(cellarray))
 
 
-def cells_to_string(cellarray) -> pa.Array:
+def cells_to_string(cellarray) -> Array:
     return op.cells_to_string(_to_uint64_array(cellarray))
 
 
-def vertexes_to_string(vertexesarray) -> pa.Array:
+def vertexes_to_string(vertexesarray) -> Array:
     return op.vertexes_to_string(_to_uint64_array(vertexesarray))
 
 
-def directededges_to_string(directededgearray) -> pa.Array:
+def directededges_to_string(directededgearray) -> Array:
     return op.directededges_to_string(_to_uint64_array(directededgearray))
 
 
-def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) -> pa.Table:
+def cells_to_localij(
+    cellarray, anchor, set_failing_to_invalid: bool = False
+) -> RecordBatch:
     """
     Produces IJ coordinates for an index anchored by an origin `anchor`.
 
@@ -215,10 +249,14 @@ def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) ->
     """
     if type(anchor) is not int:
         anchor = _to_uint64_array(anchor)
-    return op.cells_to_localij(_to_uint64_array(cellarray), anchor, set_failing_to_invalid=set_failing_to_invalid)
+    return op.cells_to_localij(
+        _to_uint64_array(cellarray),
+        anchor,
+        set_failing_to_invalid=set_failing_to_invalid,
+    )
 
 
-def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> pa.Array:
+def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> Array:
     """
     Produces cells from `i` and `j` coordinates and an `anchor` cell.
 
@@ -230,8 +268,8 @@ def localij_to_cells(anchor, i, j, set_failing_to_invalid: bool = False) -> pa.A
         anchor = _to_uint64_array(anchor)
     return op.localij_to_cells(
         anchor,
-        _to_arrow_array(i, pa.int32()),
-        _to_arrow_array(j, pa.int32()),
+        _to_arrow_array(i, DataType.int32()),
+        _to_arrow_array(j, DataType.int32()),
         set_failing_to_invalid=set_failing_to_invalid,
     )
 
