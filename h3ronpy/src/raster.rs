@@ -142,6 +142,7 @@ where
 macro_rules! make_raster_to_h3_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
+        #[pyo3(signature = (np_array, transform, h3_resolution, axis_order_str, compact, nodata_value=None))]
         fn $name(
             py: Python,
             np_array: PyReadonlyArray2<$dtype>,
@@ -173,6 +174,7 @@ macro_rules! make_raster_to_h3_variant {
 macro_rules! make_raster_to_h3_float_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
+        #[pyo3(signature = (np_array, transform, h3_resolution, axis_order_str, compact, nodata_value=None))]
         fn $name(
             py: Python,
             np_array: PyReadonlyArray2<$dtype>,

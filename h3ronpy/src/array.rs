@@ -20,6 +20,7 @@ impl PyCellArray {
 
 #[pymethods]
 impl PyCellArray {
+    #[pyo3(signature = (requested_schema = None))]
     fn __arrow_c_array__<'py>(
         &'py self,
         py: Python<'py>,
@@ -60,6 +61,7 @@ pub struct PyDirectedEdgeArray(DirectedEdgeIndexArray);
 
 #[pymethods]
 impl PyDirectedEdgeArray {
+    #[pyo3(signature = (requested_schema = None))]
     fn __arrow_c_array__<'py>(
         &'py self,
         py: Python<'py>,
@@ -92,6 +94,7 @@ pub struct PyVertexArray(VertexIndexArray);
 
 #[pymethods]
 impl PyVertexArray {
+    #[pyo3(signature = (requested_schema = None))]
     fn __arrow_c_array__<'py>(
         &'py self,
         py: Python<'py>,
