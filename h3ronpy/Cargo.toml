@@ -21,16 +21,18 @@ geo = { workspace = true }
 h3arrow = { path = "../crates/h3arrow", features = ["geoarrow", "rayon"] }
 hashbrown = "0.14"
 itertools = "0.13"
-ndarray = { version = "0.15", features = ["rayon"] }
-numpy = "0.21"
+ndarray = { version = "0.16", features = ["rayon"] }
+numpy = "0.22"
 ordered-float = ">=2.0.1"
-py_geo_interface = { version = "0.8", features = ["f64", "wkb"] }
-pyo3 = { version = "^0.21", features = [
-    "extension-module",
-    # "abi3",
-    # "abi3-py39",
+py_geo_interface = { git = "https://github.com/nmandery/py_geo_interface", rev = "36723cdbabc2a7aad1746a8c06db17b4e39ce3b9", features = [
+    "f64",
+    "wkb",
 ] }
-# Note(kyle) I have a bug with setting default-features = false, so we keep default-features on and turn off abi3
-pyo3-arrow = { version = "0.4.0", default-features = true }
+pyo3 = { version = "^0.22", features = [
+    "extension-module",
+    "abi3",
+    "abi3-py39",
+] }
+pyo3-arrow = { version = "0.5.1", default-features = false }
 rasterh3 = { version = "^0.8", features = ["rayon"] }
 rayon = { workspace = true }
