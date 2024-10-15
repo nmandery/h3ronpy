@@ -21,7 +21,7 @@ geo = { workspace = true }
 h3arrow = { path = "../crates/h3arrow", features = ["geoarrow", "rayon"] }
 hashbrown = "0.14"
 itertools = "0.13"
-ndarray = { version = "0.16", features = ["rayon"] }
+ndarray = { version = "0.15", features = ["rayon"] }
 numpy = "0.22"
 ordered-float = ">=2.0.1"
 py_geo_interface = { git = "https://github.com/nmandery/py_geo_interface", rev = "36723cdbabc2a7aad1746a8c06db17b4e39ce3b9", features = [
