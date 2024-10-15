@@ -1,11 +1,9 @@
-import pytest
-
-from h3ronpy.polars import cells_parse, cells_valid, cells_to_string
-import numpy as np
 import h3.api.numpy_int as h3
-import polars as pl
-from arro3.core import DataType
+import numpy as np
 import pyarrow as pa
+import pytest
+from arro3.core import Array
+from h3ronpy.arrow import cells_parse, cells_to_string, cells_valid
 
 
 def test_cells_parse():
@@ -17,7 +15,7 @@ def test_cells_parse():
 
 def test_cells_parse_largeutf8():
     # polars uses LargeUtf8 datatype for strings
-    cells = cells_parse(pl.Series(["801ffffffffffff"]))
+    cells = cells_parse(pa.array(["801ffffffffffff"], type=pa.large_utf8()))
     assert len(cells) == 1
 
 
@@ -70,6 +68,6 @@ def test_cells_to_string():
     )
     strings = cells_to_string(cells)
     assert len(strings) == len(cells)
-    assert isinstance(strings, pl.Series)
-    assert strings.dtype == pl.Utf8
+    assert isinstance(strings, Array)
+    assert strings.type == pa.large_utf8()
     assert strings[0] == "851f9923fffffff"
