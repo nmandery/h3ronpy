@@ -24,7 +24,7 @@ select = [
 name = "h3ronpy"
 readme = "../README.rst"
 
-dependencies = ["numpy<2", "arro3-core>=0.4"]
+dependencies = ["numpy", "arro3-core>=0.4"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: GIS",
