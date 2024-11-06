@@ -8,9 +8,7 @@ from shapely.geometry import Point
 
 def test_geometry_to_cells():
     geom = shapely.Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)))
-    cells = geometry_to_cells(
-        geom, 5, containment_mode=ContainmentMode.IntersectsBoundary
-    )
+    cells = geometry_to_cells(geom, 5, containment_mode=ContainmentMode.IntersectsBoundary)
     assert isinstance(cells, Array)
     assert cells.type == DataType.uint64()
     assert len(cells) > 10

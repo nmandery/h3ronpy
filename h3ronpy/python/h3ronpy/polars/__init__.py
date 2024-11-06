@@ -48,9 +48,7 @@ class H3Expr:
     def __init__(self, expr: pl.Expr):
         self._expr = expr
 
-    def __expr_map_series(
-        self, func: typing.Callable[..., ArrowArrayExportable]
-    ) -> pl.Expr:
+    def __expr_map_series(self, func: typing.Callable[..., ArrowArrayExportable]) -> pl.Expr:
         wrapped_func = _wrap(func)
 
         if hasattr(self._expr, "map"):
@@ -66,38 +64,28 @@ class H3Expr:
         return self.__expr_map_series(lambda s: _arrow.change_resolution(s, resolution))
 
     def change_resolution_list(self, resolution: int) -> pl.Expr:
-        return self.__expr_map_series(
-            lambda s: _arrow.change_resolution_list(s, resolution)
-        )
+        return self.__expr_map_series(lambda s: _arrow.change_resolution_list(s, resolution))
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.cells_parse(
-                s, set_failing_to_invalid=set_failing_to_invalid
-            )
+            lambda s: _arrow.cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("cell")
 
     def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.vertexes_parse(
-                s, set_failing_to_invalid=set_failing_to_invalid
-            )
+            lambda s: _arrow.vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("vertex")
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.directededges_parse(
-                s, set_failing_to_invalid=set_failing_to_invalid
-            )
+            lambda s: _arrow.directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("directededge")
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
         return self.__expr_map_series(lambda s: _arrow.grid_disk(s, k, flatten=flatten))
 
     def compact(self, mixed_resolutions: bool = False) -> pl.Expr:
-        return self.__expr_map_series(
-            lambda s: _arrow.compact(s, mixed_resolutions=mixed_resolutions)
-        )
+        return self.__expr_map_series(lambda s: _arrow.compact(s, mixed_resolutions=mixed_resolutions))
 
     def uncompact(self, target_resolution: int) -> pl.Expr:
         return self.__expr_map_series(lambda s: _arrow.uncompact(s, target_resolution))
@@ -118,9 +106,7 @@ class H3Expr:
         return self.__expr_map_series(_arrow.vertexes_valid).alias("vertexes_valid")
 
     def directededges_valid(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.directededges_valid).alias(
-            "directededges_valid"
-        )
+        return self.__expr_map_series(_arrow.directededges_valid).alias("directededges_valid")
 
     def cells_to_string(self) -> pl.Expr:
         return self.__expr_map_series(_arrow.cells_to_string)
@@ -154,19 +140,13 @@ class H3SeriesShortcuts:
         return _wrap(_arrow.change_resolution_list)(self._s, resolution)
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.cells_parse)(
-            self._s, set_failing_to_invalid=set_failing_to_invalid
-        )
+        return _wrap(_arrow.cells_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.vertexes_parse)(
-            self._s, set_failing_to_invalid=set_failing_to_invalid
-        )
+        return _wrap(_arrow.vertexes_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.directededges_parse)(
-            self._s, set_failing_to_invalid=set_failing_to_invalid
-        )
+        return _wrap(_arrow.directededges_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
         return _wrap(_arrow.grid_disk)(self._s, k, flatten=flatten)

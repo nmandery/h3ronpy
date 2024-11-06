@@ -49,9 +49,7 @@ vertexes_to_points = _geoseries_from_wkb(
     doc="Create a geoseries containing the point geometries of a vertex array",
     name="vertexes_to_points",
 )
-directededges_to_wkb_linestrings = _wrap(
-    _av.directededges_to_wkb_linestrings, ret_type=pd.Series
-)
+directededges_to_wkb_linestrings = _wrap(_av.directededges_to_wkb_linestrings, ret_type=pd.Series)
 directededges_to_linestrings = _geoseries_from_wkb(
     directededges_to_wkb_linestrings,
     doc="Create a geoseries containing the linestrings geometries of a directededge array",
@@ -79,9 +77,7 @@ def cells_dataframe_to_geodataframe(
     :param cell_column_name: name of the column containing the h3 indexes
     :return: GeoDataFrame
     """
-    return gpd.GeoDataFrame(
-        df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS
-    )
+    return gpd.GeoDataFrame(df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS)
 
 
 def geodataframe_to_cells(
@@ -116,14 +112,10 @@ def geodataframe_to_cells(
         compact=compact,
         flatten=False,
     )
-    table = pa.Table.from_pandas(
-        pd.DataFrame(gdf.drop(columns=gdf.geometry.name))
-    ).append_column(cell_column_name, cells)
-    return (
-        _arrow_util.explode_table_include_null(table, cell_column_name)
-        .to_pandas()
-        .reset_index(drop=True)
+    table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns=gdf.geometry.name))).append_column(
+        cell_column_name, cells
     )
+    return _arrow_util.explode_table_include_null(table, cell_column_name).to_pandas().reset_index(drop=True)
 
 
 __all__ = [
