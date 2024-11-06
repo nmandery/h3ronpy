@@ -28,13 +28,16 @@ Resolution search modes of `nearest_h3_resolution`:
 
 """
 
-from h3ronpy.h3ronpyrs import raster
-from .. import DEFAULT_CELL_COLUMN_NAME
-from . import _to_uint64_array, _to_arrow_array
-from .vector import cells_to_wkb_polygons, cells_bounds
+import typing
+
 import numpy as np
 import pyarrow as pa
-import typing
+
+from h3ronpy.h3ronpyrs import raster
+
+from .. import DEFAULT_CELL_COLUMN_NAME
+from . import _to_arrow_array, _to_uint64_array
+from .vector import cells_bounds, cells_to_wkb_polygons
 
 try:
     # affine library is used by rasterio
@@ -124,7 +127,14 @@ def raster_to_dataframe(
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
     return pa.Table.from_arrays(
-        arrays=func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value),
+        arrays=func(
+            in_raster,
+            _get_transform(transform),
+            h3_resolution,
+            axis_order,
+            compact,
+            nodata_value,
+        ),
         names=["value", DEFAULT_CELL_COLUMN_NAME],
     )
 
@@ -145,9 +155,9 @@ def rasterize_cells(
     :return: 2D numpy array typed accordingly to the passed in values array, and the geotransform (WGS84 coordinate
             system, ordering used by the affine library and rasterio)
     """
-    from rasterio.transform import from_bounds
-    from rasterio.features import rasterize
     import shapely
+    from rasterio.features import rasterize
+    from rasterio.transform import from_bounds
 
     cells = _to_uint64_array(cells)
     values = _to_arrow_array(values, None)
