@@ -5,11 +5,11 @@ from h3ronpy.arrow import cells_to_string
 
 
 def some_cells() -> np.ndarray:
-    return np.full(1000, h3.latlng_to_cell(45.5, 10.2, 5), dtype="uint64")
+    return np.full(1000, h3.geo_to_h3(45.5, 10.2, 5), dtype="uint64")
 
 
 def benchmark_h3_to_string_python_list(cells):
-    return [h3.int_to_str(cell) for cell in cells]
+    return [h3.h3_to_string(cell) for cell in cells]
 
 
 def test_cells_to_string(benchmark):
@@ -21,7 +21,7 @@ def test_h3_to_string_python_list(benchmark):
 
 
 h3_to_string_numpy_vectorized = np.vectorize(
-    h3.int_to_str,
+    h3.h3_to_string,
     otypes=[
         str,
     ],

@@ -1,29 +1,13 @@
-from functools import wraps
-from typing import Optional
-
 import geopandas as gpd
 import pandas as pd
 import pyarrow as pa
+import shapely
+
+from h3ronpy.arrow.vector import cells_to_wkb_polygons
 
 from .. import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
 from ..arrow import util as _arrow_util
 from ..arrow import vector as _av
-
-
-def _geoseries_from_wkb(func, doc: Optional[str] = None, name: Optional[str] = None):
-    @wraps(func)
-    def wrapper(*args, **kw):
-        return gpd.GeoSeries.from_wkb(func(*args, **kw), crs=H3_CRS)
-
-    # create a copy to avoid modifying the dict of the wrapped function
-    wrapper.__annotations__ = dict(**wrapper.__annotations__)
-    wrapper.__annotations__["return"] = gpd.GeoSeries
-    if doc is not None:
-        wrapper.__doc__ = doc
-    if name is not None:
-        wrapper.__name__ = name
-
-    return wrapper
 
 
 def cells_dataframe_to_geodataframe(
@@ -36,7 +20,9 @@ def cells_dataframe_to_geodataframe(
     :param cell_column_name: name of the column containing the h3 indexes
     :return: GeoDataFrame
     """
-    return gpd.GeoDataFrame(df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS)
+    wkb_polygons = cells_to_wkb_polygons(df[cell_column_name])
+    geometry = shapely.from_wkb(wkb_polygons)
+    return gpd.GeoDataFrame(df, geometry=geometry, crs=H3_CRS)
 
 
 def geodataframe_to_cells(
