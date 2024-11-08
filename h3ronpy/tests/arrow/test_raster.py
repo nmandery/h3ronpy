@@ -29,9 +29,7 @@ def test_r_tiff():
 def test_r_tiff_float32():
     dataset = rasterio.open(TESTDATA_PATH / "r.tiff")
     band = dataset.read(1).astype(np.float32)
-    df = raster_to_dataframe(
-        band, dataset.transform, 8, nodata_value=np.NAN, compact=True
-    )
+    df = raster_to_dataframe(band, dataset.transform, 8, nodata_value=np.NAN, compact=True)
     assert len(df) > 100
     assert df[DEFAULT_CELL_COLUMN_NAME].dtype == pl.UInt64
     assert df["value"].dtype == pl.Float32
@@ -59,9 +57,7 @@ def test_rasterize_cells():
     df = pl.read_parquet(TESTDATA_PATH / "population-841fa8bffffffff.parquet")
     size = (1000, 1000)
     nodata_value = -1
-    array, transform = rasterize_cells(
-        df["h3index"], df["pop_general"].cast(pl.Int32), size, nodata_value=nodata_value
-    )
+    array, transform = rasterize_cells(df["h3index"], df["pop_general"].cast(pl.Int32), size, nodata_value=nodata_value)
 
     assert array.shape == size
     assert np.int32 == array.dtype.type
@@ -77,9 +73,7 @@ def test_rasterize_cells_auto_aspect():
     df = pl.read_parquet(TESTDATA_PATH / "population-841fa8bffffffff.parquet")
     size = 1000
     nodata_value = -1
-    array, transform = rasterize_cells(
-        df["h3index"], df["pop_general"].cast(pl.Int32), size, nodata_value=nodata_value
-    )
+    array, transform = rasterize_cells(df["h3index"], df["pop_general"].cast(pl.Int32), size, nodata_value=nodata_value)
 
     assert array.shape[0] == size
     # print(array.shape)
