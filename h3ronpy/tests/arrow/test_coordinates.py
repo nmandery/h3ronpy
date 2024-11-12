@@ -1,7 +1,7 @@
 import h3.api.numpy_int as h3
 import numpy as np
 from arro3.core import RecordBatch
-from h3ronpy.arrow.vector import (
+from h3ronpy.vector import (
     cells_bounds,
     cells_bounds_arrays,
     cells_to_coordinates,

@@ -11,7 +11,7 @@ import polars as pl
 import pyarrow as pa
 import pytest
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, H3_CRS
-from h3ronpy.arrow.raster import raster_to_dataframe, rasterize_cells
+from h3ronpy.raster import raster_to_dataframe, rasterize_cells
 
 from tests import TESTDATA_PATH
 

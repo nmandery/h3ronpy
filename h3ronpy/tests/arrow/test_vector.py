@@ -1,7 +1,7 @@
 import h3.api.numpy_int as h3
 import shapely
 from arro3.core import Array, DataType, Scalar
-from h3ronpy.arrow.vector import ContainmentMode, cells_to_wkb_points, geometry_to_cells
+from h3ronpy.vector import ContainmentMode, cells_to_wkb_points, geometry_to_cells
 from shapely import wkb
 from shapely.geometry import Point
 
