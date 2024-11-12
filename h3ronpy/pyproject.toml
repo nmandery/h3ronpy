@@ -36,7 +36,7 @@ classifiers = [
 polars = ["polars>=1"]
 pandas = ["geopandas>=1"]
 test = [
-    "rasterio",
+    "rasterio>=1.4",
     "Shapely>=1.7",
     "pytest>=6",
     "h3<4",
