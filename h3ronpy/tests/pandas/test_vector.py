@@ -57,6 +57,9 @@ def test_empty_geometrycollection_omitted():
     assert len(df) == 0
 
 
+@pytest.mark.skip(
+    reason="Empty points are unsupported until https://github.com/geoarrow/geoarrow-rs/issues/852 is fixed"
+)
 def test_fail_on_empty_point():
     gdf = gpd.GeoDataFrame(
         {
