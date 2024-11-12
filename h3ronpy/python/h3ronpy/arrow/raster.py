@@ -199,7 +199,7 @@ def rasterize_cells(
         value = value.as_py()
 
         # linking cells should speed up rendering in case of large homogenous areas
-        polygons = cells_to_wkb_polygons(cells, link_cells=True)
+        polygons = pa.array(cells_to_wkb_polygons(pa.array(cells), link_cells=True))
         polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
 
         # draw
