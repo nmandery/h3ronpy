@@ -3,11 +3,10 @@ import pandas as pd
 import pyarrow as pa
 import shapely
 
-from h3ronpy.arrow.vector import cells_to_wkb_polygons
-
-from .. import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
-from ..arrow import util as _arrow_util
-from ..arrow import vector as _av
+from h3ronpy import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
+from h3ronpy import util as _arrow_util
+from h3ronpy import vector as _av
+from h3ronpy.vector import cells_to_wkb_polygons
 
 
 def cells_dataframe_to_geodataframe(
