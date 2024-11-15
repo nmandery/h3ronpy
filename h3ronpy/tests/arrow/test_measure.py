@@ -1,7 +1,7 @@
-import numpy as np
 import h3.api.numpy_int as h3
-from h3ronpy.polars import cells_area_km2
-import polars as pl
+import numpy as np
+from arro3.core import Array
+from h3ronpy.arrow import cells_area_km2
 
 
 def test_cells_area_km2():
@@ -14,8 +14,8 @@ def test_cells_area_km2():
         dtype=np.uint64,
     )
     areas = cells_area_km2(cells)
-    assert isinstance(areas, pl.Series)
+    assert isinstance(areas, Array)
     assert len(areas) == 3
-    assert int(areas[0] * 100) == 62
-    assert int(areas[1]) == 213
-    assert int(areas[2]) == 10456
+    assert int(areas[0].as_py() * 100) == 62
+    assert int(areas[1].as_py()) == 213
+    assert int(areas[2].as_py()) == 10456

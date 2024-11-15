@@ -14,7 +14,7 @@ pub trait ToGeoArrowPolygons {
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<O, 2>, Self::Error>;
+    ) -> Result<PolygonArray<2>, Self::Error>;
 }
 
 impl<T> ToGeoArrowPolygons for T
@@ -26,7 +26,7 @@ where
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<O, 2>, Self::Error> {
+    ) -> Result<PolygonArray<2>, Self::Error> {
         Ok(self.to_polygons(use_degrees)?.into())
     }
 }
@@ -51,7 +51,7 @@ pub trait ToGeoArrowLineStrings {
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<O, 2>, Self::Error>;
+    ) -> Result<LineStringArray<2>, Self::Error>;
 }
 
 impl<T> ToGeoArrowLineStrings for T
@@ -62,7 +62,7 @@ where
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<O, 2>, Self::Error> {
+    ) -> Result<LineStringArray<2>, Self::Error> {
         Ok(self.to_linestrings(use_degrees)?.into())
     }
 }

@@ -1,18 +1,20 @@
+from typing import Optional, Tuple
+
+from arro3.core import Array, DataType, RecordBatch
+
+from h3ronpy import ContainmentMode
+from h3ronpy.arrow import _to_arrow_array, _to_uint64_array
 from h3ronpy.h3ronpyrs import vector
-from .. import ContainmentMode
-from . import _to_uint64_array, _HAS_POLARS, _to_arrow_array
-from typing import Optional, Tuple, Union
-import pyarrow as pa
 
 
-def cells_to_coordinates(arr, radians: bool = False) -> pa.Table:
+def cells_to_coordinates(arr, radians: bool = False) -> RecordBatch:
     """
     convert to point coordinates in degrees
     """
     return vector.cells_to_coordinates(_to_uint64_array(arr), radians=radians)
 
 
-def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) -> pa.Array:
+def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) -> Array:
     """
     Convert coordinates arrays to cells.
 
@@ -25,9 +27,12 @@ def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) ->
     if type(resarray) in (int, float):
         res = int(resarray)
     else:
-        res = _to_arrow_array(resarray, pa.uint8())
+        res = _to_arrow_array(resarray, DataType.uint8())
     return vector.coordinates_to_cells(
-        _to_arrow_array(latarray, pa.float64()), _to_arrow_array(lngarray, pa.float64()), res, radians=radians
+        _to_arrow_array(latarray, DataType.float64()),
+        _to_arrow_array(lngarray, DataType.float64()),
+        res,
+        radians=radians,
     )
 
 
@@ -38,7 +43,7 @@ def cells_bounds(arr) -> Optional[Tuple]:
     return vector.cells_bounds(_to_uint64_array(arr))
 
 
-def cells_bounds_arrays(arr) -> pa.Table:
+def cells_bounds_arrays(arr) -> RecordBatch:
     """
     Build a table/dataframe with the columns `minx`, `miny`, `maxx` and `maxy` containing the bounds of the individual
     cells from the input array.
@@ -46,7 +51,7 @@ def cells_bounds_arrays(arr) -> pa.Table:
     return vector.cells_bounds_arrays(_to_uint64_array(arr))
 
 
-def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) -> pa.Array:
+def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) -> Array:
     """
     Convert cells to polygons.
 
@@ -60,7 +65,7 @@ def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) 
     return vector.cells_to_wkb_polygons(_to_uint64_array(arr), radians=radians, link_cells=link_cells)
 
 
-def cells_to_wkb_points(arr, radians: bool = False) -> pa.Array:
+def cells_to_wkb_points(arr, radians: bool = False) -> Array:
     """
     Convert cells to points using their centroids.
 
@@ -72,7 +77,7 @@ def cells_to_wkb_points(arr, radians: bool = False) -> pa.Array:
     return vector.cells_to_wkb_points(_to_uint64_array(arr), radians=radians)
 
 
-def vertexes_to_wkb_points(arr, radians: bool = False) -> pa.Array:
+def vertexes_to_wkb_points(arr, radians: bool = False) -> Array:
     """
     Convert vertexes to points.
 
@@ -84,7 +89,7 @@ def vertexes_to_wkb_points(arr, radians: bool = False) -> pa.Array:
     return vector.vertexes_to_wkb_points(_to_uint64_array(arr), radians=radians)
 
 
-def directededges_to_wkb_linestrings(arr, radians: bool = False) -> pa.Array:
+def directededges_to_wkb_linestrings(arr, radians: bool = False) -> Array:
     """
     Convert directed edges to linestrings.
 
@@ -102,7 +107,7 @@ def wkb_to_cells(
     containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
     flatten: bool = False,
-) -> Union[pa.Array, pa.ListArray]:
+) -> Array:
     """
     Convert a Series/Array/List of WKB values to H3 cells.
 
@@ -117,17 +122,7 @@ def wkb_to_cells(
             of that cell are part of the set.
     :param flatten: Return a non-nested cell array instead of a list array.
     """
-    if _HAS_POLARS:
-        import polars as pl
-
-        if isinstance(arr, pl.Series):
-            arr = arr.to_arrow()
-
-    if not isinstance(arr, pa.LargeBinaryArray):
-        arr = pa.array(arr, type=pa.large_binary())
-
-    if isinstance(arr, pa.ChunkedArray):
-        arr = arr.combine_chunks()
+    arr = _to_arrow_array(arr, DataType.binary())
     return vector.wkb_to_cells(
         arr,
         resolution,
@@ -142,7 +137,7 @@ def geometry_to_cells(
     resolution: int,
     containment_mode: ContainmentMode = ContainmentMode.ContainsCentroid,
     compact: bool = False,
-) -> pa.Array:
+) -> Array:
     """
     Convert a single object which supports the python `__geo_interface__` protocol to H3 cells
 

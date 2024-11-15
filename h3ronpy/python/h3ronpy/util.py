@@ -1,5 +1,5 @@
-import pyarrow.compute as pc
 import pyarrow as pa
+import pyarrow.compute as pc
 
 
 # from https://issues.apache.org/jira/browse/ARROW-12099
@@ -16,7 +16,10 @@ def explode_table_include_null(table: pa.Table, column: str) -> pa.Table:
         # Using RuntimeWarning as ResourceWarning is often not displayed to the user.
         import warnings
 
-        warnings.warn("This ArrowIndexError may be a sign of the process running out of memory.", RuntimeWarning)
+        warnings.warn(
+            "This ArrowIndexError may be a sign of the process running out of memory.",
+            RuntimeWarning,
+        )
         raise
     result = result.append_column(
         pa.field(column, table.schema.field(column).type.value_type),

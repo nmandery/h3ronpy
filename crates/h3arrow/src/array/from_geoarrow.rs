@@ -9,33 +9,13 @@ use crate::error::Error;
 use arrow::array::OffsetSizeTrait;
 use geo_types::Geometry;
 use geoarrow::array::WKBArray;
-use geoarrow::trait_::GeometryArrayAccessor;
-use geoarrow::GeometryArrayTrait;
+use geoarrow::trait_::ArrayAccessor;
+use geoarrow::ArrayBase;
 use h3o::CellIndex;
 #[cfg(feature = "rayon")]
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 macro_rules! impl_to_cells {
-    ($array_type:ty, $offset:tt) => {
-        impl<$offset: OffsetSizeTrait> ToCellListArray<$offset> for $array_type {
-            fn to_celllistarray(
-                &self,
-                options: &ToCellsOptions,
-            ) -> Result<H3ListArray<CellIndex, $offset>, Error> {
-                self.iter_geo()
-                    .map(|v| v.map(Geometry::from))
-                    .to_celllistarray(options)
-            }
-        }
-
-        impl<$offset: OffsetSizeTrait> ToCellIndexArray for $array_type {
-            fn to_cellindexarray(&self, options: &ToCellsOptions) -> Result<CellIndexArray, Error> {
-                self.iter_geo()
-                    .map(|v| v.map(Geometry::from))
-                    .to_cellindexarray(options)
-            }
-        }
-    };
     ($array_type:ty) => {
         impl<O: OffsetSizeTrait> ToCellListArray<O> for $array_type {
             fn to_celllistarray(
@@ -58,12 +38,12 @@ macro_rules! impl_to_cells {
     };
 }
 
-impl_to_cells!(geoarrow::array::LineStringArray<O, 2>, O);
-impl_to_cells!(geoarrow::array::MultiLineStringArray<O, 2>, O);
-impl_to_cells!(geoarrow::array::MultiPointArray<O, 2>, O);
-impl_to_cells!(geoarrow::array::MultiPolygonArray<O, 2>, O);
+impl_to_cells!(geoarrow::array::LineStringArray<2>);
+impl_to_cells!(geoarrow::array::MultiLineStringArray<2>);
+impl_to_cells!(geoarrow::array::MultiPointArray<2>);
+impl_to_cells!(geoarrow::array::MultiPolygonArray<2>);
 impl_to_cells!(geoarrow::array::PointArray<2>);
-impl_to_cells!(geoarrow::array::PolygonArray<O, 2>, O);
+impl_to_cells!(geoarrow::array::PolygonArray<2>);
 
 impl<O: OffsetSizeTrait> ToCellListArray<O> for WKBArray<O> {
     fn to_celllistarray(

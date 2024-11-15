@@ -1,4 +1,4 @@
-from h3ronpy.arrow.raster import Transform
+from h3ronpy.raster import Transform
 
 
 def test_transform_cmp():

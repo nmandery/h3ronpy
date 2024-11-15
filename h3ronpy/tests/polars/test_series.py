@@ -1,8 +1,8 @@
-import polars as pl
-from . import some_cell_series
-
 # register expressions with polars
 import h3ronpy.polars as _
+import polars as pl
+
+from . import some_cell_series
 
 
 def test_series_cells_resolution():

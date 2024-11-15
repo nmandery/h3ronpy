@@ -28,13 +28,15 @@ Resolution search modes of `nearest_h3_resolution`:
 
 """
 
-from h3ronpy.h3ronpyrs import raster
-from .. import DEFAULT_CELL_COLUMN_NAME
-from . import _to_uint64_array, _to_arrow_array
-from .vector import cells_to_wkb_polygons, cells_bounds
+import typing
+
 import numpy as np
 import pyarrow as pa
-import typing
+
+from h3ronpy import DEFAULT_CELL_COLUMN_NAME
+from h3ronpy.arrow import _to_arrow_array, _to_uint64_array
+from h3ronpy.h3ronpyrs import raster
+from h3ronpy.vector import cells_bounds, cells_to_wkb_polygons
 
 try:
     # affine library is used by rasterio
@@ -74,7 +76,7 @@ def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_di
 
 
 def raster_to_dataframe(
-    in_raster: np.array,
+    in_raster: np.ndarray,
     transform,
     h3_resolution: int,
     nodata_value=None,
@@ -124,14 +126,21 @@ def raster_to_dataframe(
         raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
 
     return pa.Table.from_arrays(
-        arrays=func(in_raster, _get_transform(transform), h3_resolution, axis_order, compact, nodata_value),
+        arrays=func(
+            in_raster,
+            _get_transform(transform),
+            h3_resolution,
+            axis_order,
+            compact,
+            nodata_value,
+        ),
         names=["value", DEFAULT_CELL_COLUMN_NAME],
     )
 
 
 def rasterize_cells(
     cells, values, size: typing.Union[int, typing.Tuple[int, int]], nodata_value=0
-) -> (np.ndarray, typing.Tuple[float, float, float, float, float, float]):
+) -> typing.Tuple[np.ndarray, typing.Tuple[float, float, float, float, float, float]]:
     """
     Generate a raster numpy array from arrays of cells and values.
 
@@ -145,9 +154,9 @@ def rasterize_cells(
     :return: 2D numpy array typed accordingly to the passed in values array, and the geotransform (WGS84 coordinate
             system, ordering used by the affine library and rasterio)
     """
-    from rasterio.transform import from_bounds
-    from rasterio.features import rasterize
     import shapely
+    from rasterio.features import rasterize
+    from rasterio.transform import from_bounds
 
     cells = _to_uint64_array(cells)
     values = _to_arrow_array(values, None)
@@ -189,7 +198,7 @@ def rasterize_cells(
         value = value.as_py()
 
         # linking cells should speed up rendering in case of large homogenous areas
-        polygons = cells_to_wkb_polygons(cells, link_cells=True)
+        polygons = pa.array(cells_to_wkb_polygons(pa.array(cells), link_cells=True))
         polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
 
         # draw

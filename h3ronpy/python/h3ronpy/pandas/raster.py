@@ -1,19 +1,20 @@
+import typing
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import typing
 
-from ..arrow import raster as arrow_raster
+from .. import raster
 from .vector import cells_dataframe_to_geodataframe
 
-__doc__ = arrow_raster.__doc__
+__doc__ = raster.__doc__
 
-nearest_h3_resolution = arrow_raster.nearest_h3_resolution
-rasterize_cells = arrow_raster.rasterize_cells
+nearest_h3_resolution = raster.nearest_h3_resolution
+rasterize_cells = raster.rasterize_cells
 
 
 def raster_to_dataframe(
-    in_raster: np.array,
+    in_raster: np.ndarray,
     transform,
     h3_resolution: int,
     nodata_value=None,
@@ -39,8 +40,13 @@ def raster_to_dataframe(
     :return: pandas `DataFrame` or `GeoDataFrame`
     """
 
-    df = arrow_raster.raster_to_dataframe(
-        in_raster, transform, h3_resolution, nodata_value=nodata_value, axis_order=axis_order, compact=compact
+    df = raster.raster_to_dataframe(
+        in_raster,
+        transform,
+        h3_resolution,
+        nodata_value=nodata_value,
+        axis_order=axis_order,
+        compact=compact,
     ).to_pandas()
 
     if geo:
