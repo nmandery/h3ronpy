@@ -1,7 +1,6 @@
 use arrow::array::{Array, BooleanArray, BooleanBufferBuilder};
 use geo::{BoundingRect, Intersects};
-use geo_types::{Coord, MultiPolygon, Polygon, Rect};
-use h3o::geom::ToGeo;
+use geo_types::{Coord, Line, LineString, MultiPolygon, Point, Polygon, Rect};
 use h3o::{CellIndex, DirectedEdgeIndex, LatLng, VertexIndex};
 use rstar::primitives::{GeomWithData, Rectangle};
 use rstar::{RTree, AABB};
@@ -15,14 +14,15 @@ pub trait RectIndexable {
 
 impl RectIndexable for CellIndex {
     fn spatial_index_rect(&self) -> Option<Rect> {
-        self.to_geom(true).unwrap().bounding_rect()
+        LineString::from(self.boundary()).bounding_rect()
     }
 
     fn intersects_with_polygon(&self, poly: &Polygon) -> bool {
         // do a cheaper centroid containment check first before comparing the polygons
         let centroid: Coord = LatLng::from(*self).into();
         if poly.intersects(&centroid) {
-            poly.intersects(&self.to_geom(true).unwrap())
+            let self_poly = Polygon::new(LineString::from(self.boundary()), vec![]);
+            poly.intersects(&self_poly)
         } else {
             false
         }
@@ -31,21 +31,21 @@ impl RectIndexable for CellIndex {
 
 impl RectIndexable for DirectedEdgeIndex {
     fn spatial_index_rect(&self) -> Option<Rect> {
-        Some(self.to_geom(true).unwrap().bounding_rect())
+        Some(Line::from(*self).bounding_rect())
     }
 
     fn intersects_with_polygon(&self, poly: &Polygon) -> bool {
-        poly.intersects(&self.to_geom(true).unwrap())
+        poly.intersects(&Line::from(*self))
     }
 }
 
 impl RectIndexable for VertexIndex {
     fn spatial_index_rect(&self) -> Option<Rect> {
-        Some(self.to_geom(true).unwrap().bounding_rect())
+        Some(Point::from(*self).bounding_rect())
     }
 
     fn intersects_with_polygon(&self, poly: &Polygon) -> bool {
-        poly.intersects(&self.to_geom(true).unwrap())
+        poly.intersects(&Point::from(*self))
     }
 }
 
