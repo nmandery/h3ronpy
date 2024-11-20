@@ -1,8 +1,8 @@
 use arrow::array::OffsetSizeTrait;
 use geo::HasDimensions;
 use geo_types::*;
-use h3o::geom::{ContainmentMode, PolyfillConfig, ToCells};
-use h3o::{CellIndex, Resolution};
+use h3o::geom::{ContainmentMode, Plotter, PlotterBuilder, Tiler, TilerBuilder};
+use h3o::{CellIndex, LatLng, Resolution};
 #[cfg(feature = "rayon")]
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
@@ -12,20 +12,16 @@ use crate::error::Error;
 
 #[derive(Clone, Copy, Debug)]
 pub struct ToCellsOptions {
-    pub(crate) polyfill_config: PolyfillConfig,
+    pub(crate) h3_resolution: Resolution,
+    pub(crate) containment_mode: ContainmentMode,
     pub(crate) compact: bool,
 }
 
-impl From<PolyfillConfig> for ToCellsOptions {
-    fn from(polyfill_config: PolyfillConfig) -> Self {
-        Self::new(polyfill_config)
-    }
-}
-
 impl ToCellsOptions {
-    pub fn new(polyfill_config: PolyfillConfig) -> Self {
+    pub fn new(h3_resolution: Resolution) -> Self {
         Self {
-            polyfill_config,
+            h3_resolution,
+            containment_mode: ContainmentMode::ContainsCentroid,
             compact: false,
         }
     }
@@ -34,13 +30,26 @@ impl ToCellsOptions {
         self.compact = compact;
         self
     }
+
+    pub fn containment_mode(mut self, containment_mode: ContainmentMode) -> Self {
+        self.containment_mode = containment_mode;
+        self
+    }
+
+    pub(crate) fn tiler(&self) -> Tiler {
+        TilerBuilder::new(self.h3_resolution)
+            .containment_mode(self.containment_mode)
+            .build()
+    }
+
+    pub(crate) fn plotter(&self) -> Plotter {
+        PlotterBuilder::new(self.h3_resolution).build()
+    }
 }
 
 impl From<Resolution> for ToCellsOptions {
     fn from(resolution: Resolution) -> Self {
-        PolyfillConfig::new(resolution)
-            .containment_mode(ContainmentMode::ContainsCentroid)
-            .into()
+        Self::new(resolution)
     }
 }
 
@@ -301,9 +310,9 @@ pub fn geometry_to_cells(
     if geom.is_empty() {
         return Ok(vec![]);
     }
-    let mut cells: Vec<_> = h3o::geom::Geometry::from_degrees(geom.clone())?
-        .to_cells(options.polyfill_config)
-        .collect();
+
+    let mut cells = vec![];
+    geometry_to_cells_internal(geom, options, &mut cells)?;
 
     // deduplicate, in the case of overlaps or lines
     cells.sort_unstable();
@@ -315,6 +324,74 @@ pub fn geometry_to_cells(
         cells
     };
     Ok(cells)
+}
+
+fn geometry_to_cells_internal(
+    geom: &Geometry,
+    options: &ToCellsOptions,
+    out_cells: &mut Vec<CellIndex>,
+) -> Result<(), Error> {
+    match geom {
+        Geometry::Point(pt) => {
+            out_cells.push(LatLng::try_from(pt.0)?.to_cell(options.h3_resolution))
+        }
+        Geometry::Line(line) => {
+            let mut plotter = options.plotter();
+            plotter.add(*line)?;
+            push_plotter_contents(out_cells, plotter)?;
+        }
+        Geometry::LineString(line_string) => {
+            let mut plotter = options.plotter();
+            plotter.add_batch(line_string.lines())?;
+            push_plotter_contents(out_cells, plotter)?;
+        }
+        Geometry::Polygon(polygon) => {
+            let mut tiler = options.tiler();
+            tiler.add(polygon.clone())?;
+            out_cells.extend(tiler.into_coverage());
+        }
+        Geometry::MultiPoint(multi_point) => {
+            out_cells.reserve(multi_point.len());
+            for point in multi_point.iter() {
+                out_cells.push(LatLng::try_from(point.0)?.to_cell(options.h3_resolution))
+            }
+        }
+        Geometry::MultiLineString(multi_line_string) => {
+            let mut plotter = options.plotter();
+            for line_string in multi_line_string.iter() {
+                plotter.add_batch(line_string.lines())?;
+            }
+            push_plotter_contents(out_cells, plotter)?;
+        }
+        Geometry::MultiPolygon(multi_polygon) => {
+            let mut tiler = options.tiler();
+            tiler.add_batch(multi_polygon.iter().cloned())?;
+            out_cells.extend(tiler.into_coverage());
+        }
+        Geometry::GeometryCollection(geometry_collection) => geometry_collection
+            .iter()
+            .try_for_each(|g| geometry_to_cells_internal(g, options, out_cells))?,
+        Geometry::Rect(rect) => {
+            let mut tiler = options.tiler();
+            tiler.add(rect.to_polygon())?;
+            out_cells.extend(tiler.into_coverage());
+        }
+        Geometry::Triangle(triangle) => {
+            let mut tiler = options.tiler();
+            tiler.add(triangle.to_polygon())?;
+            out_cells.extend(tiler.into_coverage());
+        }
+    }
+    Ok(())
+}
+
+fn push_plotter_contents(out_cells: &mut Vec<CellIndex>, plotter: Plotter) -> Result<(), Error> {
+    let cell_iter = plotter.plot();
+    out_cells.reserve(cell_iter.size_hint().0);
+    for cell_result in cell_iter {
+        out_cells.push(cell_result?);
+    }
+    Ok(())
 }
 
 fn to_cells(

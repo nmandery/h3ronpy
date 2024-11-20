@@ -6,16 +6,16 @@ use arrow::array::{
 };
 use arrow::buffer::NullBuffer;
 use arrow::datatypes::{DataType, Field, Schema};
-use geo::{BoundingRect, HasDimensions};
+use geo::{BoundingRect, HasDimensions, LineString, ToRadians};
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
 use h3arrow::export::geoarrow::array::{WKBArray, WKBBuilder, WKBCapacity};
 use h3arrow::export::geoarrow::ArrayBase;
-use h3arrow::export::h3o::geom::{ContainmentMode, ToGeo};
+use h3arrow::export::h3o::geom::ContainmentMode;
 use h3arrow::export::h3o::Resolution;
-use h3arrow::h3o::geom::PolyfillConfig;
+use h3arrow::h3o::geom::dissolve;
 use h3arrow::h3o::LatLng;
 use itertools::multizip;
 use pyo3::exceptions::PyValueError;
@@ -119,11 +119,7 @@ pub(crate) fn cells_bounds_arrays(py: Python, cellarray: PyCellArray) -> PyArrow
         validity_vec.iter_mut(),
     )) {
         if let Some(cell) = cell {
-            if let Some(rect) = cell
-                .to_geom(true)
-                .ok()
-                .and_then(|poly| poly.bounding_rect())
-            {
+            if let Some(rect) = LineString::from(cell.boundary()).bounding_rect() {
                 *validity = true;
                 *minx = rect.min().x;
                 *miny = rect.min().y;
@@ -253,14 +249,19 @@ pub(crate) fn cells_to_wkb_polygons(
     let use_degrees = !radians;
 
     let out: WKBArray<i64> = if link_cells {
-        let geoms = cellindexarray
-            .iter()
-            .flatten()
-            .to_geom(use_degrees)
+        let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
+        cells.sort_unstable();
+        cells.dedup();
+
+        let geoms = dissolve(cells)
             .into_pyresult()?
-            .0
             .into_iter()
-            .map(|poly| Some(geo_types::Geometry::from(poly)))
+            .map(|mut poly| {
+                if radians {
+                    poly.to_radians_in_place();
+                }
+                Some(geo_types::Geometry::from(poly))
+            })
             .collect::<Vec<_>>();
         let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
             geoms.iter().map(|v| v.as_ref()),
@@ -328,11 +329,11 @@ fn get_to_cells_options(
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
 ) -> PyResult<ToCellsOptions> {
-    Ok(ToCellsOptions::new(
-        PolyfillConfig::new(Resolution::try_from(resolution).into_pyresult()?)
-            .containment_mode(containment_mode.unwrap_or_default().containment_mode()),
+    Ok(
+        ToCellsOptions::new(Resolution::try_from(resolution).into_pyresult()?)
+            .containment_mode(containment_mode.unwrap_or_default().containment_mode())
+            .compact(compact),
     )
-    .compact(compact))
 }
 
 #[pyfunction]

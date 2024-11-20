@@ -27,7 +27,8 @@ impl IntoPyErr for A3Error {
             A3Error::InvalidLatLng(e) => e.into_pyerr(),
             A3Error::InvalidGeometry(e) => e.into_pyerr(),
             A3Error::CompactionError(e) => e.into_pyerr(),
-            A3Error::OutlinerError(e) => e.into_pyerr(),
+            A3Error::DissolutionError(e) => e.into_pyerr(),
+            A3Error::PlotterError(e) => e.into_pyerr(),
             A3Error::LocalIJError(e) => e.into_pyerr(),
             A3Error::Arrow2(e) => e.into_pyerr(),
             A3Error::NotAUint64Array
@@ -63,7 +64,8 @@ impl_h3o_value_err!(
     h3arrow::export::h3o::error::InvalidLatLng,
     h3arrow::export::h3o::error::InvalidResolution,
     h3arrow::export::h3o::error::InvalidVertexIndex,
-    h3arrow::export::h3o::error::OutlinerError,
+    h3arrow::export::h3o::error::DissolutionError,
+    h3arrow::export::h3o::error::PlotterError,
     h3arrow::export::h3o::error::LocalIjError,
 );
 

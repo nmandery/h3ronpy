@@ -60,7 +60,7 @@ def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) 
 
     :param: arr: The cell array
     :param radians: Generate geometries using radians instead of degrees
-    :param link_cells: Combine neighboring cells into a single polygon geometry.
+    :param link_cells: Combine neighboring cells into a single polygon geometry. All cell indexes must have the same resolution.
     """
     return vector.cells_to_wkb_polygons(_to_uint64_array(arr), radians=radians, link_cells=link_cells)
 
