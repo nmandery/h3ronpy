@@ -12,10 +12,10 @@ use crate::arrow_interop::*;
 
 fn h3index_valid<IX>(py: Python, arr: &Bound<PyAny>, booleanarray: bool) -> PyResult<PyObject>
 where
-    IX: H3IndexArrayValue,
+    IX: H3IndexArrayValue + Send,
 {
     let u64array = pyarray_to_uint64array(arr)?;
-    let validated = H3Array::<IX>::from_iter_with_validity(u64array.iter());
+    let validated = py.allow_threads(|| H3Array::<IX>::from_iter_with_validity(u64array.iter()));
 
     if booleanarray {
         let nullbuffer = validated

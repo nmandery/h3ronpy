@@ -153,16 +153,15 @@ macro_rules! make_raster_to_h3_variant {
             nodata_value: Option<$dtype>,
         ) -> PyResult<(PyObject, PyObject)> {
             let arr = np_array.as_array();
-            let (values, cells) = raster_to_h3(
+            let (values, cells) = py.allow_threads(|| raster_to_h3(
                 &arr,
                 transform,
                 &nodata_value,
                 h3_resolution,
                 axis_order_str,
                 compact,
-            )?;
+            ).map(|(values, cells)| (<$array_dtype>::from(values), cells)))?;
 
-            let values = <$array_dtype>::from(values);
             let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
             let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
@@ -188,17 +187,17 @@ macro_rules! make_raster_to_h3_float_variant {
             // create a copy with the values wrapped in ordered floats to
             // support the internal hashing
             let of_arr = arr.map(|v| OrderedFloat::from(*v));
-            let (values, cells) = raster_to_h3(
+            let (values, cells) = py.allow_threads(|| raster_to_h3(
                 &of_arr.view(),
                 transform,
                 &nodata_value.map(OrderedFloat::from),
                 h3_resolution,
                 axis_order_str,
                 compact,
-            )?;
+            ).map(|(values, cells)| (
+                <$array_dtype>::from(values.into_iter().map(|v| v.into_inner()).collect::<Vec<$dtype>>()),
+                cells)))?;
 
-            let values: Vec<$dtype> = values.into_iter().map(|v| v.into_inner()).collect();
-            let values = <$array_dtype>::from(values);
             let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
             let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 

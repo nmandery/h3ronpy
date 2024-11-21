@@ -12,7 +12,8 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
-- Upgrade to h3o 0.7
+- Upgrade to h3o 0.7.
+- Release the GIL more often to allow other threads to run.
 - The minimum supported python version is now 3.9.
 
 0.21.1 - 2024-10-04
