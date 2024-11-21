@@ -22,7 +22,10 @@ pub enum Error {
     CompactionError(#[from] h3o::error::CompactionError),
 
     #[error(transparent)]
-    OutlinerError(#[from] h3o::error::OutlinerError),
+    PlotterError(#[from] h3o::error::PlotterError),
+
+    #[error(transparent)]
+    DissolutionError(#[from] h3o::error::DissolutionError),
 
     #[error(transparent)]
     LocalIJError(#[from] h3o::error::LocalIjError),

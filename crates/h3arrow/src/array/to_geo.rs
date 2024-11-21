@@ -3,9 +3,8 @@ use crate::array::{
     VertexIndexArray,
 };
 use crate::error::Error;
-use geo::CoordsIter;
+use geo::{CoordsIter, ToRadians};
 use geo_types::{Coord, Line, LineString, MultiPoint, MultiPolygon, Point, Polygon};
-use h3o::geom::ToGeo;
 use h3o::{CellIndex, DirectedEdgeIndex, LatLng, VertexIndex};
 use std::convert::Infallible;
 use std::iter::{repeat, Map, Repeat, Zip};
@@ -30,7 +29,15 @@ impl IterPolygons for CellIndexArray {
     fn iter_polygons(&self, use_degrees: bool) -> Self::Iter<'_> {
         self.iter()
             .zip(repeat(use_degrees))
-            .map(|(v, use_degrees)| v.map(|cell| cell.to_geom(use_degrees)))
+            .map(|(v, use_degrees)| {
+                v.map(|cell| {
+                    let mut poly = Polygon::new(LineString::from(cell.boundary()), vec![]);
+                    if !use_degrees {
+                        poly.to_radians_in_place();
+                    }
+                    Ok(poly)
+                })
+            })
     }
 }
 
@@ -141,7 +148,15 @@ impl IterLines for DirectedEdgeIndexArray {
     fn iter_lines(&self, use_degrees: bool) -> Self::Iter<'_> {
         self.iter()
             .zip(repeat(use_degrees))
-            .map(|(v, use_degrees)| v.map(|cell| cell.to_geom(use_degrees)))
+            .map(|(v, use_degrees)| {
+                v.map(|edge| {
+                    let mut line = Line::from(edge);
+                    if !use_degrees {
+                        line.to_radians_in_place();
+                    }
+                    Ok(line)
+                })
+            })
     }
 }
 
@@ -205,10 +220,11 @@ impl ToMultiPolygons for CellIndexArray {
     type Output = MultiPolygon;
 
     fn to_multipolygons(&self, use_degrees: bool) -> Result<Self::Output, Self::Error> {
-        self.iter()
-            .flatten()
-            .to_geom(use_degrees)
-            .map_err(Into::into)
+        let mut multi_polygons = h3o::geom::dissolve(self.iter().flatten())?;
+        if !use_degrees {
+            multi_polygons.to_radians_in_place();
+        }
+        Ok(multi_polygons)
     }
 }
 

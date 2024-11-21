@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased (YYYY-MM-DD TBD)
 
+* Update h3o to 0.7.
 * Added H3ArrayBuilder type.
 * Added LocalIj coordinate support.
 

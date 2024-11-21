@@ -4,9 +4,9 @@ resolver = "2"
 members = ["h3ronpy", "crates/h3arrow"]
 
 [workspace.dependencies]
-geo = "0.28"
+geo = "0.29"
 geo-types = "0.7"
-h3o = { version = "0.6" }
+h3o = { version = "0.7" }
 rayon = "^1"
 arrow = { version = "53" }
 
