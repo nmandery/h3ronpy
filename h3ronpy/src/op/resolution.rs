@@ -14,14 +14,20 @@ use crate::error::IntoPyResult;
 use crate::DEFAULT_CELL_COLUMN_NAME;
 
 #[pyfunction]
-pub(crate) fn change_resolution(cellarray: PyCellArray, h3_resolution: u8) -> PyResult<PyObject> {
+pub(crate) fn change_resolution(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+    h3_resolution: u8,
+) -> PyResult<PyObject> {
     let cellindexarray = cellarray.into_inner();
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
-    let out = cellindexarray
-        .change_resolution(h3_resolution)
-        .into_pyresult()?;
+    let out = py.allow_threads(|| {
+        cellindexarray
+            .change_resolution(h3_resolution)
+            .into_pyresult()
+    })?;
 
-    Python::with_gil(|py| h3array_to_pyarray(out, py))
+    h3array_to_pyarray(out, py)
 }
 
 #[pyfunction]

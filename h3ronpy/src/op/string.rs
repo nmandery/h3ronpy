@@ -14,67 +14,76 @@ use crate::error::IntoPyResult;
 #[pyfunction]
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn cells_parse(
+    py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
 ) -> PyResult<PyObject> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let cells = if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
-        CellIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
-            .into_pyresult()?
-    } else if let Some(stringarray) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
-        CellIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
-            .into_pyresult()?
-    } else {
-        return Err(PyValueError::new_err(
-            "unsupported array type to parse cells from",
-        ));
-    };
+    let cells = py.allow_threads(|| {
+        if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
+            CellIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
+                .into_pyresult()
+        } else if let Some(stringarray) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
+            CellIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
+                .into_pyresult()
+        } else {
+            Err(PyValueError::new_err(
+                "unsupported array type to parse cells from",
+            ))
+        }
+    })?;
 
-    Python::with_gil(|py| h3array_to_pyarray(cells, py))
+    h3array_to_pyarray(cells, py)
 }
 
 #[pyfunction]
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn vertexes_parse(
+    py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
 ) -> PyResult<PyObject> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let vertexes = if let Some(utf8array) = boxed_array.as_any().downcast_ref::<StringArray>() {
-        VertexIndexArray::parse_genericstringarray(utf8array, set_failing_to_invalid)
-            .into_pyresult()?
-    } else if let Some(utf8array) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
-        VertexIndexArray::parse_genericstringarray(utf8array, set_failing_to_invalid)
-            .into_pyresult()?
-    } else {
-        return Err(PyValueError::new_err(
-            "unsupported array type to parse vertexes from",
-        ));
-    };
+    let vertexes = py.allow_threads(|| {
+        if let Some(utf8array) = boxed_array.as_any().downcast_ref::<StringArray>() {
+            VertexIndexArray::parse_genericstringarray(utf8array, set_failing_to_invalid)
+                .into_pyresult()
+        } else if let Some(utf8array) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
+            VertexIndexArray::parse_genericstringarray(utf8array, set_failing_to_invalid)
+                .into_pyresult()
+        } else {
+            Err(PyValueError::new_err(
+                "unsupported array type to parse vertexes from",
+            ))
+        }
+    })?;
 
-    Python::with_gil(|py| h3array_to_pyarray(vertexes, py))
+    h3array_to_pyarray(vertexes, py)
 }
 
 #[pyfunction]
 #[pyo3(signature = (stringarray, set_failing_to_invalid = false))]
 pub(crate) fn directededges_parse(
+    py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
 ) -> PyResult<PyObject> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let edges = if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
-        DirectedEdgeIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
-            .into_pyresult()?
-    } else if let Some(stringarray) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
-        DirectedEdgeIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
-            .into_pyresult()?
-    } else {
-        return Err(PyValueError::new_err(
-            "unsupported array type to parse directededges from",
-        ));
-    };
+    let edges = py.allow_threads(|| {
+        if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
+            DirectedEdgeIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
+                .into_pyresult()
+        } else if let Some(stringarray) = boxed_array.as_any().downcast_ref::<LargeStringArray>() {
+            DirectedEdgeIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
+                .into_pyresult()
+        } else {
+            Err(PyValueError::new_err(
+                "unsupported array type to parse directededges from",
+            ))
+        }
+    })?;
 
-    Python::with_gil(|py| h3array_to_pyarray(edges, py))
+    h3array_to_pyarray(edges, py)
 }
 
 #[pyfunction]

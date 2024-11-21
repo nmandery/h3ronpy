@@ -6,7 +6,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyTuple};
 use pyo3_arrow::ffi::to_array_pycapsules;
 
-use crate::arrow_interop::pyarray_to_cellindexarray;
+use crate::arrow_interop::{
+    pyarray_to_cellindexarray, pyarray_to_directededgeindexarray, pyarray_to_vertexindexarray,
+};
 use crate::resolution::PyResolution;
 
 #[pyclass(name = "CellArray")]
@@ -89,6 +91,18 @@ impl PyDirectedEdgeArray {
     }
 }
 
+impl AsRef<DirectedEdgeIndexArray> for PyDirectedEdgeArray {
+    fn as_ref(&self) -> &DirectedEdgeIndexArray {
+        &self.0
+    }
+}
+
+impl<'py> FromPyObject<'py> for PyDirectedEdgeArray {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(pyarray_to_directededgeindexarray(ob)?))
+    }
+}
+
 #[pyclass(name = "VertexArray")]
 pub struct PyVertexArray(VertexIndexArray);
 
@@ -115,5 +129,17 @@ impl PyVertexArray {
 
     fn slice(&self, offset: usize, length: usize) -> Self {
         Self(self.0.slice(offset, length))
+    }
+}
+
+impl AsRef<VertexIndexArray> for PyVertexArray {
+    fn as_ref(&self) -> &VertexIndexArray {
+        &self.0
+    }
+}
+
+impl<'py> FromPyObject<'py> for PyVertexArray {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(pyarray_to_vertexindexarray(ob)?))
     }
 }

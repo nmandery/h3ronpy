@@ -24,7 +24,7 @@ use pyo3::types::PyTuple;
 use pyo3_arrow::error::PyArrowResult;
 use pyo3_arrow::{PyArray, PyRecordBatch};
 
-use crate::array::PyCellArray;
+use crate::array::{PyCellArray, PyDirectedEdgeArray, PyVertexArray};
 use crate::arrow_interop::*;
 use crate::error::IntoPyResult;
 
@@ -87,14 +87,12 @@ impl PyContainmentMode {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds(cellarray: PyCellArray) -> PyResult<Option<PyObject>> {
-    if let Some(rect) = cellarray.as_ref().bounding_rect() {
-        Python::with_gil(|py| {
-            Ok(Some(
-                PyTuple::new_bound(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
-                    .to_object(py),
-            ))
-        })
+pub(crate) fn cells_bounds(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Option<PyObject>> {
+    if let Some(rect) = py.allow_threads(|| cellarray.as_ref().bounding_rect()) {
+        Ok(Some(
+            PyTuple::new_bound(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
+                .to_object(py),
+        ))
     } else {
         Ok(None)
     }
@@ -176,6 +174,7 @@ pub(crate) fn cells_to_coordinates(
 #[pyfunction]
 #[pyo3(signature = (latarray, lngarray, resolution, radians = false))]
 pub(crate) fn coordinates_to_cells(
+    py: Python<'_>,
     latarray: &Bound<PyAny>,
     lngarray: &Bound<PyAny>,
     resolution: &Bound<PyAny>,
@@ -192,22 +191,24 @@ pub(crate) fn coordinates_to_cells(
     let cells = if let Ok(resolution) = resolution.extract::<u8>() {
         let resolution = Resolution::try_from(resolution).into_pyresult()?;
 
-        latarray
-            .iter()
-            .zip(lngarray.iter())
-            .map(|(lat, lng)| {
-                if let (Some(lat), Some(lng)) = (lat, lng) {
-                    if radians {
-                        LatLng::from_radians(lat, lng).into_pyresult()
+        py.allow_threads(|| {
+            latarray
+                .iter()
+                .zip(lngarray.iter())
+                .map(|(lat, lng)| {
+                    if let (Some(lat), Some(lng)) = (lat, lng) {
+                        if radians {
+                            LatLng::from_radians(lat, lng).into_pyresult()
+                        } else {
+                            LatLng::new(lat, lng).into_pyresult()
+                        }
+                        .map(|ll| Some(ll.to_cell(resolution)))
                     } else {
-                        LatLng::new(lat, lng).into_pyresult()
+                        Ok(None)
                     }
-                    .map(|ll| Some(ll.to_cell(resolution)))
-                } else {
-                    Ok(None)
-                }
-            })
-            .collect::<PyResult<CellIndexArray>>()?
+                })
+                .collect::<PyResult<CellIndexArray>>()
+        })?
     } else {
         let resarray = ResolutionArray::try_from(pyarray_to_native::<UInt8Array>(resolution)?)
             .into_pyresult()?;
@@ -218,23 +219,25 @@ pub(crate) fn coordinates_to_cells(
             ));
         }
 
-        multizip((latarray.iter(), lngarray.iter(), resarray.iter()))
-            .map(|(lat, lng, res)| {
-                if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
-                    if radians {
-                        LatLng::from_radians(lat, lng).into_pyresult()
+        py.allow_threads(|| {
+            multizip((latarray.iter(), lngarray.iter(), resarray.iter()))
+                .map(|(lat, lng, res)| {
+                    if let (Some(lat), Some(lng), Some(res)) = (lat, lng, res) {
+                        if radians {
+                            LatLng::from_radians(lat, lng).into_pyresult()
+                        } else {
+                            LatLng::new(lat, lng).into_pyresult()
+                        }
+                        .map(|ll| Some(ll.to_cell(res)))
                     } else {
-                        LatLng::new(lat, lng).into_pyresult()
+                        Ok(None)
                     }
-                    .map(|ll| Some(ll.to_cell(res)))
-                } else {
-                    Ok(None)
-                }
-            })
-            .collect::<PyResult<CellIndexArray>>()?
+                })
+                .collect::<PyResult<CellIndexArray>>()
+        })?
     };
 
-    Python::with_gil(|py| h3array_to_pyarray(cells, py))
+    h3array_to_pyarray(cells, py)
 }
 
 #[pyfunction]
@@ -248,31 +251,33 @@ pub(crate) fn cells_to_wkb_polygons(
     let cellindexarray = cellarray.into_inner();
     let use_degrees = !radians;
 
-    let out: WKBArray<i64> = if link_cells {
-        let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
-        cells.sort_unstable();
-        cells.dedup();
+    let out: WKBArray<i64> = py.allow_threads(|| {
+        if link_cells {
+            let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
+            cells.sort_unstable();
+            cells.dedup();
 
-        let geoms = dissolve(cells)
-            .into_pyresult()?
-            .into_iter()
-            .map(|mut poly| {
-                if radians {
-                    poly.to_radians_in_place();
-                }
-                Some(geo_types::Geometry::from(poly))
-            })
-            .collect::<Vec<_>>();
-        let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
-            geoms.iter().map(|v| v.as_ref()),
-        ));
-        builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
-        builder.finish()
-    } else {
-        cellindexarray
-            .to_wkb_polygons(use_degrees)
-            .expect("wkbarray")
-    };
+            let geoms = dissolve(cells)
+                .into_pyresult()?
+                .into_iter()
+                .map(|mut poly| {
+                    if radians {
+                        poly.to_radians_in_place();
+                    }
+                    Some(geo_types::Geometry::from(poly))
+                })
+                .collect::<Vec<_>>();
+            let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
+                geoms.iter().map(|v| v.as_ref()),
+            ));
+            builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
+            Ok::<_, PyErr>(builder.finish())
+        } else {
+            Ok(cellindexarray
+                .to_wkb_polygons(use_degrees)
+                .expect("wkbarray"))
+        }
+    })?;
 
     let field = out.extension_field();
     PyArray::new(out.into_array_ref(), field).to_arro3(py)
@@ -285,10 +290,12 @@ pub(crate) fn cells_to_wkb_points(
     cellarray: PyCellArray,
     radians: bool,
 ) -> PyResult<PyObject> {
-    let out = cellarray
-        .as_ref()
-        .to_wkb_points::<i64>(!radians)
-        .expect("wkbarray");
+    let out = py.allow_threads(|| {
+        cellarray
+            .as_ref()
+            .to_wkb_points::<i64>(!radians)
+            .expect("wkbarray")
+    });
 
     let field = out.extension_field();
     PyArray::new(out.into_array_ref(), field).to_arro3(py)
@@ -298,12 +305,15 @@ pub(crate) fn cells_to_wkb_points(
 #[pyo3(signature = (vertexarray, radians = false))]
 pub(crate) fn vertexes_to_wkb_points(
     py: Python,
-    vertexarray: &Bound<PyAny>,
+    vertexarray: PyVertexArray,
     radians: bool,
 ) -> PyResult<PyObject> {
-    let out = pyarray_to_vertexindexarray(vertexarray)?
-        .to_wkb_points::<i64>(!radians)
-        .expect("wkbarray");
+    let out = py.allow_threads(|| {
+        vertexarray
+            .as_ref()
+            .to_wkb_points::<i64>(!radians)
+            .expect("wkbarray")
+    });
 
     let field = out.extension_field();
     PyArray::new(out.into_array_ref(), field).to_arro3(py)
@@ -313,12 +323,15 @@ pub(crate) fn vertexes_to_wkb_points(
 #[pyo3(signature = (array, radians = false))]
 pub(crate) fn directededges_to_wkb_linestrings(
     py: Python,
-    array: &Bound<PyAny>,
+    array: PyDirectedEdgeArray,
     radians: bool,
 ) -> PyResult<PyObject> {
-    let out = pyarray_to_directededgeindexarray(array)?
-        .to_wkb_linestrings::<i64>(!radians)
-        .expect("wkbarray");
+    let out = py.allow_threads(|| {
+        array
+            .as_ref()
+            .to_wkb_linestrings::<i64>(!radians)
+            .expect("wkbarray")
+    });
 
     let field = out.extension_field();
     PyArray::new(out.into_array_ref(), field).to_arro3(py)
@@ -376,12 +389,16 @@ fn generic_wkb_to_cells<O: OffsetSizeTrait>(
     let wkbarray = WKBArray::new(binarray, Default::default());
 
     if flatten {
-        let cells = wkbarray.to_cellindexarray(options).into_pyresult()?;
+        let cells = py
+            .allow_threads(|| wkbarray.to_cellindexarray(options))
+            .into_pyresult()?;
 
-        Python::with_gil(|py| h3array_to_pyarray(cells, py))
+        h3array_to_pyarray(cells, py)
     } else {
-        let listarray: GenericListArray<O> =
-            wkbarray.to_celllistarray(options).into_pyresult()?.into();
+        let listarray: GenericListArray<O> = py
+            .allow_threads(|| wkbarray.to_celllistarray(options))
+            .into_pyresult()?
+            .into();
         PyArray::from_array_ref(Arc::new(listarray)).to_arro3(py)
     }
 }
@@ -389,19 +406,22 @@ fn generic_wkb_to_cells<O: OffsetSizeTrait>(
 #[pyfunction]
 #[pyo3(signature = (obj, resolution, containment_mode = None, compact = false))]
 pub(crate) fn geometry_to_cells(
+    py: Python<'_>,
     obj: py_geo_interface::Geometry,
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
 ) -> PyResult<PyObject> {
     if obj.0.is_empty() {
-        return Python::with_gil(|py| h3array_to_pyarray(CellIndexArray::new_null(0), py));
+        return h3array_to_pyarray(CellIndexArray::new_null(0), py);
     }
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
-    let cellindexarray = CellIndexArray::from(
-        h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
-    );
-    Python::with_gil(|py| h3array_to_pyarray(cellindexarray, py))
+    let cellindexarray = py.allow_threads(|| {
+        Ok::<_, PyErr>(CellIndexArray::from(
+            h3arrow::array::from_geo::geometry_to_cells(&obj.0, &options).into_pyresult()?,
+        ))
+    })?;
+    h3array_to_pyarray(cellindexarray, py)
 }
 
 pub fn init_vector_submodule(m: &Bound<PyModule>) -> PyResult<()> {

@@ -50,6 +50,7 @@ pub(crate) fn cells_to_localij(
 #[pyfunction]
 #[pyo3(signature = (anchor, i_array, j_array, set_failing_to_invalid = false))]
 pub(crate) fn localij_to_cells(
+    py: Python<'_>,
     anchor: &Bound<PyAny>,
     i_array: &Bound<PyAny>,
     j_array: &Bound<PyAny>,
@@ -59,17 +60,18 @@ pub(crate) fn localij_to_cells(
     let j_array = pyarray_to_native::<Int32Array>(j_array)?;
     let anchorarray = get_anchor_array(anchor, i_array.len())?;
 
-    let localij_arrays = LocalIJArrays::try_new(anchorarray, i_array, j_array).into_pyresult()?;
+    let cellarray = py.allow_threads(|| {
+        let localij_arrays =
+            LocalIJArrays::try_new(anchorarray, i_array, j_array).into_pyresult()?;
 
-    let cellarray = if set_failing_to_invalid {
-        localij_arrays
-            .to_cells_failing_to_invalid()
-            .into_pyresult()?
-    } else {
-        localij_arrays.to_cells().into_pyresult()?
-    };
+        if set_failing_to_invalid {
+            localij_arrays.to_cells_failing_to_invalid().into_pyresult()
+        } else {
+            localij_arrays.to_cells().into_pyresult()
+        }
+    })?;
 
-    Python::with_gil(|py| h3array_to_pyarray(cellarray, py))
+    h3array_to_pyarray(cellarray, py)
 }
 
 fn get_anchor_array(anchor: &Bound<PyAny>, len: usize) -> PyResult<CellIndexArray> {
