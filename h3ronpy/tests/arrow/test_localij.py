@@ -1,5 +1,5 @@
 import polars as pl
-from h3ronpy.arrow import cells_parse, cells_to_localij, localij_to_cells
+from h3ronpy import cells_parse, cells_to_localij, localij_to_cells
 from polars.testing import assert_series_equal
 
 anchors = cells_parse(

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import geopandas as gpd
 
 TESTDATA_PATH = Path(__file__).parent.parent / "data"

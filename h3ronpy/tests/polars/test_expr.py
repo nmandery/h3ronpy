@@ -1,7 +1,7 @@
 import h3.api.numpy_int as h3
 
 # register expressions with polars
-import h3ronpy.polars as _
+import h3ronpy.polars as _  # noqa: F401
 import numpy as np
 import polars as pl
 

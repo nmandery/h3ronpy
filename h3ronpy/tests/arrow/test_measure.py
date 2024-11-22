@@ -1,7 +1,7 @@
 import h3.api.numpy_int as h3
 import numpy as np
 from arro3.core import Array
-from h3ronpy.arrow import cells_area_km2
+from h3ronpy import cells_area_km2
 
 
 def test_cells_area_km2():

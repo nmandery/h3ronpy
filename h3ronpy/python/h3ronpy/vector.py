@@ -3,8 +3,9 @@ from typing import Optional, Tuple
 from arro3.core import Array, DataType, RecordBatch
 
 from h3ronpy import ContainmentMode
-from h3ronpy.arrow import _to_arrow_array, _to_uint64_array
-from h3ronpy.h3ronpyrs import vector
+
+from . import _to_arrow_array, _to_uint64_array
+from .h3ronpyrs import vector
 
 
 def cells_to_coordinates(arr, radians: bool = False) -> RecordBatch:

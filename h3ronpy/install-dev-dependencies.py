@@ -1,11 +1,10 @@
 # install the dependencies needed for development and ci by
 # collecting them from all relevant files
 
-import subprocess
-from pathlib import Path
-
-import sys
 import os
+import subprocess
+import sys
+from pathlib import Path
 
 
 def install(packages, upgrade=False):

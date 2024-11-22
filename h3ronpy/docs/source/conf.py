@@ -1,7 +1,7 @@
-from h3ronpy import __version__ as hp_version
 import os
 from pathlib import Path
 
+from h3ronpy import __version__ as hp_version
 
 # Configuration file for the Sphinx documentation builder.
 

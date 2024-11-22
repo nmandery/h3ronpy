@@ -3,7 +3,7 @@ import numpy as np
 import polars as pl
 import pyarrow as pa
 from arro3.core import RecordBatch
-from h3ronpy.arrow import (
+from h3ronpy import (
     grid_disk,
     grid_disk_aggregate_k,
     grid_disk_distances,
