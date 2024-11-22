@@ -2,7 +2,7 @@ import math
 
 import h3.api.numpy_int as h3
 import numpy as np
-from h3ronpy.arrow import cells_resolution, change_resolution, change_resolution_paired
+from h3ronpy import cells_resolution, change_resolution, change_resolution_paired
 
 
 def test_change_resolution_up():

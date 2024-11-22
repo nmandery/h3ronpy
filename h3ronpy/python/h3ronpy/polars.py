@@ -17,7 +17,7 @@ import polars as pl
 from arro3.core import ChunkedArray
 from arro3.core.types import ArrowArrayExportable
 
-import h3ronpy.arrow as _arrow
+import h3ronpy
 
 
 # Wrapper for calling arrow-based operations on polars Series.
@@ -58,64 +58,64 @@ class H3Expr:
         return self._expr.map_batches(wrapped_func)
 
     def cells_resolution(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_resolution).alias("resolution")
+        return self.__expr_map_series(h3ronpy.cells_resolution).alias("resolution")
 
     def change_resolution(self, resolution: int) -> pl.Expr:
-        return self.__expr_map_series(lambda s: _arrow.change_resolution(s, resolution))
+        return self.__expr_map_series(lambda s: h3ronpy.change_resolution(s, resolution))
 
     def change_resolution_list(self, resolution: int) -> pl.Expr:
-        return self.__expr_map_series(lambda s: _arrow.change_resolution_list(s, resolution))
+        return self.__expr_map_series(lambda s: h3ronpy.change_resolution_list(s, resolution))
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)
+            lambda s: h3ronpy.cells_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("cell")
 
     def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)
+            lambda s: h3ronpy.vertexes_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("vertex")
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Expr:
         return self.__expr_map_series(
-            lambda s: _arrow.directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)
+            lambda s: h3ronpy.directededges_parse(s, set_failing_to_invalid=set_failing_to_invalid)
         ).alias("directededge")
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
-        return self.__expr_map_series(lambda s: _arrow.grid_disk(s, k, flatten=flatten))
+        return self.__expr_map_series(lambda s: h3ronpy.grid_disk(s, k, flatten=flatten))
 
     def compact(self, mixed_resolutions: bool = False) -> pl.Expr:
-        return self.__expr_map_series(lambda s: _arrow.compact(s, mixed_resolutions=mixed_resolutions))
+        return self.__expr_map_series(lambda s: h3ronpy.compact(s, mixed_resolutions=mixed_resolutions))
 
     def uncompact(self, target_resolution: int) -> pl.Expr:
-        return self.__expr_map_series(lambda s: _arrow.uncompact(s, target_resolution))
+        return self.__expr_map_series(lambda s: h3ronpy.uncompact(s, target_resolution))
 
     def cells_area_m2(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_area_m2).alias("area_m2")
+        return self.__expr_map_series(h3ronpy.cells_area_m2).alias("area_m2")
 
     def cells_area_km2(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_area_km2).alias("area_km2")
+        return self.__expr_map_series(h3ronpy.cells_area_km2).alias("area_km2")
 
     def cells_area_rads2(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_area_rads2).alias("area_rads2")
+        return self.__expr_map_series(h3ronpy.cells_area_rads2).alias("area_rads2")
 
     def cells_valid(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_valid).alias("cells_valid")
+        return self.__expr_map_series(h3ronpy.cells_valid).alias("cells_valid")
 
     def vertexes_valid(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.vertexes_valid).alias("vertexes_valid")
+        return self.__expr_map_series(h3ronpy.vertexes_valid).alias("vertexes_valid")
 
     def directededges_valid(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.directededges_valid).alias("directededges_valid")
+        return self.__expr_map_series(h3ronpy.directededges_valid).alias("directededges_valid")
 
     def cells_to_string(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.cells_to_string)
+        return self.__expr_map_series(h3ronpy.cells_to_string)
 
     def vertexes_to_string(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.vertexes_to_string)
+        return self.__expr_map_series(h3ronpy.vertexes_to_string)
 
     def directededges_to_string(self) -> pl.Expr:
-        return self.__expr_map_series(_arrow.directededges_to_string)
+        return self.__expr_map_series(h3ronpy.directededges_to_string)
 
 
 @pl.api.register_series_namespace("h3")
@@ -131,58 +131,58 @@ class H3SeriesShortcuts:
         self._s = s
 
     def cells_resolution(self) -> pl.Series:
-        return _wrap(_arrow.cells_resolution)(self._s)
+        return _wrap(h3ronpy.cells_resolution)(self._s)
 
     def change_resolution(self, resolution: int) -> pl.Series:
-        return _wrap(_arrow.change_resolution)(self._s, resolution)
+        return _wrap(h3ronpy.change_resolution)(self._s, resolution)
 
     def change_resolution_list(self, resolution: int) -> pl.Series:
-        return _wrap(_arrow.change_resolution_list)(self._s, resolution)
+        return _wrap(h3ronpy.change_resolution_list)(self._s, resolution)
 
     def cells_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.cells_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
+        return _wrap(h3ronpy.cells_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def vertexes_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.vertexes_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
+        return _wrap(h3ronpy.vertexes_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(_arrow.directededges_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
+        return _wrap(h3ronpy.directededges_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
-        return _wrap(_arrow.grid_disk)(self._s, k, flatten=flatten)
+        return _wrap(h3ronpy.grid_disk)(self._s, k, flatten=flatten)
 
     def compact(self, mixed_resolutions: bool = False) -> pl.Series:
-        return _wrap(_arrow.compact)(self._s, mixed_resolutions=mixed_resolutions)
+        return _wrap(h3ronpy.compact)(self._s, mixed_resolutions=mixed_resolutions)
 
     def uncompact(self, target_resolution: int) -> pl.Series:
-        return _wrap(_arrow.uncompact)(self._s, target_resolution)
+        return _wrap(h3ronpy.uncompact)(self._s, target_resolution)
 
     def cells_area_m2(self) -> pl.Series:
-        return _wrap(_arrow.cells_area_m2)(self._s)
+        return _wrap(h3ronpy.cells_area_m2)(self._s)
 
     def cells_area_km2(self) -> pl.Series:
-        return _wrap(_arrow.cells_area_km2)(self._s)
+        return _wrap(h3ronpy.cells_area_km2)(self._s)
 
     def cells_area_rads2(self) -> pl.Series:
-        return _wrap(_arrow.cells_area_rads2)(self._s)
+        return _wrap(h3ronpy.cells_area_rads2)(self._s)
 
     def cells_valid(self) -> pl.Series:
-        return _wrap(_arrow.cells_valid)(self._s)
+        return _wrap(h3ronpy.cells_valid)(self._s)
 
     def vertexes_valid(self) -> pl.Series:
-        return _wrap(_arrow.vertexes_valid)(self._s)
+        return _wrap(h3ronpy.vertexes_valid)(self._s)
 
     def directededges_valid(self) -> pl.Series:
-        return _wrap(_arrow.directededges_valid)(self._s)
+        return _wrap(h3ronpy.directededges_valid)(self._s)
 
     def cells_to_string(self) -> pl.Series:
-        return _wrap(_arrow.cells_to_string)(self._s)
+        return _wrap(h3ronpy.cells_to_string)(self._s)
 
     def vertexes_to_string(self) -> pl.Series:
-        return _wrap(_arrow.vertexes_to_string)(self._s)
+        return _wrap(h3ronpy.vertexes_to_string)(self._s)
 
     def directededges_to_string(self) -> pl.Series:
-        return _wrap(_arrow.directededges_to_string)(self._s)
+        return _wrap(h3ronpy.directededges_to_string)(self._s)
 
 
 __all__ = [

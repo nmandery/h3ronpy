@@ -3,7 +3,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 from arro3.core import Array
-from h3ronpy.arrow import cells_parse, cells_to_string, cells_valid
+from h3ronpy import cells_parse, cells_to_string, cells_valid
 
 
 def test_cells_parse():

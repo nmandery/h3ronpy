@@ -1,5 +1,5 @@
 # register expressions with polars
-import h3ronpy.polars as _
+import h3ronpy.polars as _  # noqa: F401
 import polars as pl
 
 from . import some_cell_series

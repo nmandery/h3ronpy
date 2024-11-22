@@ -1,7 +1,7 @@
 import h3.api.numpy_int as h3
 import numpy as np
 import pytest
-from h3ronpy.arrow import change_resolution, compact, uncompact
+from h3ronpy import change_resolution, compact, uncompact
 
 
 def compact_to_one(expected_cell, input_cells, **kw):

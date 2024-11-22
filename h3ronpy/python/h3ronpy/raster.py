@@ -33,8 +33,7 @@ import typing
 import numpy as np
 import pyarrow as pa
 
-from h3ronpy import DEFAULT_CELL_COLUMN_NAME
-from h3ronpy.arrow import _to_arrow_array, _to_uint64_array
+from h3ronpy import DEFAULT_CELL_COLUMN_NAME, _to_arrow_array, _to_uint64_array
 from h3ronpy.h3ronpyrs import raster
 from h3ronpy.vector import cells_bounds, cells_to_wkb_polygons
 
