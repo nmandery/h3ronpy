@@ -86,18 +86,3 @@ All methods of the ``H3SeriesShortcuts`` class are available in the ``h3`` objec
 .. autoclass:: h3ronpy.polars.H3SeriesShortcuts
    :members:
    :undoc-members:
-
-Raster module
--------------
-
-.. automodule:: h3ronpy.polars.raster
-   :members:
-   :undoc-members:
-
-
-Vector module
--------------
-
-.. automodule:: h3ronpy.polars.vector
-   :members:
-   :undoc-members:

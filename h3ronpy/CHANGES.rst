@@ -12,6 +12,9 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 Unreleased
 ----------
 
+- *Breaking*: Remove lots the dataframe-library specific functions and instead work with arrow arrays and record-batches directly using the `Arrow PyCapsule interface <https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html>`_.
+  The core and polars parts of this library are no longer depending on `pyarrow` - instead the `lightweight 'arro3' library <https://github.com/kylebarron/arro3>`_ is used. The pandas-parts still require `pyarrow` which needs the be installed manually.
+- Support for numpy 2.
 - Upgrade to h3o 0.7.
 - Release the GIL more often to allow other threads to run.
 - The minimum supported python version is now 3.9.

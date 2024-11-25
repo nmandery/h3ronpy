@@ -66,11 +66,11 @@ Do some image processing - like this messy extraction of a vegetation mask here:
 Convert the raster numpy array to H3
 ------------------------------------
 
-Find the closest H3 resolution to use. See also the docstrings of the used functions and of the `h3ronpy.pandas.raster` module.
+Find the closest H3 resolution to use. See also the docstrings of the used functions and of the `h3ronpy.raster` module.
 
 .. jupyter-execute::
 
-    from h3ronpy.pandas.raster import nearest_h3_resolution
+    from h3ronpy.raster import nearest_h3_resolution
 
     h3_res = nearest_h3_resolution(vegetation.shape, src.transform, search_mode="smaller_than_pixel")
     print(f"Using H3 resolution {h3_res}")
@@ -100,6 +100,7 @@ Converting H3 cells to raster
 .. jupyter-execute::
 
     import pandas as pd
+    import pyarrow as pa
     from h3ronpy.pandas.raster import rasterize_cells
     from rasterio.plot import show
 
@@ -107,8 +108,8 @@ Converting H3 cells to raster
     size = 1000
     nodata_value = -1
     array, transform = rasterize_cells(
-        df["h3index"],
-        df["pop_general"].astype("int32"),
+        pa.array(df["h3index"]),
+        pa.array(df["pop_general"].astype("int32")),
         size,
         nodata_value=nodata_value
     )

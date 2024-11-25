@@ -91,7 +91,7 @@ It is also possible to convert single `shapely` geometries or any other type pro
 
 .. jupyter-execute::
 
-    from h3ronpy.pandas.vector import geometry_to_cells
+    from h3ronpy.vector import geometry_to_cells
 
     namibia_geom = namibia["geometry"].iloc[0]
     print(namibia_geom)
