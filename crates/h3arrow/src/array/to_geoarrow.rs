@@ -6,15 +6,17 @@ use arrow::array::{Array, OffsetSizeTrait};
 use geo::point;
 use geo_types::LineString;
 use geoarrow::array::{
-    LineStringArray, PointArray, PolygonArray, WKBArray, WKBBuilder, WKBCapacity,
+    LineStringArray, LineStringBuilder, PointArray, PointBuilder, PolygonArray, PolygonBuilder,
+    WKBArray, WKBBuilder, WKBCapacity,
 };
+use geoarrow::datatypes::Dimension;
 
 pub trait ToGeoArrowPolygons {
     type Error;
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<2>, Self::Error>;
+    ) -> Result<PolygonArray, Self::Error>;
 }
 
 impl<T> ToGeoArrowPolygons for T
@@ -26,14 +28,20 @@ where
     fn to_geoarrow_polygons<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<PolygonArray<2>, Self::Error> {
-        Ok(self.to_polygons(use_degrees)?.into())
+    ) -> Result<PolygonArray, Self::Error> {
+        Ok(PolygonBuilder::from_nullable_polygons(
+            &self.to_polygons(use_degrees)?,
+            Dimension::XY,
+            Default::default(),
+            Default::default(),
+        )
+        .into())
     }
 }
 
 pub trait ToGeoArrowPoints {
     type Error;
-    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray<2>, Self::Error>;
+    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray, Self::Error>;
 }
 
 impl<T> ToGeoArrowPoints for T
@@ -41,8 +49,14 @@ where
     T: ToPoints,
 {
     type Error = T::Error;
-    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray<2>, Self::Error> {
-        Ok(self.to_points(use_degrees)?.into())
+    fn to_geoarrow_points(&self, use_degrees: bool) -> Result<PointArray, Self::Error> {
+        Ok(PointBuilder::from_nullable_points(
+            self.to_points(use_degrees)?.iter().map(|x| x.as_ref()),
+            Dimension::XY,
+            Default::default(),
+            Default::default(),
+        )
+        .into())
     }
 }
 
@@ -51,7 +65,7 @@ pub trait ToGeoArrowLineStrings {
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<2>, Self::Error>;
+    ) -> Result<LineStringArray, Self::Error>;
 }
 
 impl<T> ToGeoArrowLineStrings for T
@@ -62,8 +76,14 @@ where
     fn to_geoarrow_lines<O: OffsetSizeTrait>(
         &self,
         use_degrees: bool,
-    ) -> Result<LineStringArray<2>, Self::Error> {
-        Ok(self.to_linestrings(use_degrees)?.into())
+    ) -> Result<LineStringArray, Self::Error> {
+        Ok(LineStringBuilder::from_nullable_line_strings(
+            &self.to_linestrings(use_degrees)?,
+            Dimension::XY,
+            Default::default(),
+            Default::default(),
+        )
+        .into())
     }
 }
 
