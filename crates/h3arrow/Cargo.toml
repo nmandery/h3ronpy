@@ -21,7 +21,7 @@ spatial_index = ["dep:rstar"]
 [dependencies]
 ahash = "0.8"
 arrow = { workspace = true }
-geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "49fd4cbdc4bc08a2f1e0341ec7df700df18d2bdb", optional = true }
+geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "3ecf7dfc1816261b84f813eaf2a0174f2b5752d8", optional = true }
 geo-types = { workspace = true }
 geo = { workspace = true }
 geozero = { version = "^0.14", default-features = false, features = [
