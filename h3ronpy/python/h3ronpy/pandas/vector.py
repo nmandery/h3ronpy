@@ -1,11 +1,59 @@
+from functools import wraps
+from typing import Optional
+
 import geopandas as gpd
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-import shapely
 
+import h3ronpy.vector as _hv
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
-from h3ronpy.vector import cells_to_wkb_polygons, wkb_to_cells
+
+
+def _geoseries_from_wkb(func, doc: Optional[str] = None, name: Optional[str] = None):
+    @wraps(func)
+    def wrapper(*args, **kw):
+        return gpd.GeoSeries.from_wkb(func(*args, **kw), crs=H3_CRS)
+
+    # create a copy to avoid modifying the dict of the wrapped function
+    wrapper.__annotations__ = dict(**wrapper.__annotations__)
+    wrapper.__annotations__["return"] = gpd.GeoSeries
+    if doc is not None:
+        wrapper.__doc__ = doc
+    if name is not None:
+        wrapper.__name__ = name
+
+    return wrapper
+
+
+cells_to_polygons = _geoseries_from_wkb(
+    _hv.cells_to_wkb_polygons,
+    doc="Create a geoseries containing the polygon geometries of a cell array",
+    name="cells_to_polygons",
+)
+cells_to_points = _geoseries_from_wkb(
+    _hv.cells_to_wkb_points,
+    doc="Create a geoseries containing the centroid point geometries of a cell array",
+    name="cells_to_points",
+)
+vertexes_to_points = _geoseries_from_wkb(
+    _hv.vertexes_to_wkb_points,
+    doc="Create a geoseries containing the point geometries of a vertex array",
+    name="vertexes_to_points",
+)
+directededges_to_linestrings = _geoseries_from_wkb(
+    _hv.directededges_to_wkb_linestrings,
+    doc="Create a geoseries containing the linestrings geometries of a directededge array",
+    name="directededges_to_linestrings",
+)
+
+
+@wraps(_hv.wkb_to_cells)
+def geoseries_to_cells(geoseries: gpd.GeoSeries, *args, **kw):
+    return pa.array(_hv.wkb_to_cells(geoseries.to_wkb(), *args, **kw)).to_pandas()
+
+
+geoseries_to_cells.__name__ = "geoseries_to_cells"
 
 
 def cells_dataframe_to_geodataframe(
@@ -18,9 +66,9 @@ def cells_dataframe_to_geodataframe(
     :param cell_column_name: name of the column containing the h3 indexes
     :return: GeoDataFrame
     """
-    wkb_polygons = cells_to_wkb_polygons(df[cell_column_name])
-    geometry = shapely.from_wkb(wkb_polygons)
-    return gpd.GeoDataFrame(df, geometry=geometry, crs=H3_CRS)
+    # wkb_polygons = uv.cells_to_wkb_polygons(df[cell_column_name])
+    # geometry = shapely.from_wkb(wkb_polygons)
+    return gpd.GeoDataFrame(df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS)
 
 
 def geodataframe_to_cells(
@@ -48,7 +96,7 @@ def geodataframe_to_cells(
     :param cell_column_name:
     :return:
     """
-    cells = wkb_to_cells(
+    cells = _hv.wkb_to_cells(
         gdf.geometry.to_wkb(),
         resolution,
         containment_mode=containment_mode,
@@ -90,4 +138,8 @@ def _explode_table_include_null(table: pa.Table, column: str) -> pa.Table:
 __all__ = [
     cells_dataframe_to_geodataframe.__name__,
     geodataframe_to_cells.__name__,
+    cells_to_polygons.__name__,
+    cells_to_points.__name__,
+    vertexes_to_points.__name__,
+    directededges_to_linestrings.__name__,
 ]
