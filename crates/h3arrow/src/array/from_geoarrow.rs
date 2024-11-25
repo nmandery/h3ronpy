@@ -38,12 +38,12 @@ macro_rules! impl_to_cells {
     };
 }
 
-impl_to_cells!(geoarrow::array::LineStringArray<2>);
-impl_to_cells!(geoarrow::array::MultiLineStringArray<2>);
-impl_to_cells!(geoarrow::array::MultiPointArray<2>);
-impl_to_cells!(geoarrow::array::MultiPolygonArray<2>);
-impl_to_cells!(geoarrow::array::PointArray<2>);
-impl_to_cells!(geoarrow::array::PolygonArray<2>);
+impl_to_cells!(geoarrow::array::LineStringArray);
+impl_to_cells!(geoarrow::array::MultiLineStringArray);
+impl_to_cells!(geoarrow::array::MultiPointArray);
+impl_to_cells!(geoarrow::array::MultiPolygonArray);
+impl_to_cells!(geoarrow::array::PointArray);
+impl_to_cells!(geoarrow::array::PolygonArray);
 
 impl<O: OffsetSizeTrait> ToCellListArray<O> for WKBArray<O> {
     fn to_celllistarray(
