@@ -10,3 +10,4 @@ scipy
 pandas
 geopandas
 polars
+pyarrow

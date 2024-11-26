@@ -34,7 +34,10 @@ classifiers = [
 
 [project.optional-dependencies]
 polars = ["polars>=1"]
-pandas = ["geopandas>=1"]
+pandas = [
+    "geopandas>=1",
+    "pyarrow>=15",
+]
 test = [
     "rasterio>=1.4",
     "Shapely>=1.7",
