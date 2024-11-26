@@ -11,8 +11,8 @@ build:
 
   commands:
     # install rust manually. https://github.com/readthedocs/readthedocs.org/issues/11488
-    - asdf install rust 1.81.0
-    - asdf global rust 1.81.0
+    - asdf install rust 1.82.0
+    - asdf global rust 1.82.0
 
     # readthedocs commands from the last non-commands controlled build (based on the commented out
     # "python" section of this file)
