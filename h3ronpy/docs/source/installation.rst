@@ -15,6 +15,12 @@ From PyPi
    pip install h3ronpy
 
 
+From conda-forge
+----------------
+
+See `h3ronpy-feedstock <https://github.com/conda-forge/h3ronpy-feedstock>`_.
+
+
 From source
 -----------
 

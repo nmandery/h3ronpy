@@ -11,6 +11,10 @@ A data science toolkit for the `H3 geospatial grid <https://h3geo.org/>`_.
     :alt: ReadTheDocs
     :target: https://h3ronpy.readthedocs.io/
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/h3ronpy.svg
+    :alt: conda-forge
+    :target: https://prefix.dev/channels/conda-forge/packages/h3ronpy
+
 
 This library is not a substitute for the official `python h3 library <https://github.com/uber/h3-py>`_ - instead it provides more
 high-level functions on top of H3 and integrations into common dataframe libraries.
