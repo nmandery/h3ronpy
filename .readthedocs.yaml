@@ -2,6 +2,7 @@ version: 2
 
 sphinx:
   builder: html
+  configuration: h3ronpy/docs/source/conf.py
 
 build:
   os: "ubuntu-22.04"
@@ -22,7 +23,7 @@ build:
     - python -m pip install --exists-action=w --no-cache-dir -r h3ronpy/docs/requirements.txt
     - python -m pip install --upgrade --upgrade-strategy only-if-needed --no-cache-dir ./h3ronpy
     - cat h3ronpy/docs/source/conf.py
-    - python -m sphinx -T -b html -d _build/doctrees -D language=en h3ronpy/docs/source $READTHEDOCS_OUTPUT/html 
+    - python -m sphinx -T -b html -d _build/doctrees -D language=en h3ronpy/docs/source $READTHEDOCS_OUTPUT/html
 
 #python:
 #  install:
