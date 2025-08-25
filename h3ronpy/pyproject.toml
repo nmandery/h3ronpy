@@ -23,7 +23,7 @@ select = [
 [project]
 name = "h3ronpy"
 readme = "../README.rst"
-
+license = "MIT"
 dependencies = [
     "numpy>=1.24",
     "arro3-core>=0.4"
@@ -31,7 +31,6 @@ dependencies = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: GIS",
-    "License :: OSI Approved :: MIT License",
 ]
 requires-python = ">=3.9"
 dynamic = ["version"]
