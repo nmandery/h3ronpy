@@ -48,17 +48,17 @@ class H3Expr:
     def __init__(self, expr: pl.Expr):
         self._expr = expr
 
-    def __expr_map_series(self, func: typing.Callable[..., ArrowArrayExportable]) -> pl.Expr:
+    def __expr_map_series(self, func: typing.Callable[..., ArrowArrayExportable], return_dtype: pl.PolarsDataType | None = None) -> pl.Expr:
         wrapped_func = _wrap(func)
 
         if hasattr(self._expr, "map"):
             # polars < 1.0
             return self._expr.map(wrapped_func)
 
-        return self._expr.map_batches(wrapped_func)
+        return self._expr.map_batches(wrapped_func, return_dtype=return_dtype)
 
     def cells_resolution(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_resolution).alias("resolution")
+        return self.__expr_map_series(h3ronpy.cells_resolution, return_dtype=pl.UInt8).alias("resolution")
 
     def change_resolution(self, resolution: int) -> pl.Expr:
         return self.__expr_map_series(lambda s: h3ronpy.change_resolution(s, resolution))
@@ -82,7 +82,7 @@ class H3Expr:
         ).alias("directededge")
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Expr:
-        return self.__expr_map_series(lambda s: h3ronpy.grid_disk(s, k, flatten=flatten))
+        return self.__expr_map_series(lambda s: h3ronpy.grid_disk(s, k, flatten=flatten), return_dtype=pl.List(pl.UInt64))
 
     def compact(self, mixed_resolutions: bool = False) -> pl.Expr:
         return self.__expr_map_series(lambda s: h3ronpy.compact(s, mixed_resolutions=mixed_resolutions))
