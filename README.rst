@@ -21,6 +21,13 @@ high-level functions on top of H3 and integrations into common dataframe librari
 
 Documentation is available on `<https://h3ronpy.readthedocs.io/>`_.
 
+Looking for maintainers
+-----------------------
+
+My personal focus has shifted quite a bit since I started this project. Currently I am not working much with H3 any more,
+so I have very little time to spend on this library, or even to keep up with standard maintenance tasks like upgrades
+or answering pull requests and issues. To keep this project somewhat alive, additional maintainers would be very welcome.
+
 Features
 --------
 
