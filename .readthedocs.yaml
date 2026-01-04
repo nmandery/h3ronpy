@@ -10,6 +10,9 @@ build:
     python: "3.13"
 
   jobs:
+    post_checkout:
+      - (git --no-pager log --pretty="tformat:%s" -1 | grep -vqF "[skip-rtd]") || exit 183
+      - git fetch --unshallow || true
     pre_create_environment:
       # install rust manually. https://github.com/readthedocs/readthedocs.org/issues/11488
       - asdf install rust 1.91
