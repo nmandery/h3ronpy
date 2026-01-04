@@ -10,23 +10,14 @@ build:
     python: "3.13"
     # rust: "latest"
 
-  commands:
-    # install rust manually. https://github.com/readthedocs/readthedocs.org/issues/11488
-    - asdf install rust 1.91
-    - asdf global rust 1.91
+  jobs:
+    pre_create_environment:
+      # install rust manually. https://github.com/readthedocs/readthedocs.org/issues/11488
+      - asdf install rust 1.91
+      - asdf global rust 1.91
 
-    # readthedocs commands from the last non-commands controlled build (based on the commented out
-    # "python" section of this file)
-    - python -mvirtualenv $READTHEDOCS_VIRTUALENV_PATH
-    - python -m pip install --upgrade --no-cache-dir pip setuptools
-    - python -m pip install --upgrade --no-cache-dir sphinx readthedocs-sphinx-ext
-    - python -m pip install --exists-action=w --no-cache-dir -r h3ronpy/docs/requirements.txt
-    - python -m pip install --upgrade --upgrade-strategy only-if-needed --no-cache-dir ./h3ronpy
-    - cat h3ronpy/docs/source/conf.py
-    - python -m sphinx -T -b html -d _build/doctrees -D language=en h3ronpy/docs/source $READTHEDOCS_OUTPUT/html
-
-#python:
-#  install:
-#    - requirements: h3ronpy/docs/requirements.txt
-#    - method: pip
-#      path: ./h3ronpy
+python:
+  install:
+    - requirements: h3ronpy/docs/requirements.txt
+    - method: pip
+      path: ./h3ronpy
