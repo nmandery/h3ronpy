@@ -8,7 +8,6 @@ build:
   os: "ubuntu-lts-latest"
   tools:
     python: "3.13"
-    # rust: "latest"
 
   jobs:
     pre_create_environment:
