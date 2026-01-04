@@ -7,7 +7,7 @@ sphinx:
 build:
   os: "ubuntu-lts-latest"
   tools:
-    python: "3.10"
+    python: "3.13"
     # rust: "latest"
 
   commands:
