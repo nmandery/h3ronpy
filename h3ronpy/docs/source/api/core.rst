@@ -5,3 +5,9 @@ Core
    :members:
    :undoc-members:
 
+Vector
+======
+
+.. automodule:: h3ronpy.vector
+   :members:
+   :undoc-members:
