@@ -52,9 +52,7 @@ def cells_bounds_arrays(arr) -> RecordBatch:
     return vector.cells_bounds_arrays(_to_uint64_array(arr))
 
 
-def cells_to_wkb_polygons(
-    arr, radians: bool = False, link_cells: bool = False
-) -> Array:
+def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) -> Array:
     """
     Convert cells to polygons.
 
@@ -65,9 +63,7 @@ def cells_to_wkb_polygons(
     :param radians: Generate geometries using radians instead of degrees
     :param link_cells: Combine neighboring cells into a single polygon geometry. All cell indexes must have the same resolution.
     """
-    return vector.cells_to_wkb_polygons(
-        _to_uint64_array(arr), radians=radians, link_cells=link_cells
-    )
+    return vector.cells_to_wkb_polygons(_to_uint64_array(arr), radians=radians, link_cells=link_cells)
 
 
 def cells_to_wkb_points(arr, radians: bool = False) -> Array:
@@ -103,9 +99,7 @@ def directededges_to_wkb_linestrings(arr, radians: bool = False) -> Array:
     :param: arr: The directed edge array
     :param radians: Generate geometries using radians instead of degrees
     """
-    return vector.directededges_to_wkb_linestrings(
-        _to_uint64_array(arr), radians=radians
-    )
+    return vector.directededges_to_wkb_linestrings(_to_uint64_array(arr), radians=radians)
 
 
 def wkb_to_cells(
@@ -155,9 +149,7 @@ def geometry_to_cells(
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
     """
-    return vector.geometry_to_cells(
-        geom, resolution, containment_mode=containment_mode, compact=compact
-    )
+    return vector.geometry_to_cells(geom, resolution, containment_mode=containment_mode, compact=compact)
 
 
 __all__ = [
