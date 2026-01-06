@@ -2,7 +2,7 @@ sphinx
 sphinx_rtd_theme>=1.2
 sphinx-autodoc-typehints
 numpy
-h3<4
+h3>=4
 matplotlib
 rasterio
 jupyter
