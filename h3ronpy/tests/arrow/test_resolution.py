@@ -6,7 +6,10 @@ from h3ronpy import cells_resolution, change_resolution, change_resolution_paire
 
 
 def test_change_resolution_up():
-    h3indexes = np.array([h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = np.array(
+        [h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)],
+        dtype=np.uint64,
+    )
     out_res = 9
     changed = change_resolution(h3indexes, out_res)
     assert len(changed) == (int(math.pow(7, 4)) + 7)
@@ -30,7 +33,10 @@ def test_change_resolution_paired_up():
 
 
 def test_change_resolution_down():
-    h3indexes = np.array([h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = np.array(
+        [h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)],
+        dtype=np.uint64,
+    )
     out_res = 4
     changed = change_resolution(h3indexes, out_res)
     assert len(changed) == 2
@@ -39,7 +45,10 @@ def test_change_resolution_down():
 
 
 def test_cells_resolution():
-    h3indexes = np.array([h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)], dtype=np.uint64)
+    h3indexes = np.array(
+        [h3.latlng_to_cell(10.2, 45.5, 5), h3.latlng_to_cell(10.3, 45.1, 8)],
+        dtype=np.uint64,
+    )
     res = cells_resolution(h3indexes)
     assert len(res) == 2
     assert res[0] == 5

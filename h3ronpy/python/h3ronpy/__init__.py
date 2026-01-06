@@ -50,7 +50,9 @@ def _to_arrow_array(
         # From arbitrary non-arrow input
         array = Array(cast(Sequence[Any], arr), type=dtype)
     else:
-        raise ValueError("Unsupported input to _to_arrow_array. Expected array-like or series-like.")
+        raise ValueError(
+            "Unsupported input to _to_arrow_array. Expected array-like or series-like."
+        )
 
     # Cast if dtype was provided
     if dtype is not None:
@@ -194,7 +196,9 @@ def _make_h3index_valid_wrapper(fn, h3index_name, wrapper_name):
 
 cells_valid = _make_h3index_valid_wrapper(op.cells_valid, "cell", "cells_valid")
 vertexes_valid = _make_h3index_valid_wrapper(op.cells_valid, "vertex", "vertexes_valid")
-directededges_valid = _make_h3index_valid_wrapper(op.cells_valid, "directed edge", "directededges_valid")
+directededges_valid = _make_h3index_valid_wrapper(
+    op.cells_valid, "directed edge", "directededges_valid"
+)
 
 
 def grid_disk(cellarray, k: int, flatten: bool = False) -> Array:
@@ -212,8 +216,12 @@ def grid_disk_aggregate_k(cellarray, k: int, aggregation_method: str) -> RecordB
     return op.grid_disk_aggregate_k(_to_uint64_array(cellarray), k, aggregation_method)
 
 
-def grid_ring_distances(cellarray, k_min: int, k_max: int, flatten: bool = False) -> RecordBatch:
-    return op.grid_ring_distances(_to_uint64_array(cellarray), k_min, k_max, flatten=flatten)
+def grid_ring_distances(
+    cellarray, k_min: int, k_max: int, flatten: bool = False
+) -> RecordBatch:
+    return op.grid_ring_distances(
+        _to_uint64_array(cellarray), k_min, k_max, flatten=flatten
+    )
 
 
 def cells_area_m2(cellarray) -> Array:
@@ -240,7 +248,9 @@ def directededges_to_string(directededgearray) -> Array:
     return op.directededges_to_string(_to_uint64_array(directededgearray))
 
 
-def cells_to_localij(cellarray, anchor, set_failing_to_invalid: bool = False) -> RecordBatch:
+def cells_to_localij(
+    cellarray, anchor, set_failing_to_invalid: bool = False
+) -> RecordBatch:
     """
     Produces IJ coordinates for an index anchored by an origin `anchor`.
 
