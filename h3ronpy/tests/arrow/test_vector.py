@@ -20,7 +20,7 @@ def test_geometry_to_cells_central_park():
 
     arr = geometry_to_cells(point, 8).to_numpy()
     assert len(arr) == 1
-    assert arr[0] == h3.geo_to_h3(point.y, point.x, 8)
+    assert arr[0] == h3.latlng_to_cell(point.y, point.x, 8)
 
 
 def test_coordinate_values_are_not_equal_issue_58():

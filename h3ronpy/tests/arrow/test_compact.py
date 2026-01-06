@@ -11,7 +11,7 @@ def compact_to_one(expected_cell, input_cells, **kw):
 
 
 def test_compact():
-    cell = h3.geo_to_h3(10.3, 45.1, 8)
+    cell = h3.latlng_to_cell(10.3, 45.1, 8)
     h3indexes = change_resolution(
         np.array(
             [
@@ -25,20 +25,20 @@ def test_compact():
 
 
 def test_compact_mixed_fail():
-    cell = h3.geo_to_h3(10.3, 45.1, 8)
+    cell = h3.latlng_to_cell(10.3, 45.1, 8)
     with pytest.raises(ValueError, match="heterogen"):
-        compact_to_one(cell, [cell, h3.h3_to_parent(cell, 4)])
+        compact_to_one(cell, [cell, h3.cell_to_parent(cell, 4)])
 
 
 def test_compact_mixed():
-    cell = h3.geo_to_h3(10.3, 45.1, 8)
-    compact_to_one(cell, [cell, h3.geo_to_h3(10.3, 45.1, 9)], mixed_resolutions=True)
+    cell = h3.latlng_to_cell(10.3, 45.1, 8)
+    compact_to_one(cell, [cell, h3.latlng_to_cell(10.3, 45.1, 9)], mixed_resolutions=True)
 
 
 def test_uncompact():
     cells = uncompact(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
         ],
         9,
     )

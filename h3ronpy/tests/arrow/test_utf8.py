@@ -7,7 +7,7 @@ from h3ronpy import cells_parse, cells_to_string, cells_valid
 
 
 def test_cells_parse():
-    strings = np.array([h3.h3_to_string(h3.geo_to_h3(45.5, 10.2, 5)), "10.2, 45.5, 5"])
+    strings = np.array([h3.int_to_str(h3.latlng_to_cell(45.5, 10.2, 5)), "10.2, 45.5, 5"])
     cells = cells_parse(strings)
     assert len(cells) == 2
     assert cells[0] == cells[1]
@@ -42,7 +42,7 @@ def test_parse_cell_set_invalid():
 
 def test_cells_valid():
     input = np.array(
-        [45, h3.geo_to_h3(45.5, 10.2, 5)],
+        [45, h3.latlng_to_cell(45.5, 10.2, 5)],
         dtype=np.uint64,
     )
     cells = cells_valid(input, booleanarray=False)
@@ -63,7 +63,7 @@ def test_cells_valid():
 def test_cells_to_string():
     cells = np.array(
         [
-            h3.geo_to_h3(45.5, 10.2, 5),
+            h3.latlng_to_cell(45.5, 10.2, 5),
         ]
     )
     strings = cells_to_string(cells)
