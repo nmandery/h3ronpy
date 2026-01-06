@@ -60,7 +60,9 @@ def _get_transform(t):
     raise ValueError("unsupported object for transform")
 
 
-def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_diff") -> int:
+def nearest_h3_resolution(
+    shape, transform, axis_order="yx", search_mode="min_diff"
+) -> int:
     """
     Find the H3 resolution closest to the size of a pixel in an array
     of the given shape with the given transform
@@ -71,7 +73,9 @@ def nearest_h3_resolution(shape, transform, axis_order="yx", search_mode="min_di
     :param search_mode: resolution search mode (see documentation of this module)
     :return:
     """
-    return raster.nearest_h3_resolution(shape, _get_transform(transform), axis_order, search_mode)
+    return raster.nearest_h3_resolution(
+        shape, _get_transform(transform), axis_order, search_mode
+    )
 
 
 def raster_to_dataframe(
@@ -122,7 +126,9 @@ def raster_to_dataframe(
     elif dtype == np.float64:
         func = raster.raster_to_h3_f64
     else:
-        raise NotImplementedError(f"no raster_to_h3 implementation for dtype {dtype.name}")
+        raise NotImplementedError(
+            f"no raster_to_h3 implementation for dtype {dtype.name}"
+        )
 
     return pa.Table.from_arrays(
         arrays=func(
@@ -198,7 +204,10 @@ def rasterize_cells(
 
         # linking cells should speed up rendering in case of large homogenous areas
         polygons = pa.array(cells_to_wkb_polygons(pa.array(cells), link_cells=True))
-        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
+        polygons = [
+            shapely.from_wkb(polygon.as_py())
+            for polygon in polygons.filter(polygons.is_valid())
+        ]
 
         # draw
         rasterize(
