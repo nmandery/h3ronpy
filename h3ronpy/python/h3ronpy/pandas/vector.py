@@ -68,9 +68,7 @@ def cells_dataframe_to_geodataframe(
     """
     # wkb_polygons = uv.cells_to_wkb_polygons(df[cell_column_name])
     # geometry = shapely.from_wkb(wkb_polygons)
-    return gpd.GeoDataFrame(
-        df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS
-    )
+    return gpd.GeoDataFrame(df, geometry=cells_to_polygons(df[cell_column_name]), crs=H3_CRS)
 
 
 def geodataframe_to_cells(
@@ -105,14 +103,10 @@ def geodataframe_to_cells(
         compact=compact,
         flatten=False,
     )
-    table = pa.Table.from_pandas(
-        pd.DataFrame(gdf.drop(columns=gdf.geometry.name))
-    ).append_column(cell_column_name, cells)
-    return (
-        _explode_table_include_null(table, cell_column_name)
-        .to_pandas()
-        .reset_index(drop=True)
+    table = pa.Table.from_pandas(pd.DataFrame(gdf.drop(columns=gdf.geometry.name))).append_column(
+        cell_column_name, cells
     )
+    return _explode_table_include_null(table, cell_column_name).to_pandas().reset_index(drop=True)
 
 
 # from https://issues.apache.org/jira/browse/ARROW-12099

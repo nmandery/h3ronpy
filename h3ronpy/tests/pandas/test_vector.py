@@ -93,9 +93,7 @@ def test_geometry_results_in_no_cells():
         },
         crs="epsg:4326",
     )
-    df = geodataframe_to_cells(
-        gdf, 4, containment_mode=ContainmentMode.ContainsCentroid
-    )
+    df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.ContainsCentroid)
     assert len(df) == 0
 
 

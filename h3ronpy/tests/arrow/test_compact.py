@@ -32,9 +32,7 @@ def test_compact_mixed_fail():
 
 def test_compact_mixed():
     cell = h3.latlng_to_cell(10.3, 45.1, 8)
-    compact_to_one(
-        cell, [cell, h3.latlng_to_cell(10.3, 45.1, 9)], mixed_resolutions=True
-    )
+    compact_to_one(cell, [cell, h3.latlng_to_cell(10.3, 45.1, 9)], mixed_resolutions=True)
 
 
 def test_uncompact():

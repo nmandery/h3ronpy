@@ -7,9 +7,7 @@ from h3ronpy import cells_parse, cells_to_string, cells_valid
 
 
 def test_cells_parse():
-    strings = np.array(
-        [h3.int_to_str(h3.latlng_to_cell(45.5, 10.2, 5)), "10.2, 45.5, 5"]
-    )
+    strings = np.array([h3.int_to_str(h3.latlng_to_cell(45.5, 10.2, 5)), "10.2, 45.5, 5"])
     cells = cells_parse(strings)
     assert len(cells) == 2
     assert cells[0] == cells[1]
