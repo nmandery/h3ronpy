@@ -15,8 +15,8 @@ Create a few test cells to the examples on this page:
 
     cells = np.array(
         [
-            h3.geo_to_h3(5.2, -5.2, 7),
-            h3.geo_to_h3(5.3, -5.1, 7),
+            h3.latlng_to_cell(5.2, -5.2, 7),
+            h3.latlng_to_cell(5.3, -5.1, 7),
         ],
         dtype=np.uint64,
     )
