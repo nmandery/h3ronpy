@@ -45,7 +45,7 @@ test = [
     "rasterio>=1.4",
     "Shapely>=1.7",
     "pytest>=6",
-    "h3<4",
+    "h3>=4",
     "pytest-benchmark",
     "pyarrow>=15",
 ]

@@ -14,8 +14,8 @@ from h3ronpy import (
 def test_grid_disk():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
-            h3.geo_to_h3(5.3, -5.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
+            h3.latlng_to_cell(5.3, -5.1, 8),
         ],
         dtype=np.uint64,
     )
@@ -32,8 +32,8 @@ def test_grid_disk():
 def test_grid_disk_distances():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
-            h3.geo_to_h3(5.3, -5.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
+            h3.latlng_to_cell(5.3, -5.1, 8),
         ],
         dtype=np.uint64,
     )
@@ -58,8 +58,8 @@ def test_grid_disk_distances():
 def test_grid_ring_distances():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
-            h3.geo_to_h3(5.3, -5.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
+            h3.latlng_to_cell(5.3, -5.1, 8),
         ],
         dtype=np.uint64,
     )
@@ -82,8 +82,8 @@ def test_grid_ring_distances():
 def test_grid_disk_aggregate_k():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
-            h3.geo_to_h3(5.3, -5.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
+            h3.latlng_to_cell(5.3, -5.1, 8),
         ],
         dtype=np.uint64,
     )

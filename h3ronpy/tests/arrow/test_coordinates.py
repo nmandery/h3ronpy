@@ -12,7 +12,7 @@ from h3ronpy.vector import (
 def test_cells_to_coordinates():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
         ],
         dtype=np.uint64,
     )
@@ -28,8 +28,8 @@ def test_coordinates_to_cells():
     r = 7
     cells = coordinates_to_cells(lat, lng, r)
     assert len(cells) == 2
-    assert cells[0] == h3.geo_to_h3(lat[0], lng[0], r)
-    assert cells[1] == h3.geo_to_h3(lat[1], lng[1], r)
+    assert cells[0] == h3.latlng_to_cell(lat[0], lng[0], r)
+    assert cells[1] == h3.latlng_to_cell(lat[1], lng[1], r)
 
 
 def test_coordinates_to_cells_resolution_array():
@@ -38,14 +38,14 @@ def test_coordinates_to_cells_resolution_array():
     r = np.array([9, 12], dtype=np.uint8)
     cells = coordinates_to_cells(lat, lng, r)
     assert len(cells) == 2
-    assert cells[0] == h3.geo_to_h3(lat[0], lng[0], r[0])
-    assert cells[1] == h3.geo_to_h3(lat[1], lng[1], r[1])
+    assert cells[0] == h3.latlng_to_cell(lat[0], lng[0], r[0])
+    assert cells[1] == h3.latlng_to_cell(lat[1], lng[1], r[1])
 
 
 def test_cells_bounds():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 8),
         ],
         dtype=np.uint64,
     )
@@ -60,8 +60,8 @@ def test_cells_bounds():
 def test_cells_bounds_arrays():
     h3indexes = np.array(
         [
-            h3.geo_to_h3(10.3, 45.1, 8),
-            h3.geo_to_h3(10.3, 45.1, 5),
+            h3.latlng_to_cell(10.3, 45.1, 8),
+            h3.latlng_to_cell(10.3, 45.1, 5),
         ],
         dtype=np.uint64,
     )
