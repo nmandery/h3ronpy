@@ -269,20 +269,8 @@ jobs:
         run: cargo test --workspace --all-features --exclude h3ronpy
 
   black:
-    name: black
+    name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{env.PYTHON_VERSION}}
-      - name: Install black
-        run: |
-          pip install black
-
-      - name: run black
-        working-directory: h3ronpy
-        run: |
-          black --check -l 120 python tests *.py docs/source/*.py
+      - uses: actions/checkout@v4
+      - uses: j178/prek-action@v2
