@@ -31,8 +31,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{env.PYTHON_VERSION}}
+
       - name: Install dependencies
         run: python h3ronpy/install-dev-dependencies.py
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -43,6 +45,7 @@ jobs:
             --release
             --manifest-path h3ronpy/Cargo.toml
             --out dist
+            -i ${{ env.PYTHON_VERSION }}
           manylinux: auto
       - name: Upload wheels
         uses: actions/upload-artifact@v7
@@ -77,6 +80,7 @@ jobs:
             --release
             --manifest-path h3ronpy/Cargo.toml
             --out dist
+            -i ${{ env.PYTHON_VERSION }}
           manylinux: auto
       - name: Upload wheels
         uses: actions/upload-artifact@v7
@@ -107,7 +111,7 @@ jobs:
             --release
             --manifest-path h3ronpy/Cargo.toml
             --out dist
-            -i python
+            -i ${{ env.PYTHON_VERSION }}
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
@@ -149,7 +153,7 @@ jobs:
             --release
             --manifest-path h3ronpy/Cargo.toml
             --out dist
-            -i python
+            -i ${{ env.PYTHON_VERSION }}
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
@@ -186,6 +190,7 @@ jobs:
             --release
             --manifest-path h3ronpy/Cargo.toml
             --out dist
+            -i ${{ env.PYTHON_VERSION }}
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
