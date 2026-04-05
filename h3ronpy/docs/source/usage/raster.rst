@@ -115,4 +115,3 @@ Converting H3 cells to raster
     )
 
     show(array, cmap="viridis", transform=transform, contour=False)
-

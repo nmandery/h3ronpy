@@ -38,7 +38,7 @@ def test_grid_disk_distances():
         dtype=np.uint64,
     )
     disks = grid_disk_distances(h3indexes, 2)
-    assert type(disks) == RecordBatch
+    assert type(disks) is RecordBatch
     assert disks.num_rows == len(h3indexes)
 
     # Arro3 has some bugs to fix around data type equality for nested types
@@ -64,7 +64,7 @@ def test_grid_ring_distances():
         dtype=np.uint64,
     )
     disks = grid_ring_distances(h3indexes, 1, 2)
-    assert type(disks) == RecordBatch
+    assert type(disks) is RecordBatch
     assert disks.num_rows == len(h3indexes)
 
     # Arro3 has some bugs to fix around data type equality for nested types
@@ -88,7 +88,7 @@ def test_grid_disk_aggregate_k():
         dtype=np.uint64,
     )
     disks = grid_disk_aggregate_k(h3indexes, 2, "max")
-    assert type(disks) == RecordBatch
+    assert type(disks) is RecordBatch
     assert disks["cell"].type == pa.uint64()
     assert disks["k"].type == pa.uint32()
 

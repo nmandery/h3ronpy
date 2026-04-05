@@ -25,8 +25,8 @@ geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "3ecf7dfc181
 geo-types = { workspace = true }
 geo = { workspace = true }
 geozero = { version = "^0.14", default-features = false, features = [
-    "with-geo",
-    "with-wkb",
+  "with-geo",
+  "with-wkb",
 ], optional = true }
 h3o = { workspace = true, features = ["geo"] }
 nom = "7"

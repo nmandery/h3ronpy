@@ -8,29 +8,55 @@ addopts = "--doctest-modules -v -s"
 testpaths = ["tests"]
 
 [tool.ruff]
-# Never enforce `E501` (line length violations).
-ignore = ["E501"]
-select = [
-    # Pyflakes
-    "F",
-    # Pycodestyle
-    # "E",
-    "W",
-    # isort
-    "I",
+target-version = "py39"
+builtins = ["ellipsis"]
+exclude = [
+  ".git",
+  ".eggs",
+  "build",
+  "dist",
+  "__pycache__",
 ]
+line-length = 100
+
+[tool.ruff.lint]
+ignore = [
+  "E402", # E402: module level import not at top of file
+  "E501", # E501: line too long - let black worry about that
+  "E731", # E731: do not assign a lambda expression, use a def
+]
+select = [
+  "F",   # Pyflakes
+  "E",   # Pycodestyle
+  "I",   # isort
+  "UP",  # Pyupgrade
+  "TID", # flake8-tidy-imports
+  "W",
+]
+extend-safe-fixes = [
+  "TID252", # absolute imports
+]
+fixable = ["I", "TID252"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"
+
+[tool.black]
+line-length = 120
+target-version = ["py39"]
 
 [project]
 name = "h3ronpy"
 readme = "../README.rst"
 license = "MIT"
 dependencies = [
-    "numpy>=1.24",
-    "arro3-core>=0.4"
+  "numpy>=1.24",
+  "arro3-core>=0.4",
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: GIS",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: GIS",
 ]
 requires-python = ">=3.9"
 dynamic = ["version"]
@@ -38,16 +64,16 @@ dynamic = ["version"]
 [project.optional-dependencies]
 polars = ["polars>=1"]
 pandas = [
-    "geopandas>=1",
-    "pyarrow>=15",
+  "geopandas>=1",
+  "pyarrow>=15",
 ]
 test = [
-    "rasterio>=1.4",
-    "Shapely>=1.7",
-    "pytest>=6",
-    "h3>=4",
-    "pytest-benchmark",
-    "pyarrow>=15",
+  "rasterio>=1.4",
+  "Shapely>=1.7",
+  "pytest>=6",
+  "h3>=4",
+  "pytest-benchmark",
+  "pyarrow>=15",
 ]
 
 [tool.maturin]

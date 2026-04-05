@@ -2,7 +2,7 @@
 import h3ronpy.polars as _  # noqa: F401
 import polars as pl
 
-from . import some_cell_series
+from tests.polars import some_cell_series
 
 
 def test_series_cells_resolution():

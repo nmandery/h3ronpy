@@ -96,5 +96,3 @@ It is also possible to convert single `shapely` geometries or any other type pro
     namibia_geom = namibia["geometry"].iloc[0]
     print(namibia_geom)
     geometry_to_cells(namibia_geom, 3)
-
-
