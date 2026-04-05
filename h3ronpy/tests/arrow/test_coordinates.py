@@ -51,7 +51,7 @@ def test_cells_bounds():
     )
     bounds = cells_bounds(h3indexes)
     assert bounds is not None
-    assert type(bounds) == tuple
+    assert type(bounds) is tuple
     assert len(bounds) == 4
     assert bounds[0] < bounds[2]
     assert bounds[1] < bounds[3]

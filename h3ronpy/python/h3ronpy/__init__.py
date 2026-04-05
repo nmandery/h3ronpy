@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Union, cast
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, cast
 
 from arro3.core import Array, ChunkedArray, DataType, RecordBatch
 from arro3.core.types import (
@@ -9,13 +10,8 @@ from arro3.core.types import (
     ArrowStreamExportable,
 )
 
-from . import h3ronpyrs as _native
-from .h3ronpyrs import (  # noqa: F401
-    DEFAULT_CELL_COLUMN_NAME,
-    ContainmentMode,
-    op,
-    version,
-)
+from h3ronpy import h3ronpyrs as _native
+from h3ronpy.h3ronpyrs import DEFAULT_CELL_COLUMN_NAME, ContainmentMode, op, version
 
 if TYPE_CHECKING:
     import polars as pl
@@ -35,8 +31,8 @@ if not _native.is_release_build():
 
 
 def _to_arrow_array(
-    arr: Union[ArrowArrayExportable, ArrowStreamExportable, pl.Series, Sequence[Any]],
-    dtype: Optional[ArrowSchemaExportable] = None,
+    arr: ArrowArrayExportable | ArrowStreamExportable | pl.Series | Sequence[Any],
+    dtype: ArrowSchemaExportable | None = None,
 ) -> Array:
     if hasattr(arr, "__arrow_c_array__"):
         array = Array.from_arrow(cast(ArrowArrayExportable, arr))

@@ -4,8 +4,8 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from .. import raster
-from .vector import cells_dataframe_to_geodataframe
+from h3ronpy import raster
+from h3ronpy.pandas.vector import cells_dataframe_to_geodataframe
 
 __doc__ = raster.__doc__
 

@@ -138,8 +138,8 @@ def raster_to_dataframe(
 
 
 def rasterize_cells(
-    cells, values, size: typing.Union[int, typing.Tuple[int, int]], nodata_value=0
-) -> typing.Tuple[np.ndarray, typing.Tuple[float, float, float, float, float, float]]:
+    cells, values, size: typing.Union[int, tuple[int, int]], nodata_value=0
+) -> tuple[np.ndarray, tuple[float, float, float, float, float, float]]:
     """
     Generate a raster numpy array from arrays of cells and values.
 
@@ -168,8 +168,8 @@ def rasterize_cells(
         # no contents, nothing to rasterize
         return None, None
 
-    if type(size) == int:
-        (minx, miny, maxx, maxy) = bounds
+    if type(size) is int:
+        minx, miny, maxx, maxy = bounds
         size = (size, int(float(size) / (maxx - minx) * (maxy - miny)))
 
     transform = from_bounds(*bounds, *size)
