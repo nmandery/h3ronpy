@@ -13,9 +13,7 @@ from h3ronpy import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
 def _geoseries_from_wkb(func, doc: Optional[str] = None, name: Optional[str] = None):
     @wraps(func)
     def wrapper(arr, *args, **kw):
-        return gpd.GeoSeries.from_wkb(
-            func(arr.values, *args, **kw), crs=H3_CRS, index=arr.index
-        )
+        return gpd.GeoSeries.from_wkb(func(arr.values, *args, **kw), crs=H3_CRS, index=arr.index)
 
     # create a copy to avoid modifying the dict of the wrapped function
     wrapper.__annotations__ = dict(**wrapper.__annotations__)
