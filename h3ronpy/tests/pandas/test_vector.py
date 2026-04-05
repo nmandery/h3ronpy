@@ -17,14 +17,15 @@ def test_cells_dataframe_to_geodataframe():
             "id": [
                 5,
             ],
-        }
-    )
+        },
+    ).set_index("id")
+
     gdf = cells_dataframe_to_geodataframe(df)
     assert isinstance(gdf, gpd.GeoDataFrame)
     assert len(gdf) == len(df)
     assert (gdf[DEFAULT_CELL_COLUMN_NAME] == df[DEFAULT_CELL_COLUMN_NAME]).all()
-    assert (gdf["id"] == df["id"]).all()
-    assert gdf.geometry.geom_type[0] == "Polygon"
+    assert (gdf.index == df.index).all()
+    assert (gdf.geometry.geom_type == "Polygon").all()
 
 
 def test_cells_dataframe_to_geodataframe_empty():
@@ -93,7 +94,9 @@ def test_geometry_results_in_no_cells():
         },
         crs="epsg:4326",
     )
-    df = geodataframe_to_cells(gdf, 4, containment_mode=ContainmentMode.ContainsCentroid)
+    df = geodataframe_to_cells(
+        gdf, 4, containment_mode=ContainmentMode.ContainsCentroid
+    )
     assert len(df) == 0
 
 
