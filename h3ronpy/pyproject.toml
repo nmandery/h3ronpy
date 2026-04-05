@@ -43,6 +43,10 @@ fixable = ["I", "TID252"]
 # Disallow all relative imports.
 ban-relative-imports = "all"
 
+[tool.black]
+line-length = 120
+target-version = ["py39"]
+
 [project]
 name = "h3ronpy"
 readme = "../README.rst"
