@@ -2,10 +2,38 @@ import geopandas as gpd
 import pandas as pd
 import pytest
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, ContainmentMode
-from h3ronpy.pandas.vector import cells_dataframe_to_geodataframe, geodataframe_to_cells
+from h3ronpy.pandas.vector import (
+    cells_dataframe_to_geodataframe,
+    cells_to_polygons,
+    geodataframe_to_cells,
+)
 from shapely.geometry import GeometryCollection, Point, Polygon
 
 from tests import load_africa
+
+
+def test_cells_to_polygons():
+    df = pd.DataFrame(
+        {
+            DEFAULT_CELL_COLUMN_NAME: [
+                0x81083FFFFFFFFFF,
+                0x8108BFFFFFFFFFF,
+                0x8108FFFFFFFFFFF,
+                0x81093FFFFFFFFFF,
+                0x81097FFFFFFFFFF,
+                0x8109BFFFFFFFFFF,
+            ],
+            "id": [5, 7, 9, 11, 13, 16],
+        }
+    )
+
+    actual = cells_to_polygons(df[DEFAULT_CELL_COLUMN_NAME])
+    assert len(actual) == len(df)
+    assert all(actual.geometry.geom_type == "Polygon")
+
+    actual = cells_to_polygons(df[DEFAULT_CELL_COLUMN_NAME], link_cells=True)
+    assert len(actual) == 1
+    assert all(actual.geometry.geom_type == "Polygon")
 
 
 def test_cells_dataframe_to_geodataframe():
