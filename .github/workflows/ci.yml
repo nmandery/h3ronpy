@@ -27,8 +27,8 @@ jobs:
       - rusttest
       - pre-commit
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -45,7 +45,7 @@ jobs:
             --out dist
           manylinux: auto
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-x86_64
           path: dist
@@ -63,8 +63,8 @@ jobs:
       - black
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -79,7 +79,7 @@ jobs:
             --out dist
           manylinux: auto
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-aarch64
           path: dist
@@ -91,8 +91,8 @@ jobs:
       - linux-x86_64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
@@ -109,7 +109,7 @@ jobs:
             --out dist
             -i python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-windows-x86_64
           path: dist
@@ -127,8 +127,8 @@ jobs:
       - linux-x86_64
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           # https://github.com/pypa/cibuildwheel/issues/1410
           python-version: ${{ env.PYTHON_VERSION }}
@@ -151,7 +151,7 @@ jobs:
             --out dist
             -i python
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-macos-x86_64
           path: dist
@@ -169,10 +169,10 @@ jobs:
       - black
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Rust targets
         run: rustup target add aarch64-apple-darwin
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -187,7 +187,7 @@ jobs:
             --manifest-path h3ronpy/Cargo.toml
             --out dist
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-macos-aarch64
           path: dist
@@ -199,7 +199,7 @@ jobs:
   #      - rusttest
   #      - black
   #    steps:
-  #      - uses: actions/checkout@v4
+  #      - uses: actions/checkout@v6
   #      - name: Build sdist
   #        uses: PyO3/maturin-action@v1
   #        with:
@@ -208,7 +208,7 @@ jobs:
   #            --manifest-path h3ronpy/Cargo.toml
   #            --out dist
   #      - name: Upload sdist
-  #        uses: actions/upload-artifact@v4
+  #        uses: actions/upload-artifact@v7
   #        with:
   #          name: sdist
   #          path: dist
@@ -220,22 +220,22 @@ jobs:
     needs:
       [linux-x86_64, linux-aarch64, windows-x86_64, macos-x86_64, macos-aarch64]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wheels-linux-x86_64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wheels-linux-aarch64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wheels-windows-x86_64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wheels-macos-aarch64
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: wheels-macos-x86_64
-      #- uses: actions/download-artifact@v4
+      #- uses: actions/download-artifact@v8
       #  with:
       #    name: sdist
       - name: Publish to PyPI
@@ -251,7 +251,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: run rustfmt
         run: |
           cargo fmt -- --check
@@ -272,5 +272,5 @@ jobs:
     name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: j178/prek-action@v2
