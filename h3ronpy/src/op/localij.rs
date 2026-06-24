@@ -76,7 +76,10 @@ pub(crate) fn localij_to_cells<'py>(
 fn get_anchor_array(anchor: &Bound<PyAny>, len: usize) -> PyResult<CellIndexArray> {
     if let Ok(anchor) = anchor.extract::<u64>() {
         let anchor_cell = CellIndex::try_from(anchor).into_pyresult()?;
-        Ok(CellIndexArray::from_iter(std::iter::repeat_n(anchor_cell, len)))
+        Ok(CellIndexArray::from_iter(std::iter::repeat_n(
+            anchor_cell,
+            len,
+        )))
     } else if let Ok(anchorarray) = pyarray_to_cellindexarray(anchor) {
         Ok(anchorarray)
     } else {

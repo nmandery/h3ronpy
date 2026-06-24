@@ -20,7 +20,10 @@ pub(crate) fn cells_area_km2(py: Python<'_>, cellarray: PyCellArray) -> PyResult
 
 #[pyfunction]
 #[pyo3(signature = (cellarray))]
-pub(crate) fn cells_area_rads2(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
+pub(crate) fn cells_area_rads2(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+) -> PyResult<Bound<'_, PyAny>> {
     let out = cellarray.as_ref().area_rads2();
     PyArray::from_array_ref(Arc::new(out)).into_arro3(py)
 }

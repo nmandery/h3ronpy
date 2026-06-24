@@ -88,7 +88,10 @@ pub(crate) fn directededges_parse(
 
 #[pyfunction]
 #[pyo3(signature = (cellarray))]
-pub(crate) fn cells_to_string(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
+pub(crate) fn cells_to_string(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+) -> PyResult<Bound<'_, PyAny>> {
     let stringarray: LargeStringArray =
         cellarray.as_ref().to_genericstringarray().into_pyresult()?;
     PyArray::from_array_ref(Arc::new(stringarray)).into_arro3(py)

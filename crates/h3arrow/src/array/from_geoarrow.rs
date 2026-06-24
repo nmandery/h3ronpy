@@ -69,16 +69,12 @@ impl<O: OffsetSizeTrait> ToCellListArray<O> for GenericWkbArray<O> {
         let pos_iter = (0..self.len()).into_par_iter();
 
         let cell_vecs = pos_iter
-            .map(|pos| {
-                match self.get(pos).map_err(Error::from)? {
+            .map(|pos| match self.get(pos).map_err(Error::from)? {
+                None => Ok(None),
+                Some(wkb) => match wkb.try_to_geometry() {
+                    Some(geom) => geometry_to_cells(&geom, options).map(Some),
                     None => Ok(None),
-                    Some(wkb) => {
-                        match wkb.try_to_geometry() {
-                            Some(geom) => geometry_to_cells(&geom, options).map(Some),
-                            None => Ok(None),
-                        }
-                    }
-                }
+                },
             })
             .collect::<Result<Vec<_>, _>>()?;
 

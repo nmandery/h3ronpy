@@ -72,9 +72,11 @@ fn seperator(s: &str) -> IResult<&str, &str> {
 }
 
 fn u8_str(s: &str) -> IResult<&str, u8> {
-    map_res(take_while_m_n(1, 2, |c: char| c.is_ascii_digit()), |u8s: &str| {
-        u8::from_str(u8s)
-    }).parse(s)
+    map_res(
+        take_while_m_n(1, 2, |c: char| c.is_ascii_digit()),
+        |u8s: &str| u8::from_str(u8s),
+    )
+    .parse(s)
 }
 
 fn parse_coordinate_and_resolution(s: &str) -> IResult<&str, (Coord, u8)> {

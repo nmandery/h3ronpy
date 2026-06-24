@@ -81,7 +81,10 @@ pub(crate) fn change_resolution_paired(
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
+pub(crate) fn cells_resolution(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+) -> PyResult<Bound<'_, PyAny>> {
     let resarray = cellarray.as_ref().resolution();
     PyArray::from_array_ref(Arc::new(resarray.into_inner())).into_arro3(py)
 }
