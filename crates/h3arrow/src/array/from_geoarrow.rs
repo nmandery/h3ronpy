@@ -8,9 +8,7 @@ use crate::array::{CellIndexArray, H3ListArray};
 use crate::error::Error;
 use arrow::array::OffsetSizeTrait;
 use geo_types::Geometry;
-use geoarrow::array::WKBArray;
-use geoarrow::trait_::ArrayAccessor;
-use geoarrow::ArrayBase;
+use geoarrow::array::{GenericWkbArray, GeoArrowArray, GeoArrowArrayAccessor};
 use h3o::CellIndex;
 #[cfg(feature = "rayon")]
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
@@ -22,7 +20,7 @@ macro_rules! impl_to_cells {
                 &self,
                 options: &ToCellsOptions,
             ) -> Result<H3ListArray<CellIndex, O>, Error> {
-                self.iter_geo()
+                self.iter_values()
                     .map(|v| v.map(Geometry::from))
                     .to_celllistarray(options)
             }
@@ -30,7 +28,7 @@ macro_rules! impl_to_cells {
 
         impl ToCellIndexArray for $array_type {
             fn to_cellindexarray(&self, options: &ToCellsOptions) -> Result<CellIndexArray, Error> {
-                self.iter_geo()
+                self.iter_values()
                     .map(|v| v.map(Geometry::from))
                     .to_cellindexarray(options)
             }
@@ -45,7 +43,7 @@ impl_to_cells!(geoarrow::array::MultiPolygonArray);
 impl_to_cells!(geoarrow::array::PointArray);
 impl_to_cells!(geoarrow::array::PolygonArray);
 
-impl<O: OffsetSizeTrait> ToCellListArray<O> for WKBArray<O> {
+impl<O: OffsetSizeTrait> ToCellListArray<O> for GenericWkbArray<O> {
     fn to_celllistarray(
         &self,
         options: &ToCellsOptions,
@@ -58,7 +56,7 @@ impl<O: OffsetSizeTrait> ToCellListArray<O> for WKBArray<O> {
 
         let cell_vecs = pos_iter
             .map(|pos| {
-                self.get_as_geo(pos)
+                self.get(pos)?
                     .map(|geom| geometry_to_cells(&geom, options))
                     .transpose()
             })
@@ -68,7 +66,7 @@ impl<O: OffsetSizeTrait> ToCellListArray<O> for WKBArray<O> {
     }
 }
 
-impl<O: OffsetSizeTrait> ToCellIndexArray for WKBArray<O> {
+impl<O: OffsetSizeTrait> ToCellIndexArray for GenericWkbArray<O> {
     fn to_cellindexarray(&self, options: &ToCellsOptions) -> Result<CellIndexArray, Error> {
         let cellindexarray = self.to_celllistarray(options)?.into_flattened()?;
 

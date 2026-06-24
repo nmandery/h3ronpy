@@ -10,7 +10,11 @@ use pyo3_arrow::PyArray;
 
 use crate::arrow_interop::*;
 
-fn h3index_valid<IX>(py: Python, arr: &Bound<PyAny>, booleanarray: bool) -> PyResult<PyObject>
+fn h3index_valid<IX>(
+    py: Python,
+    arr: &Bound<PyAny>,
+    booleanarray: bool,
+) -> PyResult<Bound<'_, PyAny>>
 where
     IX: H3IndexArrayValue + Send,
 {

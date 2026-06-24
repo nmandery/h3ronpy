@@ -13,7 +13,7 @@ use pyo3::Python;
 use crate::error::{IntoPyErr, IntoPyResult};
 
 #[inline]
-pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python) -> PyResult<PyObject>
+pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python) -> PyResult<Bound<'_, PyAny>>
 where
     IX: H3IndexArrayValue,
 {

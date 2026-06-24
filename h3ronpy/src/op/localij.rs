@@ -8,7 +8,7 @@ use h3arrow::array::CellIndexArray;
 use h3arrow::h3o::CellIndex;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::{pyfunction, Bound, PyAny, PyObject, PyResult, Python};
+use pyo3::{pyfunction, Bound, PyAny, PyResult, Python};
 use pyo3_arrow::error::PyArrowResult;
 use pyo3_arrow::PyRecordBatch;
 use std::iter::repeat;
@@ -21,7 +21,7 @@ pub(crate) fn cells_to_localij(
     cellarray: PyCellArray,
     anchor: &Bound<PyAny>,
     set_failing_to_invalid: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let anchorarray = get_anchor_array(anchor, cellindexarray.len())?;
 
@@ -55,7 +55,7 @@ pub(crate) fn localij_to_cells(
     i_array: &Bound<PyAny>,
     j_array: &Bound<PyAny>,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let i_array = pyarray_to_native::<Int32Array>(i_array)?;
     let j_array = pyarray_to_native::<Int32Array>(j_array)?;
     let anchorarray = get_anchor_array(anchor, i_array.len())?;

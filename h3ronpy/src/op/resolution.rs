@@ -18,7 +18,7 @@ pub(crate) fn change_resolution(
     py: Python<'_>,
     cellarray: PyCellArray,
     h3_resolution: u8,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let out = py.allow_threads(|| {
@@ -35,7 +35,7 @@ pub(crate) fn change_resolution_list(
     py: Python,
     cellarray: PyCellArray,
     h3_resolution: u8,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let listarray = cellindexarray
@@ -50,7 +50,7 @@ pub(crate) fn change_resolution_paired(
     py: Python,
     cellarray: PyCellArray,
     h3_resolution: u8,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
     let pair = cellindexarray
@@ -81,7 +81,7 @@ pub(crate) fn change_resolution_paired(
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(py: Python, cellarray: PyCellArray) -> PyResult<PyObject> {
+pub(crate) fn cells_resolution(py: Python, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
     let resarray = cellarray.as_ref().resolution();
     PyArray::from_array_ref(Arc::new(resarray.into_inner())).to_arro3(py)
 }

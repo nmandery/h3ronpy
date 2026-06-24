@@ -1,5 +1,8 @@
 use std::sync::Arc;
 
+use crate::array::{PyCellArray, PyDirectedEdgeArray, PyVertexArray};
+use crate::arrow_interop::*;
+use crate::error::IntoPyResult;
 use arrow::array::{
     ArrayRef, AsArray, Float64Array, GenericBinaryArray, GenericListArray, OffsetSizeTrait,
     RecordBatch, UInt8Array,
@@ -7,15 +10,15 @@ use arrow::array::{
 use arrow::buffer::NullBuffer;
 use arrow::datatypes::{DataType, Field, Schema};
 use geo::{BoundingRect, HasDimensions, LineString, ToRadians};
+use geoarrow_array::capacity::WkbCapacity;
 use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
-use h3arrow::export::geoarrow::array::{WKBArray, WKBBuilder, WKBCapacity};
-use h3arrow::export::geoarrow::ArrayBase;
+use h3arrow::export::geoarrow::array::{WkbArray, WkbBuilder};
 use h3arrow::export::h3o::geom::ContainmentMode;
 use h3arrow::export::h3o::Resolution;
-use h3arrow::h3o::geom::dissolve;
+use h3arrow::h3o::geom::SolventBuilder;
 use h3arrow::h3o::LatLng;
 use itertools::multizip;
 use pyo3::exceptions::PyValueError;
@@ -23,10 +26,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3_arrow::error::PyArrowResult;
 use pyo3_arrow::{PyArray, PyRecordBatch};
-
-use crate::array::{PyCellArray, PyDirectedEdgeArray, PyVertexArray};
-use crate::arrow_interop::*;
-use crate::error::IntoPyResult;
 
 /// Containment mode used to decide if a cell is contained in a polygon or not.
 ///
@@ -87,12 +86,15 @@ impl PyContainmentMode {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Option<PyObject>> {
+pub(crate) fn cells_bounds(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+) -> PyResult<Option<Bound<'_, PyAny>>> {
     if let Some(rect) = py.allow_threads(|| cellarray.as_ref().bounding_rect()) {
-        Ok(Some(
-            PyTuple::new_bound(py, [rect.min().x, rect.min().y, rect.max().x, rect.max().y])
-                .to_object(py),
-        ))
+        Ok(Some(PyTuple::new(
+            py,
+            [rect.min().x, rect.min().y, rect.max().x, rect.max().y],
+        )))
     } else {
         Ok(None)
     }
@@ -100,7 +102,10 @@ pub(crate) fn cells_bounds(py: Python<'_>, cellarray: PyCellArray) -> PyResult<O
 
 #[pyfunction]
 #[pyo3(signature = (cellarray,))]
-pub(crate) fn cells_bounds_arrays(py: Python, cellarray: PyCellArray) -> PyArrowResult<PyObject> {
+pub(crate) fn cells_bounds_arrays(
+    py: Python,
+    cellarray: PyCellArray,
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let mut minx_vec = vec![0.0f64; cellindexarray.len()];
     let mut miny_vec = vec![0.0f64; cellindexarray.len()];
@@ -151,7 +156,7 @@ pub(crate) fn cells_to_coordinates(
     py: Python,
     cellarray: PyCellArray,
     radians: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let coordinate_arrays = if radians {
         cellarray.as_ref().to_coordinates_radians()
     } else {
@@ -179,7 +184,7 @@ pub(crate) fn coordinates_to_cells(
     lngarray: &Bound<PyAny>,
     resolution: &Bound<PyAny>,
     radians: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let latarray: Float64Array = pyarray_to_native(latarray)?;
     let lngarray: Float64Array = pyarray_to_native(lngarray)?;
     if lngarray.len() != latarray.len() {
@@ -247,17 +252,20 @@ pub(crate) fn cells_to_wkb_polygons(
     cellarray: PyCellArray,
     radians: bool,
     link_cells: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let use_degrees = !radians;
 
-    let out: WKBArray<i64> = py.allow_threads(|| {
+    let out: WkbArray = py.allow_threads(|| {
         if link_cells {
             let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
             cells.sort_unstable();
             cells.dedup();
 
-            let geoms = dissolve(cells)
+            let solvent = SolventBuilder::default().build();
+
+            let geoms = solvent
+                .dissolve(cells)
                 .into_pyresult()?
                 .into_iter()
                 .map(|mut poly| {
@@ -267,10 +275,11 @@ pub(crate) fn cells_to_wkb_polygons(
                     Some(geo_types::Geometry::from(poly))
                 })
                 .collect::<Vec<_>>();
-            let mut builder = WKBBuilder::with_capacity(WKBCapacity::from_geometries(
-                geoms.iter().map(|v| v.as_ref()),
-            ));
-            builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()));
+            let mut builder = WkbBuilder::with_capacity(
+                Default::default(),
+                WkbCapacity::from_geometries(geoms.iter().map(|v| v.as_ref())),
+            );
+            builder.extend_from_iter(geoms.iter().map(|v| v.as_ref()))?;
             Ok::<_, PyErr>(builder.finish())
         } else {
             Ok(cellindexarray
@@ -289,7 +298,7 @@ pub(crate) fn cells_to_wkb_points(
     py: Python,
     cellarray: PyCellArray,
     radians: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let out = py.allow_threads(|| {
         cellarray
             .as_ref()
@@ -307,7 +316,7 @@ pub(crate) fn vertexes_to_wkb_points(
     py: Python,
     vertexarray: PyVertexArray,
     radians: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let out = py.allow_threads(|| {
         vertexarray
             .as_ref()
@@ -325,7 +334,7 @@ pub(crate) fn directededges_to_wkb_linestrings(
     py: Python,
     array: PyDirectedEdgeArray,
     radians: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let out = py.allow_threads(|| {
         array
             .as_ref()
@@ -358,7 +367,7 @@ pub(crate) fn wkb_to_cells(
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
     flatten: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let options = get_to_cells_options(resolution, containment_mode, compact)?;
 
     match array.field().data_type() {
@@ -385,8 +394,8 @@ fn generic_wkb_to_cells<O: OffsetSizeTrait>(
     binarray: GenericBinaryArray<O>,
     flatten: bool,
     options: &ToCellsOptions,
-) -> PyResult<PyObject> {
-    let wkbarray = WKBArray::new(binarray, Default::default());
+) -> PyResult<Bound<'_, PyAny>> {
+    let wkbarray = WkbArray::new(binarray, Default::default());
 
     if flatten {
         let cells = py
@@ -411,7 +420,7 @@ pub(crate) fn geometry_to_cells(
     resolution: u8,
     containment_mode: Option<PyContainmentMode>,
     compact: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     if obj.0.is_empty() {
         return h3array_to_pyarray(CellIndexArray::new_null(0), py);
     }

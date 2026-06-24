@@ -12,7 +12,7 @@ pub(crate) fn compact(
     py: Python<'_>,
     cellarray: PyCellArray,
     mixed_resolutions: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let compacted = py
         .allow_threads(|| {
@@ -33,7 +33,7 @@ pub(crate) fn uncompact(
     py: Python<'_>,
     cellarray: PyCellArray,
     target_resolution: u8,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let target_resolution = Resolution::try_from(target_resolution).into_pyresult()?;
     let cellarray = cellarray.into_inner();
     let out = py.allow_threads(|| cellarray.uncompact(target_resolution));
