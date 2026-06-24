@@ -31,7 +31,7 @@ py_geo_interface = { git = "https://github.com/nmandery/py_geo_interface", rev =
 pyo3 = { version = "^0.28", features = [
     "extension-module",
     "abi3",
-    "abi3-py39",
+    "abi3-py312",
 ] }
 pyo3-arrow = { version = "0.17", default-features = false }
 rasterh3 = { version = "0.11", features = ["rayon"] }
