@@ -10,7 +10,7 @@ use geoarrow::array::{
     GenericWkbArray, LineStringArray, LineStringBuilder, PointArray, PointBuilder, PolygonArray,
     PolygonBuilder, WkbBuilder,
 };
-use geoarrow::datatypes::{Dimension, LineStringType, PointType, PolygonType, WkbType};
+use geoarrow::datatypes::{Dimension, LineStringType, PointType, PolygonType};
 use geoarrow_array::capacity::WkbCapacity;
 use std::convert::Infallible;
 

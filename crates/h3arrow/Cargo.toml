@@ -7,14 +7,14 @@ description = "Integration of the H3 geospatial grid with the arrow memory model
 license = "MIT"
 keywords = ["geo", "spatial", "h3", "arrow"]
 readme = "README.md"
-homepage = "https://github.com/nmandery/h3arrow"
-repository = "https://github.com/nmandery/h3arrow"
+homepage = "https://github.com/nmandery/h3ronpy"
+repository = "https://github.com/nmandery/h3ronpy"
 
 [package.metadata.docs.rs]
 all-features = true
 
 [features]
-geoarrow = ["dep:geoarrow", "dep:geozero", "dep:geoarrow-array"]
+geoarrow = ["dep:geoarrow", "dep:geozero", "dep:geoarrow-array", "dep:geo-traits"]
 rayon = ["dep:rayon"]
 spatial_index = ["dep:rstar"]
 
@@ -24,6 +24,7 @@ arrow = { workspace = true }
 #geoarrow = { git = "https://github.com/geoarrow/geoarrow-rs", rev = "3ecf7dfc1816261b84f813eaf2a0174f2b5752d8", optional = true }
 geoarrow = { workspace = true, optional = true }
 geoarrow-array = { workspace = true, optional = true }
+geo-traits = { version = "0.3", optional = true }
 geo-types = { workspace = true }
 geo = { workspace = true }
 geozero = { version = "^0.15", default-features = false, features = [
