@@ -1,7 +1,7 @@
 sphinx
 sphinx_rtd_theme>=1.2
 sphinx-autodoc-typehints
-numpy
+numpy>=2
 h3>=4
 matplotlib
 rasterio
@@ -11,4 +11,5 @@ scipy
 pandas
 geopandas
 polars
-pyarrow
+shapely>=2
+pyarrow>=24
