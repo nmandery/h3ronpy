@@ -21,7 +21,7 @@ pub(crate) fn change_resolution(
 ) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let h3_resolution = Resolution::try_from(h3_resolution).into_pyresult()?;
-    let out = py.allow_threads(|| {
+    let out = py.detach(|| {
         cellindexarray
             .change_resolution(h3_resolution)
             .into_pyresult()
@@ -32,7 +32,7 @@ pub(crate) fn change_resolution(
 
 #[pyfunction]
 pub(crate) fn change_resolution_list(
-    py: Python,
+    py: Python<'_>,
     cellarray: PyCellArray,
     h3_resolution: u8,
 ) -> PyResult<Bound<'_, PyAny>> {
@@ -42,12 +42,12 @@ pub(crate) fn change_resolution_list(
         .change_resolution_list(h3_resolution)
         .into_pyresult()?;
 
-    PyArray::from_array_ref(Arc::new(LargeListArray::from(listarray))).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(LargeListArray::from(listarray))).into_arro3(py)
 }
 
 #[pyfunction]
 pub(crate) fn change_resolution_paired(
-    py: Python,
+    py: Python<'_>,
     cellarray: PyCellArray,
     h3_resolution: u8,
 ) -> PyArrowResult<Bound<'_, PyAny>> {
@@ -77,11 +77,11 @@ pub(crate) fn change_resolution_paired(
         Arc::new(after.primitive_array().clone()),
     ];
     let batch = RecordBatch::try_new(Arc::new(schema), columns)?;
-    Ok(PyRecordBatch::new(batch).to_arro3(py)?)
+    Ok(PyRecordBatch::new(batch).into_arro3(py)?)
 }
 
 #[pyfunction]
-pub(crate) fn cells_resolution(py: Python, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
+pub(crate) fn cells_resolution(py: Python<'_>, cellarray: PyCellArray) -> PyResult<Bound<'_, PyAny>> {
     let resarray = cellarray.as_ref().resolution();
-    PyArray::from_array_ref(Arc::new(resarray.into_inner())).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(resarray.into_inner())).into_arro3(py)
 }

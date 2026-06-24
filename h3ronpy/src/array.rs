@@ -52,9 +52,10 @@ impl AsRef<CellIndexArray> for PyCellArray {
     }
 }
 
-impl<'py> FromPyObject<'py> for PyCellArray {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        Ok(Self(pyarray_to_cellindexarray(ob)?))
+impl<'a, 'py> FromPyObject<'a, 'py> for PyCellArray {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        Ok(Self(pyarray_to_cellindexarray(&ob)?))
     }
 }
 
@@ -97,9 +98,10 @@ impl AsRef<DirectedEdgeIndexArray> for PyDirectedEdgeArray {
     }
 }
 
-impl<'py> FromPyObject<'py> for PyDirectedEdgeArray {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        Ok(Self(pyarray_to_directededgeindexarray(ob)?))
+impl<'a, 'py> FromPyObject<'a, 'py> for PyDirectedEdgeArray {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        Ok(Self(pyarray_to_directededgeindexarray(&ob)?))
     }
 }
 
@@ -138,8 +140,9 @@ impl AsRef<VertexIndexArray> for PyVertexArray {
     }
 }
 
-impl<'py> FromPyObject<'py> for PyVertexArray {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        Ok(Self(pyarray_to_vertexindexarray(ob)?))
+impl<'a, 'py> FromPyObject<'a, 'py> for PyVertexArray {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        Ok(Self(pyarray_to_vertexindexarray(&ob)?))
     }
 }

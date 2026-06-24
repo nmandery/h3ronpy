@@ -15,7 +15,7 @@ pub(crate) fn compact(
 ) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let compacted = py
-        .allow_threads(|| {
+        .detach(|| {
             if mixed_resolutions {
                 cellindexarray.compact_mixed_resolutions()
             } else {
@@ -36,6 +36,6 @@ pub(crate) fn uncompact(
 ) -> PyResult<Bound<'_, PyAny>> {
     let target_resolution = Resolution::try_from(target_resolution).into_pyresult()?;
     let cellarray = cellarray.into_inner();
-    let out = py.allow_threads(|| cellarray.uncompact(target_resolution));
+    let out = py.detach(|| cellarray.uncompact(target_resolution));
     h3array_to_pyarray(out, py)
 }
