@@ -62,9 +62,7 @@ class H3Expr:
         return self._expr.map_batches(wrapped_func, return_dtype=return_dtype)
 
     def cells_resolution(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_resolution, return_dtype=pl.UInt8).alias(
-            "resolution"
-        )
+        return self.__expr_map_series(h3ronpy.cells_resolution, return_dtype=pl.UInt8).alias("resolution")
 
     def change_resolution(self, resolution: int) -> pl.Expr:
         return self.__expr_map_series(lambda s: h3ronpy.change_resolution(s, resolution))
@@ -102,39 +100,25 @@ class H3Expr:
         )
 
     def uncompact(self, target_resolution: int) -> pl.Expr:
-        return self.__expr_map_series(
-            lambda s: h3ronpy.uncompact(s, target_resolution), return_dtype=pl.UInt64
-        )
+        return self.__expr_map_series(lambda s: h3ronpy.uncompact(s, target_resolution), return_dtype=pl.UInt64)
 
     def cells_area_m2(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_area_m2, return_dtype=pl.Float64).alias(
-            "area_m2"
-        )
+        return self.__expr_map_series(h3ronpy.cells_area_m2, return_dtype=pl.Float64).alias("area_m2")
 
     def cells_area_km2(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_area_km2, return_dtype=pl.Float64).alias(
-            "area_km2"
-        )
+        return self.__expr_map_series(h3ronpy.cells_area_km2, return_dtype=pl.Float64).alias("area_km2")
 
     def cells_area_rads2(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_area_rads2, return_dtype=pl.Float64).alias(
-            "area_rads2"
-        )
+        return self.__expr_map_series(h3ronpy.cells_area_rads2, return_dtype=pl.Float64).alias("area_rads2")
 
     def cells_valid(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.cells_valid, return_dtype=pl.Boolean).alias(
-            "cells_valid"
-        )
+        return self.__expr_map_series(h3ronpy.cells_valid, return_dtype=pl.Boolean).alias("cells_valid")
 
     def vertexes_valid(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.vertexes_valid, return_dtype=pl.Boolean).alias(
-            "vertexes_valid"
-        )
+        return self.__expr_map_series(h3ronpy.vertexes_valid, return_dtype=pl.Boolean).alias("vertexes_valid")
 
     def directededges_valid(self) -> pl.Expr:
-        return self.__expr_map_series(h3ronpy.directededges_valid, return_dtype=pl.Boolean).alias(
-            "directededges_valid"
-        )
+        return self.__expr_map_series(h3ronpy.directededges_valid, return_dtype=pl.Boolean).alias("directededges_valid")
 
     def cells_to_string(self) -> pl.Expr:
         return self.__expr_map_series(h3ronpy.cells_to_string, return_dtype=pl.String)
@@ -174,9 +158,7 @@ class H3SeriesShortcuts:
         return _wrap(h3ronpy.vertexes_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def directededges_parse(self, set_failing_to_invalid: bool = False) -> pl.Series:
-        return _wrap(h3ronpy.directededges_parse)(
-            self._s, set_failing_to_invalid=set_failing_to_invalid
-        )
+        return _wrap(h3ronpy.directededges_parse)(self._s, set_failing_to_invalid=set_failing_to_invalid)
 
     def grid_disk(self, k: int, flatten: bool = False) -> pl.Series:
         return _wrap(h3ronpy.grid_disk)(self._s, k, flatten=flatten)

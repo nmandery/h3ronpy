@@ -16,7 +16,6 @@ from h3ronpy.h3ronpyrs import DEFAULT_CELL_COLUMN_NAME, ContainmentMode, op, ver
 if TYPE_CHECKING:
     import polars as pl
 
-
 __version__ = version()
 
 H3_CRS = "EPSG:4326"
@@ -46,9 +45,7 @@ def _to_arrow_array(
         # From arbitrary non-arrow input
         array = Array(cast(Sequence[Any], arr), type=dtype)
     else:
-        raise ValueError(
-            "Unsupported input to _to_arrow_array. Expected array-like or series-like."
-        )
+        raise ValueError("Unsupported input to _to_arrow_array. Expected array-like or series-like.")
 
     # Cast if dtype was provided
     if dtype is not None:
@@ -192,9 +189,7 @@ def _make_h3index_valid_wrapper(fn, h3index_name, wrapper_name):
 
 cells_valid = _make_h3index_valid_wrapper(op.cells_valid, "cell", "cells_valid")
 vertexes_valid = _make_h3index_valid_wrapper(op.cells_valid, "vertex", "vertexes_valid")
-directededges_valid = _make_h3index_valid_wrapper(
-    op.cells_valid, "directed edge", "directededges_valid"
-)
+directededges_valid = _make_h3index_valid_wrapper(op.cells_valid, "directed edge", "directededges_valid")
 
 
 def grid_disk(cellarray, k: int, flatten: bool = False) -> Array:

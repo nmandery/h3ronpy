@@ -59,9 +59,7 @@ def cells_to_wkb_polygons(arr, radians: bool = False, link_cells: bool = False) 
     :param radians: Generate geometries using radians instead of degrees
     :param link_cells: Combine neighboring cells into a single polygon geometry. All cell indexes must have the same resolution.
     """
-    return vector.cells_to_wkb_polygons(
-        _to_uint64_array(arr), radians=radians, link_cells=link_cells
-    )
+    return vector.cells_to_wkb_polygons(_to_uint64_array(arr), radians=radians, link_cells=link_cells)
 
 
 def cells_to_wkb_points(arr, radians: bool = False) -> Array:
@@ -147,9 +145,7 @@ def geometry_to_cells(
     :param compact: Compact the returned cells by replacing cells with their parent cells when all children
             of that cell are part of the set.
     """
-    return vector.geometry_to_cells(
-        geom, resolution, containment_mode=containment_mode, compact=compact
-    )
+    return vector.geometry_to_cells(geom, resolution, containment_mode=containment_mode, compact=compact)
 
 
 __all__ = [

@@ -15,10 +15,10 @@ all-features = true
 
 [features]
 geoarrow = [
-    "dep:geoarrow",
-    "dep:geozero",
-    "dep:geoarrow-array",
-    "dep:geo-traits"
+  "dep:geoarrow",
+  "dep:geozero",
+  "dep:geoarrow-array",
+  "dep:geo-traits",
 ]
 rayon = ["dep:rayon"]
 spatial_index = ["dep:rstar"]
@@ -33,8 +33,8 @@ geo-traits = { version = "0.3", optional = true }
 geo-types = { workspace = true }
 geo = { workspace = true }
 geozero = { version = "^0.15", default-features = false, features = [
-    "with-geo",
-    "with-wkb",
+  "with-geo",
+  "with-wkb",
 ], optional = true }
 h3o = { workspace = true, features = ["geo"] }
 nom = "8"
