@@ -14,7 +14,12 @@ repository = "https://github.com/nmandery/h3ronpy"
 all-features = true
 
 [features]
-geoarrow = ["dep:geoarrow", "dep:geozero", "dep:geoarrow-array", "dep:geo-traits"]
+geoarrow = [
+    "dep:geoarrow",
+    "dep:geozero",
+    "dep:geoarrow-array",
+    "dep:geo-traits"
+]
 rayon = ["dep:rayon"]
 spatial_index = ["dep:rstar"]
 

@@ -28,8 +28,6 @@ Resolution search modes of `nearest_h3_resolution`:
 
 """
 
-import typing
-
 import numpy as np
 import pyarrow as pa
 
@@ -138,7 +136,7 @@ def raster_to_dataframe(
 
 
 def rasterize_cells(
-    cells, values, size: typing.Union[int, tuple[int, int]], nodata_value=0
+    cells, values, size: int | tuple[int, int], nodata_value=0
 ) -> tuple[np.ndarray, tuple[float, float, float, float, float, float]]:
     """
     Generate a raster numpy array from arrays of cells and values.
@@ -198,7 +196,9 @@ def rasterize_cells(
 
         # linking cells should speed up rendering in case of large homogenous areas
         polygons = pa.array(cells_to_wkb_polygons(pa.array(cells), link_cells=True))
-        polygons = [shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())]
+        polygons = [
+            shapely.from_wkb(polygon.as_py()) for polygon in polygons.filter(polygons.is_valid())
+        ]
 
         # draw
         rasterize(

@@ -1,5 +1,3 @@
-import typing
-
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -21,7 +19,7 @@ def raster_to_dataframe(
     axis_order: str = "yx",
     compact: bool = True,
     geo: bool = False,
-) -> typing.Union[gpd.GeoDataFrame, pd.DataFrame]:
+) -> gpd.GeoDataFrame | pd.DataFrame:
     """
     Convert a raster/array to a pandas `DataFrame` containing H3 indexes
 
