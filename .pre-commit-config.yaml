@@ -7,7 +7,7 @@ repos:
       - id: check-merge-conflict
       - id: end-of-file-fixer
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.3
+    rev: v3.8.4
     hooks:
       - id: prettier
         args: ["--cache-location=.prettier_cache/cache"]
@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: validate-pyproject
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.14
+    rev: v0.15.19
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
