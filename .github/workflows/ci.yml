@@ -27,8 +27,8 @@ jobs:
       - rusttest
       - pre-commit
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{env.PYTHON_VERSION}}
 
@@ -66,8 +66,8 @@ jobs:
       - pre-commit
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -95,8 +95,8 @@ jobs:
       - linux-x86_64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
@@ -131,8 +131,8 @@ jobs:
       - linux-x86_64
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           # https://github.com/pypa/cibuildwheel/issues/1410
           python-version: ${{ env.PYTHON_VERSION }}
@@ -173,10 +173,10 @@ jobs:
       - pre-commit
       - linux-x86_64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Rust targets
         run: rustup target add aarch64-apple-darwin
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{env.PYTHON_VERSION}}
       - name: Install dependencies
@@ -204,7 +204,7 @@ jobs:
   #      - rusttest
   #      - pre-commit
   #    steps:
-  #      - uses: actions/checkout@v6
+  #      - uses: actions/checkout@v7
   #      - name: Build sdist
   #        uses: PyO3/maturin-action@v1
   #        with:
@@ -256,7 +256,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: run rustfmt
         run: |
           cargo fmt -- --check
@@ -277,5 +277,5 @@ jobs:
     name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: j178/prek-action@v2
+      - uses: actions/checkout@v7
+      - uses: j178/prek-action@v2.0.6
