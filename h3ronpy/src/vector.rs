@@ -281,9 +281,7 @@ pub(crate) fn cells_to_wkb_polygons(
                 .into_pyresult()?;
             Ok::<_, PyErr>(builder.finish())
         } else {
-            Ok(cellindexarray
-                .to_wkb_polygons(use_degrees)
-                .expect("wkbarray"))
+            cellindexarray.to_wkb_polygons(use_degrees).into_pyresult()
         }
     })?;
 
@@ -298,12 +296,9 @@ pub(crate) fn cells_to_wkb_points(
     cellarray: PyCellArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        cellarray
-            .as_ref()
-            .to_wkb_points::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| cellarray.as_ref().to_wkb_points::<i64>(!radians))
+        .into_pyresult()?;
 
     let field = Arc::new(out.data_type().to_field("", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
@@ -316,12 +311,9 @@ pub(crate) fn vertexes_to_wkb_points(
     vertexarray: PyVertexArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        vertexarray
-            .as_ref()
-            .to_wkb_points::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| vertexarray.as_ref().to_wkb_points::<i64>(!radians))
+        .into_pyresult()?;
 
     let field = Arc::new(out.data_type().to_field("", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
@@ -334,12 +326,9 @@ pub(crate) fn directededges_to_wkb_linestrings(
     array: PyDirectedEdgeArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        array
-            .as_ref()
-            .to_wkb_linestrings::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| array.as_ref().to_wkb_linestrings::<i64>(!radians))
+        .into_pyresult()?;
 
     let field = Arc::new(out.data_type().to_field("", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
