@@ -285,7 +285,7 @@ pub(crate) fn cells_to_wkb_polygons(
         }
     })?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -300,7 +300,7 @@ pub(crate) fn cells_to_wkb_points(
         .detach(|| cellarray.as_ref().to_wkb_points::<i64>(!radians))
         .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -315,7 +315,7 @@ pub(crate) fn vertexes_to_wkb_points(
         .detach(|| vertexarray.as_ref().to_wkb_points::<i64>(!radians))
         .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -330,7 +330,7 @@ pub(crate) fn directededges_to_wkb_linestrings(
         .detach(|| array.as_ref().to_wkb_linestrings::<i64>(!radians))
         .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
