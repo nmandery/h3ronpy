@@ -36,6 +36,7 @@ Unreleased
   ``vertexes_to_wkb_points``, ``directededges_to_wkb_linestrings``) keep
   returning ``large_binary`` arrays (i64 offsets) as in 0.22, and now raise a
   Python exception instead of panicking when the WKB serialization fails.
+- ``ContainmentMode`` is now hashable and can be used as a dict key or in sets.
 
 
 0.22.0 - 2024-11-26
