@@ -59,8 +59,8 @@ use pyo3_arrow::{PyArray, PyRecordBatch};
 /// * Covers: This mode behaves the same as IntersectsBoundary, but also handles the case where the geometry is
 ///         being covered by a cell without intersecting with its boundaries. In such cases, the covering cell is returned.
 ///
-#[pyclass(name = "ContainmentMode", eq, eq_int, from_py_object)]
-#[derive(Copy, Clone, Eq, PartialEq, Default)]
+#[pyclass(name = "ContainmentMode", eq, eq_int, hash, frozen, from_py_object)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum PyContainmentMode {
     #[default]
     ContainsCentroid,
