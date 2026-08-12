@@ -16,7 +16,7 @@ use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
-use h3arrow::export::geoarrow::array::{GenericWkbArray, WkbArray, WkbBuilder};
+use h3arrow::export::geoarrow::array::{GenericWkbArray, LargeWkbArray, WkbBuilder};
 use h3arrow::export::h3o::geom::ContainmentMode;
 use h3arrow::export::h3o::Resolution;
 use h3arrow::h3o::geom::SolventBuilder;
@@ -251,7 +251,9 @@ pub(crate) fn cells_to_wkb_polygons(
     let cellindexarray = cellarray.into_inner();
     let use_degrees = !radians;
 
-    let out: WkbArray = py.detach(|| {
+    // LargeWkbArray (i64 offsets) to match the other WKB-producing functions and the
+    // pre-0.23 behavior, and to avoid i32 offset overflow on large outputs.
+    let out: LargeWkbArray = py.detach(|| {
         if link_cells {
             let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
             cells.sort_unstable();
