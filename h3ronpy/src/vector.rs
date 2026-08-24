@@ -16,7 +16,7 @@ use h3arrow::algorithm::ToCoordinatesOp;
 use h3arrow::array::from_geo::{ToCellIndexArray, ToCellListArray, ToCellsOptions};
 use h3arrow::array::to_geoarrow::{ToWKBLineStrings, ToWKBPoints, ToWKBPolygons};
 use h3arrow::array::{CellIndexArray, ResolutionArray};
-use h3arrow::export::geoarrow::array::{GenericWkbArray, WkbArray, WkbBuilder};
+use h3arrow::export::geoarrow::array::{GenericWkbArray, LargeWkbArray, WkbBuilder};
 use h3arrow::export::h3o::geom::ContainmentMode;
 use h3arrow::export::h3o::Resolution;
 use h3arrow::h3o::geom::SolventBuilder;
@@ -59,8 +59,8 @@ use pyo3_arrow::{PyArray, PyRecordBatch};
 /// * Covers: This mode behaves the same as IntersectsBoundary, but also handles the case where the geometry is
 ///         being covered by a cell without intersecting with its boundaries. In such cases, the covering cell is returned.
 ///
-#[pyclass(name = "ContainmentMode", eq, eq_int, from_py_object)]
-#[derive(Copy, Clone, Eq, PartialEq, Default)]
+#[pyclass(name = "ContainmentMode", eq, eq_int, hash, frozen, from_py_object)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Default)]
 pub enum PyContainmentMode {
     #[default]
     ContainsCentroid,
@@ -251,7 +251,9 @@ pub(crate) fn cells_to_wkb_polygons(
     let cellindexarray = cellarray.into_inner();
     let use_degrees = !radians;
 
-    let out: WkbArray = py.detach(|| {
+    // LargeWkbArray (i64 offsets) to match the other WKB-producing functions and the
+    // pre-0.23 behavior, and to avoid i32 offset overflow on large outputs.
+    let out: LargeWkbArray = py.detach(|| {
         if link_cells {
             let mut cells = cellindexarray.iter().flatten().collect::<Vec<_>>();
             cells.sort_unstable();
@@ -279,13 +281,11 @@ pub(crate) fn cells_to_wkb_polygons(
                 .into_pyresult()?;
             Ok::<_, PyErr>(builder.finish())
         } else {
-            Ok(cellindexarray
-                .to_wkb_polygons(use_degrees)
-                .expect("wkbarray"))
+            cellindexarray.to_wkb_polygons(use_degrees).into_pyresult()
         }
     })?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -296,14 +296,11 @@ pub(crate) fn cells_to_wkb_points(
     cellarray: PyCellArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        cellarray
-            .as_ref()
-            .to_wkb_points::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| cellarray.as_ref().to_wkb_points::<i64>(!radians))
+        .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -314,14 +311,11 @@ pub(crate) fn vertexes_to_wkb_points(
     vertexarray: PyVertexArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        vertexarray
-            .as_ref()
-            .to_wkb_points::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| vertexarray.as_ref().to_wkb_points::<i64>(!radians))
+        .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 
@@ -332,14 +326,11 @@ pub(crate) fn directededges_to_wkb_linestrings(
     array: PyDirectedEdgeArray,
     radians: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
-    let out = py.detach(|| {
-        array
-            .as_ref()
-            .to_wkb_linestrings::<i64>(!radians)
-            .expect("wkbarray")
-    });
+    let out = py
+        .detach(|| array.as_ref().to_wkb_linestrings::<i64>(!radians))
+        .into_pyresult()?;
 
-    let field = Arc::new(out.data_type().to_field("", true));
+    let field = Arc::new(out.data_type().to_field("geometry", true));
     PyArray::new(out.into_array_ref(), field).into_arro3(py)
 }
 

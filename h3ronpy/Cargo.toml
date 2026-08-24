@@ -34,6 +34,6 @@ pyo3 = { version = "^0.28", features = [
   "abi3-py312",
 ] }
 pyo3-arrow = { version = "0.17", default-features = false }
-rasterh3 = { version = "0.11", features = ["rayon"] }
+rasterh3 = { version = "0.12", features = ["rayon"] }
 geoarrow-array = { workspace = true }
 rayon = { workspace = true }

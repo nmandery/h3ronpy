@@ -25,13 +25,18 @@ Unreleased
   **>=2.0** for numpy 2 ABI compatibility and for ``shapely.from_wkb``, which
   is used by the raster module.
 - Upgrade the native (Rust) stack: ``h3o`` 0.7 -> 0.10, ``rasterh3`` 0.10 ->
-  0.11, ``geo`` 0.29 -> 0.33, ``arrow`` 53 -> 58, ``geoarrow`` / ``geoarrow-array``
+  0.12, ``geo`` 0.29 -> 0.33, ``arrow`` 53 -> 58, ``geoarrow`` / ``geoarrow-array``
   -> 0.8, ``pyo3`` 0.22 -> 0.28, ``pyo3-arrow`` 0.5.1 -> 0.17, ``ndarray`` 0.16
   -> 0.17, ``numpy`` (Rust) 0.22 -> 0.28.
 - Internal: migrate the ``h3arrow`` crate and the Python bindings to the new
-  geoarrow 0.8 and pyo3 0.28 APIs. There is no change to the Python-facing API;
-  existing user code does not need to be adjusted beyond the dependency bumps
-  above.
+  geoarrow 0.8 and pyo3 0.28 APIs. The signatures of the Python-facing API are
+  unchanged; existing user code does not need to be adjusted beyond the
+  dependency bumps above.
+- The WKB-producing functions (``cells_to_wkb_polygons``, ``cells_to_wkb_points``,
+  ``vertexes_to_wkb_points``, ``directededges_to_wkb_linestrings``) keep
+  returning ``large_binary`` arrays (i64 offsets) as in 0.22, and now raise a
+  Python exception instead of panicking when the WKB serialization fails.
+- ``ContainmentMode`` is now hashable and can be used as a dict key or in sets.
 
 
 0.22.0 - 2024-11-26
