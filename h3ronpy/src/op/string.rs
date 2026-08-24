@@ -17,9 +17,9 @@ pub(crate) fn cells_parse(
     py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let cells = py.allow_threads(|| {
+    let cells = py.detach(|| {
         if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
             CellIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
                 .into_pyresult()
@@ -42,9 +42,9 @@ pub(crate) fn vertexes_parse(
     py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let vertexes = py.allow_threads(|| {
+    let vertexes = py.detach(|| {
         if let Some(utf8array) = boxed_array.as_any().downcast_ref::<StringArray>() {
             VertexIndexArray::parse_genericstringarray(utf8array, set_failing_to_invalid)
                 .into_pyresult()
@@ -67,9 +67,9 @@ pub(crate) fn directededges_parse(
     py: Python<'_>,
     stringarray: PyArray,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let (boxed_array, _field) = stringarray.into_inner();
-    let edges = py.allow_threads(|| {
+    let edges = py.detach(|| {
         if let Some(stringarray) = boxed_array.as_any().downcast_ref::<StringArray>() {
             DirectedEdgeIndexArray::parse_genericstringarray(stringarray, set_failing_to_invalid)
                 .into_pyresult()
@@ -88,29 +88,35 @@ pub(crate) fn directededges_parse(
 
 #[pyfunction]
 #[pyo3(signature = (cellarray))]
-pub(crate) fn cells_to_string(py: Python, cellarray: PyCellArray) -> PyResult<PyObject> {
+pub(crate) fn cells_to_string(
+    py: Python<'_>,
+    cellarray: PyCellArray,
+) -> PyResult<Bound<'_, PyAny>> {
     let stringarray: LargeStringArray =
         cellarray.as_ref().to_genericstringarray().into_pyresult()?;
-    PyArray::from_array_ref(Arc::new(stringarray)).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(stringarray)).into_arro3(py)
 }
 
 #[pyfunction]
 #[pyo3(signature = (vertexarray))]
-pub(crate) fn vertexes_to_string(py: Python, vertexarray: &Bound<PyAny>) -> PyResult<PyObject> {
+pub(crate) fn vertexes_to_string<'py>(
+    py: Python<'py>,
+    vertexarray: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     let stringarray: LargeStringArray = pyarray_to_vertexindexarray(vertexarray)?
         .to_genericstringarray()
         .into_pyresult()?;
-    PyArray::from_array_ref(Arc::new(stringarray)).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(stringarray)).into_arro3(py)
 }
 
 #[pyfunction]
 #[pyo3(signature = (directededgearray))]
-pub(crate) fn directededges_to_string(
-    py: Python,
-    directededgearray: &Bound<PyAny>,
-) -> PyResult<PyObject> {
+pub(crate) fn directededges_to_string<'py>(
+    py: Python<'py>,
+    directededgearray: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     let stringarray: LargeStringArray = pyarray_to_directededgeindexarray(directededgearray)?
         .to_genericstringarray()
         .into_pyresult()?;
-    PyArray::from_array_ref(Arc::new(stringarray)).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(stringarray)).into_arro3(py)
 }

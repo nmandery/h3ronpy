@@ -4,11 +4,13 @@ resolver = "2"
 members = ["h3ronpy", "crates/h3arrow"]
 
 [workspace.dependencies]
-geo = "0.29"
+geo = "0.33"
 geo-types = "0.7"
-h3o = { version = "0.7" }
+h3o = { version = "0.10" }
 rayon = "^1"
-arrow = { version = "53" }
+arrow = { version = "58" }
+geoarrow-array = { version = "0.8" }
+geoarrow = { version = "0.8" }
 
 [profile.release]
 lto = "thin"

@@ -14,6 +14,7 @@ use nom::bytes::complete::{tag, take_while, take_while_m_n};
 use nom::combinator::map_res;
 use nom::number::complete::double;
 use nom::IResult;
+use nom::Parser;
 
 use crate::error::Error;
 
@@ -67,13 +68,15 @@ fn is_whitespace(c: char) -> bool {
 }
 
 fn seperator(s: &str) -> IResult<&str, &str> {
-    alt((tag(","), (tag(";"))))(s)
+    alt((tag(","), (tag(";")))).parse(s)
 }
 
 fn u8_str(s: &str) -> IResult<&str, u8> {
-    map_res(take_while_m_n(1, 2, |c: char| c.is_ascii_digit()), |u8s| {
-        u8::from_str(u8s)
-    })(s)
+    map_res(
+        take_while_m_n(1, 2, |c: char| c.is_ascii_digit()),
+        |u8s: &str| u8::from_str(u8s),
+    )
+    .parse(s)
 }
 
 fn parse_coordinate_and_resolution(s: &str) -> IResult<&str, (Coord, u8)> {

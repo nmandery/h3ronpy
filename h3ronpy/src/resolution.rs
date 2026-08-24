@@ -4,8 +4,9 @@ use pyo3::prelude::*;
 
 pub struct PyResolution(Resolution);
 
-impl<'py> FromPyObject<'py> for PyResolution {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+impl<'a, 'py> FromPyObject<'a, 'py> for PyResolution {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         let int = ob.extract::<u8>()?;
         let res =
             Resolution::try_from(int).map_err(|err| PyValueError::new_err(err.to_string()))?;

@@ -17,7 +17,10 @@ where
 
 impl CompactOp for CellIndexArray {
     fn compact(&self) -> Result<Self, Error> {
-        Ok(CellIndex::compact(self.iter().flatten())?.collect())
+        // TODO: find a way to avoid allocation of a new vec
+        let mut cells: Vec<_> = self.iter().flatten().collect();
+        CellIndex::compact(&mut cells)?;
+        Ok(cells.into())
     }
 
     fn compact_mixed_resolutions(&self) -> Result<Self, Error> {
@@ -76,7 +79,8 @@ impl CellSet {
                 let mut compacted_in = std::mem::take(&mut self.cells_by_resolution[r_idx]);
                 compacted_in.sort_unstable();
                 compacted_in.dedup();
-                for cell in CellIndex::compact(compacted_in.into_iter())? {
+                CellIndex::compact(&mut compacted_in)?;
+                for cell in compacted_in {
                     self.insert(cell);
                 }
                 res = h3_res.pred();
