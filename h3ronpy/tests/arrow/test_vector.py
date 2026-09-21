@@ -62,7 +62,7 @@ SOME_POLYGON = shapely.Polygon(((10.0, 45.0), (10.0, 46.0), (11.0, 46.0), (11.0,
 def test_wkb_outputs_are_large_binary():
     # regression test: with geoarrow-array 0.8, the `WkbArray` alias uses i32
     # offsets. All WKB-producing functions must keep returning large_binary
-    # (i64 offsets) as in h3ronpy 0.22.
+    # (i64 offsets).
     cells = geometry_to_cells(SOME_POLYGON, 5)
     assert len(cells) > 0
 
