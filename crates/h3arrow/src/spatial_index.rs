@@ -109,7 +109,7 @@ where
         debug_assert_eq!(builder.len(), self.array.len());
 
         let envelope = AABB::from_corners(to_coord(rect.min()), to_coord(rect.max()));
-        let locator = self.rtree.locate_in_envelope_intersecting(&envelope);
+        let locator = self.rtree.locate_in_envelope_intersecting(envelope);
         for located_array_position in locator {
             if let Some(value) = self.array.get(located_array_position.data) {
                 if !builder.get_bit(located_array_position.data) {

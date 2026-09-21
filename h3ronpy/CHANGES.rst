@@ -9,6 +9,36 @@ adheres to `Semantic
 Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 
+Unreleased
+----------
+
+- **Breaking**: The minimum supported Python version is now **3.12**. The
+  wheels are built against the ``abi3`` stable ABI for Python 3.12 and will
+  no longer install on Python 3.9 - 3.11. Python 3.13 and 3.14 are supported.
+- **Breaking**: ``numpy`` is now required in version **>=2.0**. The extension
+  is built against the numpy 2 ABI via the Rust ``numpy`` 0.28 crate. numpy 1.x
+  is no longer supported.
+- **Breaking**: ``pyarrow`` (used by the ``pandas`` integration and the test
+  suite) is now required in version **>=24**. Older releases are built against
+  the numpy 1.x ABI and cannot be imported under numpy 2.
+- **Breaking**: ``Shapely`` (test dependency) is now required in version
+  **>=2.0** for numpy 2 ABI compatibility and for ``shapely.from_wkb``, which
+  is used by the raster module.
+- Upgrade the native (Rust) stack: ``h3o`` 0.7 -> 0.10, ``rasterh3`` 0.10 ->
+  0.12, ``geo`` 0.29 -> 0.33, ``arrow`` 53 -> 58, ``geoarrow`` / ``geoarrow-array``
+  -> 0.8, ``pyo3`` 0.22 -> 0.28, ``pyo3-arrow`` 0.5.1 -> 0.17, ``ndarray`` 0.16
+  -> 0.17, ``numpy`` (Rust) 0.22 -> 0.28.
+- Internal: migrate the ``h3arrow`` crate and the Python bindings to the new
+  geoarrow 0.8 and pyo3 0.28 APIs. The signatures of the Python-facing API are
+  unchanged; existing user code does not need to be adjusted beyond the
+  dependency bumps above.
+- The WKB-producing functions (``cells_to_wkb_polygons``, ``cells_to_wkb_points``,
+  ``vertexes_to_wkb_points``, ``directededges_to_wkb_linestrings``) keep
+  returning ``large_binary`` arrays (i64 offsets) as in 0.22, and now raise a
+  Python exception instead of panicking when the WKB serialization fails.
+- ``ContainmentMode`` is now hashable and can be used as a dict key or in sets.
+
+
 0.22.0 - 2024-11-26
 -------------------
 

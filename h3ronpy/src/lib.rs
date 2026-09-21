@@ -49,15 +49,15 @@ fn h3ronpyrs(py: Python<'_>, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(version, m)?)?;
     m.add_function(wrap_pyfunction!(is_release_build, m)?)?;
 
-    let raster_submod = PyModule::new_bound(py, "raster")?;
+    let raster_submod = PyModule::new(py, "raster")?;
     init_raster_submodule(&raster_submod)?;
     m.add_submodule(&raster_submod)?;
 
-    let op_submod = PyModule::new_bound(py, "op")?;
+    let op_submod = PyModule::new(py, "op")?;
     init_op_submodule(&op_submod)?;
     m.add_submodule(&op_submod)?;
 
-    let vector_submod = PyModule::new_bound(py, "vector")?;
+    let vector_submod = PyModule::new(py, "vector")?;
     init_vector_submodule(&vector_submod)?;
     m.add_submodule(&vector_submod)?;
 

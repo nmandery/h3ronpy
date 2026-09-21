@@ -8,20 +8,19 @@ use h3arrow::array::CellIndexArray;
 use h3arrow::h3o::CellIndex;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::PyAnyMethods;
-use pyo3::{pyfunction, Bound, PyAny, PyObject, PyResult, Python};
+use pyo3::{pyfunction, Bound, PyAny, PyResult, Python};
 use pyo3_arrow::error::PyArrowResult;
 use pyo3_arrow::PyRecordBatch;
-use std::iter::repeat;
 use std::sync::Arc;
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, anchor, set_failing_to_invalid = false))]
-pub(crate) fn cells_to_localij(
-    py: Python,
+pub(crate) fn cells_to_localij<'py>(
+    py: Python<'py>,
     cellarray: PyCellArray,
-    anchor: &Bound<PyAny>,
+    anchor: &Bound<'py, PyAny>,
     set_failing_to_invalid: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'py, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let anchorarray = get_anchor_array(anchor, cellindexarray.len())?;
 
@@ -44,23 +43,23 @@ pub(crate) fn cells_to_localij(
         Arc::new(anchor),
     ];
     let batch = RecordBatch::try_new(Arc::new(schema), columns)?;
-    Ok(PyRecordBatch::new(batch).to_arro3(py)?)
+    Ok(PyRecordBatch::new(batch).into_arro3(py)?)
 }
 
 #[pyfunction]
 #[pyo3(signature = (anchor, i_array, j_array, set_failing_to_invalid = false))]
-pub(crate) fn localij_to_cells(
-    py: Python<'_>,
-    anchor: &Bound<PyAny>,
-    i_array: &Bound<PyAny>,
-    j_array: &Bound<PyAny>,
+pub(crate) fn localij_to_cells<'py>(
+    py: Python<'py>,
+    anchor: &Bound<'py, PyAny>,
+    i_array: &Bound<'py, PyAny>,
+    j_array: &Bound<'py, PyAny>,
     set_failing_to_invalid: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'py, PyAny>> {
     let i_array = pyarray_to_native::<Int32Array>(i_array)?;
     let j_array = pyarray_to_native::<Int32Array>(j_array)?;
     let anchorarray = get_anchor_array(anchor, i_array.len())?;
 
-    let cellarray = py.allow_threads(|| {
+    let cellarray = py.detach(|| {
         let localij_arrays =
             LocalIJArrays::try_new(anchorarray, i_array, j_array).into_pyresult()?;
 
@@ -77,13 +76,16 @@ pub(crate) fn localij_to_cells(
 fn get_anchor_array(anchor: &Bound<PyAny>, len: usize) -> PyResult<CellIndexArray> {
     if let Ok(anchor) = anchor.extract::<u64>() {
         let anchor_cell = CellIndex::try_from(anchor).into_pyresult()?;
-        Ok(CellIndexArray::from_iter(repeat(anchor_cell).take(len)))
+        Ok(CellIndexArray::from_iter(std::iter::repeat_n(
+            anchor_cell,
+            len,
+        )))
     } else if let Ok(anchorarray) = pyarray_to_cellindexarray(anchor) {
         Ok(anchorarray)
     } else {
-        return Err(PyValueError::new_err(format!(
+        Err(PyValueError::new_err(format!(
             "Expected a single cell or an array of cells, found type {:?}",
             anchor.get_type(),
-        )));
+        )))
     }
 }

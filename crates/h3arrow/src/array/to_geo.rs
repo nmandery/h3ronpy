@@ -5,6 +5,7 @@ use crate::array::{
 use crate::error::Error;
 use geo::{CoordsIter, ToRadians};
 use geo_types::{Coord, Line, LineString, MultiPoint, MultiPolygon, Point, Polygon};
+use h3o::geom::SolventBuilder;
 use h3o::{CellIndex, DirectedEdgeIndex, LatLng, VertexIndex};
 use std::convert::Infallible;
 use std::iter::{repeat, Map, Repeat, Zip};
@@ -202,14 +203,8 @@ impl ToMultiPolygons for H3ListArray<CellIndex> {
     fn to_multipolygons(&self, use_degrees: bool) -> Result<Self::Output, Self::Error> {
         self.iter_arrays()
             .map(|opt| {
-                opt.map(|res| {
-                    res.and_then(|array| {
-                        array
-                            .to_multipolygons(use_degrees)
-                            .map_err(Self::Error::from)
-                    })
-                })
-                .transpose()
+                opt.map(|res| res.and_then(|array| array.to_multipolygons(use_degrees)))
+                    .transpose()
             })
             .collect()
     }
@@ -220,7 +215,8 @@ impl ToMultiPolygons for CellIndexArray {
     type Output = MultiPolygon;
 
     fn to_multipolygons(&self, use_degrees: bool) -> Result<Self::Output, Self::Error> {
-        let mut multi_polygons = h3o::geom::dissolve(self.iter().flatten())?;
+        let solvent = SolventBuilder::new().build();
+        let mut multi_polygons = solvent.dissolve(self.iter().flatten())?;
         if !use_degrees {
             multi_polygons.to_radians_in_place();
         }

@@ -53,4 +53,8 @@ pub enum Error {
 
     #[error(transparent)]
     IO(#[from] std::io::Error),
+
+    #[cfg(feature = "geoarrow")]
+    #[error(transparent)]
+    GeoArrow(#[from] geoarrow::error::GeoArrowError),
 }

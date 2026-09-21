@@ -1,4 +1,5 @@
 use h3arrow::error::Error as A3Error;
+use h3arrow::export::geoarrow;
 use pyo3::exceptions::{PyIOError, PyRuntimeError, PyValueError};
 use pyo3::{PyErr, PyResult};
 use rasterh3::Error;
@@ -12,6 +13,12 @@ pub trait IntoPyErr {
 }
 
 impl IntoPyErr for h3arrow::export::arrow::error::ArrowError {
+    fn into_pyerr(self) -> PyErr {
+        PyRuntimeError::new_err(self.to_string())
+    }
+}
+
+impl IntoPyErr for geoarrow::error::GeoArrowError {
     fn into_pyerr(self) -> PyErr {
         PyRuntimeError::new_err(self.to_string())
     }
@@ -38,6 +45,7 @@ impl IntoPyErr for A3Error {
             | A3Error::LengthMismatch
             | A3Error::InvalidWKB => PyValueError::new_err(self.to_string()),
             A3Error::IO(e) => e.into_pyerr(),
+            A3Error::GeoArrow(e) => e.into_pyerr(),
         }
     }
 }

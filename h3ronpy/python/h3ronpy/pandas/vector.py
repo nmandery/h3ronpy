@@ -1,5 +1,4 @@
 from functools import wraps
-from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -10,7 +9,7 @@ import h3ronpy.vector as _hv
 from h3ronpy import DEFAULT_CELL_COLUMN_NAME, H3_CRS, ContainmentMode
 
 
-def _geoseries_from_wkb(func, doc: Optional[str] = None, name: Optional[str] = None):
+def _geoseries_from_wkb(func, doc: str | None = None, name: str | None = None):
     @wraps(func)
     def wrapper(arr, *args, **kw):
         result = func(arr.values, *args, **kw)

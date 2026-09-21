@@ -2,7 +2,7 @@ use crate::array::{CellIndexArray, H3ListArray, H3ListArrayBuilder};
 use crate::error::Error;
 use h3o::{CellIndex, Resolution};
 use std::cmp::Ordering;
-use std::iter::repeat;
+use std::iter::repeat_n;
 
 pub struct ChangedResolutionPair<T> {
     /// values before the resolution change
@@ -109,7 +109,7 @@ impl ChangeResolutionOp for CellIndexArray {
         self.iter().flatten().for_each(|cell| {
             let len_before = after_vec.len();
             extend_with_cell(&mut after_vec, cell, resolution);
-            before_vec.extend(repeat(cell).take(after_vec.len() - len_before));
+            before_vec.extend(repeat_n(cell, after_vec.len() - len_before));
         });
 
         Ok(ChangedResolutionPair {

@@ -1,47 +1,46 @@
+use crate::array::PyCellArray;
+use crate::arrow_interop::*;
+use crate::error::IntoPyResult;
+use crate::DEFAULT_CELL_COLUMN_NAME;
 use arrow::array::{
     Array, ArrayRef, GenericListArray, LargeListArray, PrimitiveArray, RecordBatch, UInt32Array,
 };
 use arrow::datatypes::{Field, Schema};
 use h3arrow::algorithm::{GridDiskDistances, GridOp, KAggregationMethod};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
-use pyo3::{PyObject, PyResult};
+use pyo3::prelude::*;
+use pyo3::PyResult;
 use pyo3_arrow::error::PyArrowResult;
 use pyo3_arrow::{PyArray, PyRecordBatch};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use crate::array::PyCellArray;
-use crate::arrow_interop::*;
-use crate::error::IntoPyResult;
-use crate::DEFAULT_CELL_COLUMN_NAME;
-use pyo3::prelude::*;
-
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, flatten = false))]
 pub(crate) fn grid_disk(
-    py: Python,
+    py: Python<'_>,
     cellarray: PyCellArray,
     k: u32,
     flatten: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'_, PyAny>> {
     let cellindexarray = cellarray.into_inner();
     let listarray = cellindexarray.grid_disk(k).into_pyresult()?;
     if flatten {
         let cellindexarray = listarray.into_flattened().into_pyresult()?;
         h3array_to_pyarray(cellindexarray, py)
     } else {
-        PyArray::from_array_ref(Arc::new(LargeListArray::from(listarray))).to_arro3(py)
+        PyArray::from_array_ref(Arc::new(LargeListArray::from(listarray))).into_arro3(py)
     }
 }
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, flatten = false))]
 pub(crate) fn grid_disk_distances(
-    py: Python,
+    py: Python<'_>,
     cellarray: PyCellArray,
     k: u32,
     flatten: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let griddiskdistances = cellarray
         .into_inner()
         .grid_disk_distances(k)
@@ -53,12 +52,12 @@ pub(crate) fn grid_disk_distances(
 #[pyfunction]
 #[pyo3(signature = (cellarray, k_min, k_max, flatten = false))]
 pub(crate) fn grid_ring_distances(
-    py: Python,
+    py: Python<'_>,
     cellarray: PyCellArray,
     k_min: u32,
     k_max: u32,
     flatten: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     if k_min >= k_max {
         return Err(PyValueError::new_err("k_min must be less than k_max").into());
     }
@@ -71,10 +70,10 @@ pub(crate) fn grid_ring_distances(
 }
 
 fn return_griddiskdistances_table(
-    py: Python,
+    py: Python<'_>,
     griddiskdistances: GridDiskDistances<i64>,
     flatten: bool,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'_, PyAny>> {
     let (cells, distances): (ArrayRef, ArrayRef) = if flatten {
         (
             Arc::new(PrimitiveArray::from(
@@ -103,7 +102,7 @@ fn return_griddiskdistances_table(
     ]);
     let columns = vec![cells, distances];
     let batch = RecordBatch::try_new(Arc::new(schema), columns)?;
-    Ok(PyRecordBatch::new(batch).to_arro3(py)?)
+    Ok(PyRecordBatch::new(batch).into_arro3(py)?)
 }
 
 struct KAggregationMethodWrapper(KAggregationMethod);
@@ -122,12 +121,12 @@ impl FromStr for KAggregationMethodWrapper {
 
 #[pyfunction]
 #[pyo3(signature = (cellarray, k, aggregation_method))]
-pub(crate) fn grid_disk_aggregate_k(
-    py: Python,
+pub(crate) fn grid_disk_aggregate_k<'py>(
+    py: Python<'py>,
     cellarray: PyCellArray,
     k: u32,
     aggregation_method: &str,
-) -> PyArrowResult<PyObject> {
+) -> PyArrowResult<Bound<'py, PyAny>> {
     let aggregation_method = KAggregationMethodWrapper::from_str(aggregation_method)?;
 
     let griddiskaggk = cellarray
@@ -148,5 +147,5 @@ pub(crate) fn grid_disk_aggregate_k(
         Arc::new(griddiskaggk.distances),
     ];
     let batch = RecordBatch::try_new(Arc::new(schema), columns)?;
-    Ok(PyRecordBatch::new(batch).to_arro3(py)?)
+    Ok(PyRecordBatch::new(batch).into_arro3(py)?)
 }

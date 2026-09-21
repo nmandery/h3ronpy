@@ -1,5 +1,3 @@
-from typing import Optional
-
 from arro3.core import Array, DataType, RecordBatch
 
 from h3ronpy import ContainmentMode, _to_arrow_array, _to_uint64_array
@@ -35,7 +33,7 @@ def coordinates_to_cells(latarray, lngarray, resarray, radians: bool = False) ->
     )
 
 
-def cells_bounds(arr) -> Optional[tuple]:
+def cells_bounds(arr) -> tuple | None:
     """
     Bounds of the complete array as a tuple `(minx, miny, maxx, maxy)`.
     """

@@ -2,7 +2,7 @@ use crate::array::{CellIndexArray, H3ArrayBuilder};
 use crate::error::Error;
 use arrow::array::Int32Array;
 use h3o::{CellIndex, CoordIJ, LocalIJ};
-use std::iter::repeat;
+use std::iter::repeat_n;
 
 pub struct LocalIJArrays {
     pub anchors: CellIndexArray,
@@ -97,7 +97,7 @@ impl ToLocalIJOp for CellIndexArray {
         anchor: CellIndex,
         set_failing_to_invalid: bool,
     ) -> Result<LocalIJArrays, Error> {
-        let anchors = CellIndexArray::from_iter(repeat(anchor).take(self.len()));
+        let anchors = CellIndexArray::from_iter(repeat_n(anchor, self.len()));
         self.to_local_ij_array(anchors, set_failing_to_invalid)
     }
 

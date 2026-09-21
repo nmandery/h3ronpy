@@ -7,6 +7,20 @@ Installation
     `geopandas` and `polars`. These packages need to be installed separately.
 
 
+Requirements
+------------
+
+`h3ronpy` requires **Python 3.12 or newer** (3.12, 3.13 and 3.14 are tested) and **numpy 2.0 or newer**.
+The native extension is built against the numpy 2 ABI and the CPython 3.12 stable ABI (``abi3``), so it will not
+install or import on older Python or numpy 1.x releases.
+
+When using the optional integrations, mind their version requirements as well:
+
+- the ``pandas`` / ``geopandas`` integration requires **pyarrow >= 24** (older releases are built against the numpy 1.x
+  ABI and cannot be imported under numpy 2)
+- the test suite additionally requires **Shapely >= 2.0**
+
+
 From PyPi
 ---------
 

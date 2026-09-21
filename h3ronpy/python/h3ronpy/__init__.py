@@ -16,7 +16,6 @@ from h3ronpy.h3ronpyrs import DEFAULT_CELL_COLUMN_NAME, ContainmentMode, op, ver
 if TYPE_CHECKING:
     import polars as pl
 
-
 __version__ = version()
 
 H3_CRS = "EPSG:4326"

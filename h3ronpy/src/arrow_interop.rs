@@ -13,12 +13,12 @@ use pyo3::Python;
 use crate::error::{IntoPyErr, IntoPyResult};
 
 #[inline]
-pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python) -> PyResult<PyObject>
+pub fn h3array_to_pyarray<IX>(h3array: H3Array<IX>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>>
 where
     IX: H3IndexArrayValue,
 {
     let pa: UInt64Array = h3array.into();
-    PyArray::from_array_ref(Arc::new(pa)).to_arro3(py)
+    PyArray::from_array_ref(Arc::new(pa)).into_arro3(py)
 }
 
 pub(crate) fn pyarray_to_native<T: Any + Array + Clone>(obj: &Bound<PyAny>) -> PyResult<T> {
