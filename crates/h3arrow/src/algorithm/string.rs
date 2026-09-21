@@ -13,8 +13,7 @@ use nom::branch::alt;
 use nom::bytes::complete::{tag, take_while, take_while_m_n};
 use nom::combinator::map_res;
 use nom::number::complete::double;
-use nom::IResult;
-use nom::Parser;
+use nom::{IResult, Parser};
 
 use crate::error::Error;
 
