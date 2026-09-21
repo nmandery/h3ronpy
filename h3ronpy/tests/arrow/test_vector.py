@@ -109,8 +109,10 @@ def test_wkb_to_cells_flatten_and_compact():
 
 
 @pytest.mark.xfail(
-    reason="compact+flatten compacts the already per-geometry-compacted (mixed resolution) "
-    "cells a second time and fails with 'heterogeneous resolution'. Present in 0.22.0 as well.",
+    reason=(
+        "compact+flatten compacts the already per-geometry-compacted (mixed resolution) "
+        "cells a second time and fails with 'heterogeneous resolution'. Present in 0.22.0 as well."
+    ),
     strict=True,
 )
 def test_wkb_to_cells_compact_and_flatten_combined():
