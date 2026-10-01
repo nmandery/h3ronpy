@@ -112,7 +112,7 @@ where
 
     /// Returns an iterator over the values and validity as Option.
     #[allow(clippy::type_complexity)]
-    pub fn iter(&self) -> PrimitiveArrayH3IndexIter<IX> {
+    pub fn iter(&self) -> PrimitiveArrayH3IndexIter<'_, IX> {
         // as the array contents have been validated upon construction, we just transmute to the h3o type
         PrimitiveArrayH3IndexIter {
             primitive_array_iter: self.primitive_array.iter(),

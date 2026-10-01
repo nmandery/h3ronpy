@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use rasterh3::transform::{from_gdal, from_rasterio};
 
 /// affine geotransform
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Transform {
     pub(crate) inner: AffineTransform<f64>,

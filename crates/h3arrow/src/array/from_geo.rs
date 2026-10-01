@@ -318,11 +318,9 @@ pub fn geometry_to_cells(
     cells.sort_unstable();
     cells.dedup();
 
-    let cells = if options.compact {
-        CellIndex::compact(cells)?.collect()
-    } else {
-        cells
-    };
+    if options.compact {
+        CellIndex::compact(&mut cells)?
+    }
     Ok(cells)
 }
 

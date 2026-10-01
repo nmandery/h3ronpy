@@ -8,7 +8,7 @@ from h3ronpy import __version__ as hp_version
 # -- Project information
 
 project = "h3ronpy"
-copyright = "2023, the h3ronpy authors"
+copyright = "2023-2026, the h3ronpy authors"
 author = "Nico Mandery"
 
 

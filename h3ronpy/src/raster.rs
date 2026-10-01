@@ -1,7 +1,6 @@
 use geo_types::Point;
 use pyo3_arrow::PyArray;
 use std::hash::Hash;
-use std::iter::repeat;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -134,7 +133,7 @@ where
         } else {
             cells.extend(cell_coverage.into_uncompacted_iter(h3_resolution));
         };
-        values.extend(repeat(*value).take(cells.len() - len_before));
+        values.extend(std::iter::repeat_n(*value, cells.len() - len_before));
     }
     Ok((values, cells))
 }
@@ -143,17 +142,17 @@ macro_rules! make_raster_to_h3_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         #[pyo3(signature = (np_array, transform, h3_resolution, axis_order_str, compact, nodata_value=None))]
-        fn $name(
-            py: Python,
+        fn $name<'py>(
+            py: Python<'py>,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
             compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(PyObject, PyObject)> {
+        ) -> PyResult<(Bound<'py, PyAny>, Bound<'py, PyAny>)> {
             let arr = np_array.as_array();
-            let (values, cells) = py.allow_threads(|| raster_to_h3(
+            let (values, cells) = py.detach(|| raster_to_h3(
                 &arr,
                 transform,
                 &nodata_value,
@@ -162,7 +161,7 @@ macro_rules! make_raster_to_h3_variant {
                 compact,
             ).map(|(values, cells)| (<$array_dtype>::from(values), cells)))?;
 
-            let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
+            let values = PyArray::from_array_ref(Arc::new(values)).into_arro3(py)?;
             let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
             Ok((values, cells))
@@ -174,20 +173,20 @@ macro_rules! make_raster_to_h3_float_variant {
     ($name:ident, $dtype:ty, $array_dtype:ty) => {
         #[pyfunction]
         #[pyo3(signature = (np_array, transform, h3_resolution, axis_order_str, compact, nodata_value=None))]
-        fn $name(
-            py: Python,
+        fn $name<'py>(
+            py: Python<'py>,
             np_array: PyReadonlyArray2<$dtype>,
             transform: &Transform,
             h3_resolution: u8,
             axis_order_str: &str,
             compact: bool,
             nodata_value: Option<$dtype>,
-        ) -> PyResult<(PyObject, PyObject)> {
+        ) -> PyResult<(Bound<'py, PyAny>, Bound<'py, PyAny>)> {
             let arr = np_array.as_array();
             // create a copy with the values wrapped in ordered floats to
             // support the internal hashing
             let of_arr = arr.map(|v| OrderedFloat::from(*v));
-            let (values, cells) = py.allow_threads(|| raster_to_h3(
+            let (values, cells) = py.detach(|| raster_to_h3(
                 &of_arr.view(),
                 transform,
                 &nodata_value.map(OrderedFloat::from),
@@ -198,7 +197,7 @@ macro_rules! make_raster_to_h3_float_variant {
                 <$array_dtype>::from(values.into_iter().map(|v| v.into_inner()).collect::<Vec<$dtype>>()),
                 cells)))?;
 
-            let values = PyArray::from_array_ref(Arc::new(values)).to_arro3(py)?;
+            let values = PyArray::from_array_ref(Arc::new(values)).into_arro3(py)?;
             let cells = h3array_to_pyarray(CellIndexArray::from(cells), py)?;
 
             Ok((values, cells))
@@ -219,7 +218,7 @@ make_raster_to_h3_float_variant!(raster_to_h3_f32, f32, Float32Array);
 make_raster_to_h3_float_variant!(raster_to_h3_f64, f64, Float64Array);
 
 pub fn init_raster_submodule(m: &Bound<PyModule>) -> PyResult<()> {
-    m.add("Transform", m.py().get_type_bound::<Transform>())?;
+    m.add("Transform", m.py().get_type::<Transform>())?;
 
     m.add_function(wrap_pyfunction!(nearest_h3_resolution, m)?)?;
     m.add_function(wrap_pyfunction!(raster_to_h3_u8, m)?)?;

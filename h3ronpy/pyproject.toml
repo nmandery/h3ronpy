@@ -8,7 +8,7 @@ addopts = "--doctest-modules -v -s"
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py312"
 builtins = ["ellipsis"]
 exclude = [
   ".git",
@@ -44,36 +44,42 @@ ban-relative-imports = "all"
 
 [tool.black]
 line-length = 120
-target-version = ["py39"]
+target-version = ["py312"]
 
 [project]
 name = "h3ronpy"
 readme = "../README.rst"
 license = "MIT"
 dependencies = [
-  "numpy>=1.24",
+  # numpy 2.0; the Rust `numpy` 0.28 crate and all optional extras below
+  # are compatible with the numpy 2 ABI.
+  "numpy>=2.0",
   "arro3-core>=0.4",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dynamic = ["version"]
 
 [project.optional-dependencies]
 polars = ["polars>=1"]
 pandas = [
   "geopandas>=1",
-  "pyarrow>=15",
+  "pyarrow>=24",
 ]
 test = [
   "rasterio>=1.4",
-  "Shapely>=1.7",
+  # Shapely 2 is required for numpy 2 ABI support and for `shapely.from_wkb`
+  "Shapely>=2.0",
   "pytest>=6",
   "h3>=4",
   "pytest-benchmark",
-  "pyarrow>=15",
+  "pyarrow>=24",
 ]
 
 [tool.maturin]
