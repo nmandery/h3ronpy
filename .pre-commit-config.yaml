@@ -7,7 +7,7 @@ repos:
       - id: check-merge-conflict
       - id: end-of-file-fixer
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.9
+    rev: v3.9.10
     hooks:
       - id: prettier
         args: ["--cache-location=.prettier_cache/cache"]
@@ -19,15 +19,15 @@ repos:
       - id: taplo-lint
         args: ["--no-schema"]
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+    rev: v0.27
     hooks:
       - id: validate-pyproject
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.8
+    rev: v0.17.2
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.5.1
+    rev: 26.10.1
     hooks:
       - id: black-jupyter
